@@ -9,15 +9,16 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-body{background:#060B14;color:#fff;font-family:'DM Sans',system-ui,sans-serif;overflow-x:hidden;min-height:100vh;}
+html,body{width:100%;min-height:100%;overflow-x:hidden;}
+body{background:#060B14;color:#fff;font-family:'DM Sans',system-ui,sans-serif;min-height:100vh;}
 ::-webkit-scrollbar{width:0;height:0;}
 input,button{font-family:'DM Sans',system-ui,sans-serif;}
 button{border:none;cursor:pointer;background:none;}
 .mono{font-family:'DM Mono',monospace;}
-.page{display:none;padding:58px 16px 80px;max-width:430px;margin:0 auto;min-height:100vh;}
+.page{display:none;width:100%;padding:58px 16px 96px;max-width:430px;margin:0 auto;min-height:100vh;}
 .page.active{display:block;}
-#topbar{position:fixed;top:0;left:0;right:0;z-index:999;background:rgba(6,11,20,.92);backdrop-filter:blur(24px);border-bottom:1px solid rgba(255,255,255,.07);padding:9px 16px;display:flex;justify-content:space-between;align-items:center;}
-#navbar{position:fixed;bottom:0;left:0;right:0;z-index:999;background:rgba(6,11,20,.95);backdrop-filter:blur(28px);border-top:1px solid rgba(255,255,255,.08);display:flex;}
+#topbar{position:fixed;top:0;left:50%;right:auto;transform:translateX(-50%);width:100%;max-width:430px;z-index:999;background:rgba(6,11,20,.92);backdrop-filter:blur(24px);border-bottom:1px solid rgba(255,255,255,.07);padding:9px 16px;display:flex;justify-content:space-between;align-items:center;}
+#navbar{position:fixed;bottom:0;left:50%;right:auto;transform:translateX(-50%);width:100%;max-width:430px;z-index:999;background:rgba(6,11,20,.95);backdrop-filter:blur(28px);border-top:1px solid rgba(255,255,255,.08);display:flex;}
 .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0 12px;color:rgba(255,255,255,.38);font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;position:relative;transition:color 160ms;}
 .nav-btn.active{color:#00D4FF;}
 .nav-btn.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:28px;height:2px;background:#00D4FF;border-radius:0 0 2px 2px;box-shadow:0 0 10px #00D4FF;}
@@ -34,7 +35,8 @@ button{border:none;cursor:pointer;background:none;}
 .act-buy{background:rgba(0,255,156,.14);border:1.5px solid rgba(0,255,156,.5);color:#00FF9C;box-shadow:0 0 8px rgba(0,255,156,.28);}
 .act-sell{background:rgba(255,61,127,.14);border:1.5px solid rgba(255,61,127,.5);color:#FF3D7F;}
 .act-hold{background:rgba(255,214,0,.12);border:1.5px solid rgba(255,214,0,.4);color:#FFD600;}
-.hscroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
+.hscroll{display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;max-width:100%;padding-bottom:4px;scrollbar-width:none;scroll-snap-type:x proximity;}
+.hscroll>*{scroll-snap-align:start;}
 .hscroll::-webkit-scrollbar{display:none;}
 .tab-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
 .tab-btn{border-radius:999px;padding:6px 12px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;transition:all 180ms;white-space:nowrap;flex-shrink:0;cursor:pointer;}
@@ -45,6 +47,11 @@ button{border:none;cursor:pointer;background:none;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.25;}}
 @keyframes spin{to{transform:rotate(360deg);}}
+@supports (padding: max(0px)) {
+  .page{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));padding-bottom:max(96px,calc(88px + env(safe-area-inset-bottom)));}
+  #topbar{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));}
+  #navbar{padding-bottom:env(safe-area-inset-bottom);}
+}
 .fade-in{animation:fadeIn 180ms ease-out;}
 .price-track{height:6px;background:rgba(255,255,255,.07);border-radius:99px;position:relative;overflow:visible;}
 .price-fill{height:100%;border-radius:99px;}
