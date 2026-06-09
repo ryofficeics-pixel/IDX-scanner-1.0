@@ -6,8 +6,6 @@
     "node": ">=18"
   },
   "scripts": {
-    "dev": "vercel dev",
     "check": "node --check api/idx-quotes.js && node --check api/flow-upload.js && node --check api/health.js"
   }
 }
-

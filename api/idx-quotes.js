@@ -1,19 +1,21 @@
 'use strict';
 
-const DEFAULT_SYMBOLS = [
-  'BBCA','BBRI','TLKM','ASII','GOTO','BMRI','SMGR','INCO',
-  'BYAN','ARTO','ADRO','PTBA','UNVR','SIDO','EXCL','MAPA'
-];
+const IDX_UNIVERSE = require('../data/idx-symbols.json');
+const IDX_SYMBOL_SET = new Set(IDX_UNIVERSE.map((row) => row.symbol));
+const DEFAULT_SYMBOLS = IDX_UNIVERSE.slice(0, 120).map((row) => row.symbol);
 const IHSG_SYM = '^JKSE';
+const MAX_REQUEST_SYMBOLS = 180;
 const TTL_MARKET_OPEN_MS = 60 * 1000;
 const TTL_MARKET_CLOSE_MS = 15 * 60 * 1000;
 let CACHE = { payload: null, fetchedAt: 0, key: null };
 
-const SAMPLE_QUOTES = Object.fromEntries(DEFAULT_SYMBOLS.map((symbol) => [symbol, {
-  symbol, price:null, prevClose:null, high:null, low:null, volume:null, pctChg:null,
-  asOf:null, source:'local-sample', priceFreshness:'LOCAL_SAMPLE', flow:null,
-  dataMode:'LOCAL_SAMPLE', error:'LIVE_PRICE_UNAVAILABLE'
-}]));
+function sampleQuotes(symbols) {
+  return Object.fromEntries(symbols.map((symbol) => [symbol, {
+    symbol, price:null, prevClose:null, high:null, low:null, volume:null, pctChg:null,
+    asOf:null, source:'local-sample', priceFreshness:'LOCAL_SAMPLE', flow:null,
+    dataMode:'LOCAL_SAMPLE', error:'LIVE_PRICE_UNAVAILABLE'
+  }]));
+}
 
 function nowISO() { return new Date().toISOString(); }
 function num(v) { const n = Number(v); return Number.isFinite(n) ? n : null; }
@@ -25,8 +27,13 @@ function setCors(res) {
 }
 function symbolsFromQuery(req) {
   const raw = req.query && req.query.symbols ? String(req.query.symbols) : '';
-  const symbols = raw ? raw.split(',').map((s) => s.trim().toUpperCase().replace('.JK','')).filter(Boolean) : DEFAULT_SYMBOLS;
-  return [...new Set(symbols)];
+  const symbols = raw
+    ? raw.split(',')
+      .map((s) => s.trim().toUpperCase().replace('.JK','').replace(/[^A-Z0-9]/g, ''))
+      .filter((s) => s && IDX_SYMBOL_SET.has(s))
+    : DEFAULT_SYMBOLS;
+  const unique = [...new Set(symbols)].slice(0, MAX_REQUEST_SYMBOLS);
+  return unique.length ? unique : DEFAULT_SYMBOLS;
 }
 function isMarketOpen() {
   const wib = new Date(new Date().toLocaleString('en-US', { timeZone:'Asia/Jakarta' }));
@@ -114,7 +121,21 @@ async function fetchPrices(symbols) {
   const warnings = [];
   let ihsg = null;
 
-  const all = ['__IHSG', ...symbols];
+  try {
+    const v7 = await fetchV7(symbols);
+    if (v7.__IHSG) {
+      const raw = v7.__IHSG;
+      ihsg = { ...raw, chg: raw.price != null && raw.prevClose != null ? raw.price - raw.prevClose : null, asOf: nowISO(), source:'yahoo-finance-v7' };
+    }
+    for (const symbol of symbols) {
+      if (v7[symbol]) quotes[symbol] = normalizeQuote(symbol, v7[symbol], 'yahoo-finance-v7', 'LIVE_PRICE');
+    }
+  } catch (error) {
+    warnings.push(`v7 batch failed: ${error.message}`);
+  }
+
+  const missing = symbols.filter((s) => !quotes[s]).slice(0, 40);
+  const all = [...(!ihsg ? ['__IHSG'] : []), ...missing];
   await Promise.allSettled(all.map(async (symbol) => {
     try {
       const raw = await fetchV8(symbol);
@@ -128,20 +149,9 @@ async function fetchPrices(symbols) {
     }
   }));
 
-  const missing = symbols.filter((s) => !quotes[s]);
-  if (!ihsg || missing.length) {
-    try {
-      const v7 = await fetchV7(missing);
-      if (!ihsg && v7.__IHSG) {
-        const raw = v7.__IHSG;
-        ihsg = { ...raw, chg: raw.price != null && raw.prevClose != null ? raw.price - raw.prevClose : null, asOf: nowISO(), source:'yahoo-finance-v7' };
-      }
-      for (const symbol of missing) {
-        if (v7[symbol]) quotes[symbol] = normalizeQuote(symbol, v7[symbol], 'yahoo-finance-v7', 'LIVE_PRICE');
-      }
-    } catch (error) {
-      warnings.push(`v7 fallback failed: ${error.message}`);
-    }
+  const skipped = symbols.filter((s) => !quotes[s]).length - missing.length;
+  if (skipped > 0) {
+    warnings.push(`${skipped} symbols skipped from v8 fallback to keep request within runtime budget`);
   }
 
   for (const symbol of symbols) {
@@ -274,7 +284,7 @@ module.exports = async function handler(req, res) {
     payload.fromCache = true;
   } else {
     payload = buildPayload({
-      symbols, quotes:SAMPLE_QUOTES, ihsg:null, errors:price.errors,
+      symbols, quotes:sampleQuotes(symbols), ihsg:null, errors:price.errors,
       warnings:['All live providers failed. Local sample is not live market data.', ...price.warnings, ...flow.warnings],
       freshness:'LOCAL_SAMPLE', priceProvider:'local-sample', flowProvider:flow.provider,
     });

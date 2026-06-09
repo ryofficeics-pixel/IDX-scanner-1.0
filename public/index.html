@@ -112,6 +112,7 @@ button{border:none;cursor:pointer;background:none;}
   </div>
 </div>
 
+<script src="/idx-symbols.js"></script>
 <script>
 'use strict';
 
@@ -139,6 +140,11 @@ function validPrice(v) {
 }
 function clamp(v, lo, hi) {
   return Math.max(lo, Math.min(hi, num(v, lo)));
+}
+function escAttr(v) {
+  return String(v == null ? '' : v).replace(/[&<>"']/g, function(ch){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];
+  });
 }
 function hasFlowData(s) {
   return ['brokerBuy','brokerSell','foreignBuy','foreignSell','netBuy','freqBuy','freqSell']
@@ -237,7 +243,14 @@ var STOCK_META = {
   EXCL:{name:'XL Axiata',              sector:'Telco'},
   MAPA:{name:'Map Aktif Adiperkasa',    sector:'Retail'},
 };
+if (window.IDX_STOCK_META) {
+  Object.keys(window.IDX_STOCK_META).forEach(function(sym){
+    if (!STOCK_META[sym]) STOCK_META[sym] = window.IDX_STOCK_META[sym];
+  });
+}
 var SYMBOLS = Object.keys(STOCK_META);
+var DEFAULT_QUOTE_SYMBOLS = (window.IDX_DEFAULT_SYMBOLS || SYMBOLS.slice(0,120)).filter(function(sym){ return STOCK_META[sym]; });
+var DEFAULT_QUOTE_SET = new Set(DEFAULT_QUOTE_SYMBOLS);
 
 // ----
 // INITIAL SPARKLINES
@@ -269,7 +282,7 @@ var STATE = {
   syncErrors:[], syncWarnings:[],
   // UI state
   syncState:'idle', fetching:false,
-  syncTimer:null, syncInterval:60,
+  syncTimer:null, searchTimer:null, syncInterval:60,
   syncLog:[],
   // Flow data override (from CSV upload)
   uploadedFlow:{},
@@ -329,13 +342,16 @@ function validatePayload(p) {
 function applyPayload(p) {
   if (!p) return;
   var quotes = p.quotes || {};
-  SYMBOLS.forEach(function(sym) {
+  Object.keys(quotes).forEach(function(sym) {
     var q = quotes[sym];
     if (!q) return;
-    if (!validPrice(q.price)) return; // skip invalid
+    if (!STOCK_META[sym]) {
+      STOCK_META[sym] = {name:sym, sector:'IDX'};
+      SYMBOLS.push(sym);
+    }
     STATE.liveQuotes[sym] = q;
     // Append to sparkline
-    if (SPARKS[sym]) {
+    if (validPrice(q.price) && SPARKS[sym]) {
       SPARKS[sym] = SPARKS[sym].slice(-19).concat([Math.round(num(q.price))]);
     }
   });
@@ -370,14 +386,37 @@ function addLog(msg) {
   if (STATE.syncLog.length > 30) STATE.syncLog.shift();
 }
 
-async function fetchLive() {
+function searchUniverseMatches(query, limit) {
+  var q = String(query || '').trim().toLowerCase();
+  if (!q) return [];
+  return SYMBOLS.filter(function(sym) {
+    var meta = STOCK_META[sym] || {};
+    return sym.toLowerCase().includes(q)
+      || String(meta.name || '').toLowerCase().includes(q)
+      || String(meta.sector || '').toLowerCase().includes(q);
+  }).slice(0, limit || 40);
+}
+
+function symbolsForSync() {
+  var set = new Set(DEFAULT_QUOTE_SYMBOLS.slice(0, 120));
+  (STATE.watchlist || []).forEach(function(sym){ if (STOCK_META[sym]) set.add(sym); });
+  if (STATE.scanSearch) {
+    searchUniverseMatches(STATE.scanSearch, 40).forEach(function(sym){ set.add(sym); });
+  }
+  return Array.from(set).slice(0, 160);
+}
+
+async function fetchLive(force) {
   if (STATE.fetching) return;
   STATE.fetching = true;
   setSyncUI('fetching');
   addLog('Mengambil data dari backend web sync');
 
   try {
-    var res = await fetch('/api/idx-quotes', {
+    var params = new URLSearchParams();
+    params.set('symbols', symbolsForSync().join(','));
+    if (force) params.set('force', 'true');
+    var res = await fetch('/api/idx-quotes?' + params.toString(), {
       method: 'GET',
       headers: { 'Accept': 'application/json' },
       signal: AbortSignal.timeout(20000)
@@ -393,6 +432,7 @@ async function fetchLive() {
     setSyncUI(uiState);
     addLog('Sync berhasil. Freshness: ' + payload.freshness);
     renderCurrent();
+    focusScannerSearch();
   } catch(err) {
     var msg = err && err.message ? err.message : String(err);
     addLog('Sync gagal: ' + msg);
@@ -405,18 +445,20 @@ async function fetchLive() {
       STATE.lastSync = cached.savedAt || null;
       setSyncUI('stale');
       renderCurrent();
+      focusScannerSearch();
     } else {
       addLog('Tidak ada cache. Menampilkan data sample lokal.');
       STATE.freshness = 'LOCAL_SAMPLE';
       setSyncUI('local');
       renderCurrent();
+      focusScannerSearch();
     }
   } finally {
     STATE.fetching = false;
   }
 }
 
-function forceSync() { fetchLive(); }
+function forceSync() { fetchLive(true); }
 
 function startSyncTimer() {
   if (STATE.syncTimer) clearInterval(STATE.syncTimer);
@@ -819,7 +861,7 @@ function recommendationPanelHTML(enriched) {
 // PAGE: DASHBOARD
 // ----
 function renderDashboard() {
-  var enriched = getEnriched();
+  var enriched = getEnriched().filter(function(s){ return DEFAULT_QUOTE_SET.has(s.symbol) || STATE.watchlist.includes(s.symbol); });
   var ihsg = STATE.liveIHSG || {price:7089,chg:87,pctChg:1.24,high:7112,low:7042,marketState:'CLOSED'};
   var buys    = enriched.filter(function(s){return s.trading.action==='BUY';}).sort(function(a,b){return b.trading.conf-a.trading.conf;});
   var gainers = enriched.slice().sort(function(a,b){return b.pctChg-a.pctChg;}).slice(0,8);
@@ -897,7 +939,7 @@ function renderScanner() {
   document.getElementById('page-scanner').innerHTML=
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div style="font-size:18px;font-weight:800;">Scanner</div>'
     +'<div style="display:flex;gap:4px;">'+['card','compact','table'].map(function(m){return '<button onclick="setScanView(\''+m+'\')" style="background:'+(STATE.scanView===m?'rgba(0,212,255,.15)':'rgba(255,255,255,.05)')+';border:1px solid '+(STATE.scanView===m?'rgba(0,212,255,.5)':'rgba(255,255,255,.08)')+';border-radius:8px;padding:5px 9px;color:'+(STATE.scanView===m?C.cyan:'rgba(255,255,255,.38)')+';font-size:10px;font-weight:700;">'+(m==='card'?'Card':m==='compact'?'List':'Table')+'</button>';}).join('')+'</div></div>'
-    +'<div class="search-wrap"><span class="search-icon"></span><input class="search-input" placeholder="Cari saham, sektor" value="'+STATE.scanSearch+'" oninput="setScanSearch(this.value)"></div>'
+    +'<div class="search-wrap"><span class="search-icon"></span><input class="search-input" placeholder="Cari saham, sektor" value="'+escAttr(STATE.scanSearch)+'" oninput="setScanSearch(this.value)"></div>'
     +'<div class="tab-row" style="margin-bottom:6px;">'+filters.map(function(f){return '<button class="tab-btn" onclick="setScanFilter(\''+f[0]+'\')" style="background:'+(STATE.scanFilter===f[0]?f[2]+'18':'rgba(255,255,255,.04)')+';border:1px solid '+(STATE.scanFilter===f[0]?f[2]+'50':'rgba(255,255,255,.08)')+';color:'+(STATE.scanFilter===f[0]?f[2]:'rgba(255,255,255,.38)')+';">'+f[1]+'</button>';}).join('')+'</div>'
     +'<div class="tab-row" style="margin-bottom:10px;align-items:center;"><span style="font-size:9px;color:'+C.ter+';white-space:nowrap;">SORT:</span>'+sorts.map(function(s){return '<button class="tab-btn" onclick="setScanSort(\''+s[0]+'\')" style="background:'+(STATE.scanSort===s[0]?'rgba(255,214,0,.12)':'rgba(255,255,255,.04)')+';border:1px solid '+(STATE.scanSort===s[0]?'rgba(255,214,0,.5)':'rgba(255,255,255,.08)')+';color:'+(STATE.scanSort===s[0]?C.yellow:'rgba(255,255,255,.38)')+';">'+s[1]+'</button>';}).join('')+'</div>'
     +'<div style="font-size:11px;color:'+C.ter+';margin-bottom:10px;">'+enriched.length+' saham ditemukan</div>'+listHTML;
@@ -905,7 +947,24 @@ function renderScanner() {
 function setScanFilter(f){STATE.scanFilter=f;renderScanner();}
 function setScanSort(s){STATE.scanSort=s;renderScanner();}
 function setScanView(v){STATE.scanView=v;renderScanner();}
-function setScanSearch(v){STATE.scanSearch=v;renderScanner();}
+function focusScannerSearch(){
+  if (STATE.page !== 'scanner') return;
+  var input = document.querySelector('.search-input');
+  if (input) {
+    input.focus();
+    try { input.setSelectionRange(input.value.length, input.value.length); } catch(e) {}
+  }
+}
+function setScanSearch(v){
+  STATE.scanSearch = v;
+  if (STATE.searchTimer) clearTimeout(STATE.searchTimer);
+  STATE.searchTimer = setTimeout(function(){
+    if (STATE.page !== 'scanner') return;
+    renderScanner();
+    focusScannerSearch();
+    if (String(STATE.scanSearch || '').trim().length >= 2) fetchLive(true);
+  }, 420);
+}
 
 // ----
 // PAGE: SIGNALS

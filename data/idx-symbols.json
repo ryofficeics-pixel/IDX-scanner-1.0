@@ -1,0 +1,5450 @@
+[
+  {
+    "symbol": "BBCA",
+    "name": "PT Bank Central Asia Tbk",
+    "sector": "IDX",
+    "rank": 1
+  },
+  {
+    "symbol": "BREN",
+    "name": "PT Barito Renewables Energy Tbk",
+    "sector": "IDX",
+    "rank": 2
+  },
+  {
+    "symbol": "DCII",
+    "name": "PT DCI Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 3
+  },
+  {
+    "symbol": "BBRI",
+    "name": "PT Bank Rakyat Indonesia (Persero) Tbk",
+    "sector": "IDX",
+    "rank": 4
+  },
+  {
+    "symbol": "BMRI",
+    "name": "PT Bank Mandiri (Persero) Tbk",
+    "sector": "IDX",
+    "rank": 5
+  },
+  {
+    "symbol": "BYAN",
+    "name": "PT Bayan Resources Tbk.",
+    "sector": "IDX",
+    "rank": 6
+  },
+  {
+    "symbol": "TLKM",
+    "name": "Perusahaan Perseroan (Persero) PT Telekomunikasi Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 7
+  },
+  {
+    "symbol": "AMMN",
+    "name": "PT Amman Mineral Internasional Tbk",
+    "sector": "IDX",
+    "rank": 8
+  },
+  {
+    "symbol": "ASII",
+    "name": "PT Astra International Tbk",
+    "sector": "IDX",
+    "rank": 9
+  },
+  {
+    "symbol": "DNET",
+    "name": "PT Indoritel Makmur Internasional Tbk.",
+    "sector": "IDX",
+    "rank": 10
+  },
+  {
+    "symbol": "TPIA",
+    "name": "PT Chandra Asri Pacific Tbk",
+    "sector": "IDX",
+    "rank": 11
+  },
+  {
+    "symbol": "SMMA",
+    "name": "PT Sinar Mas Multiartha Tbk",
+    "sector": "IDX",
+    "rank": 12
+  },
+  {
+    "symbol": "SRAJ",
+    "name": "PT Sejahteraraya Anugrahjaya Tbk",
+    "sector": "IDX",
+    "rank": 13
+  },
+  {
+    "symbol": "BRPT",
+    "name": "PT Barito Pacific Tbk",
+    "sector": "IDX",
+    "rank": 14
+  },
+  {
+    "symbol": "MORA",
+    "name": "PT Mora Telematika Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 15
+  },
+  {
+    "symbol": "BBNI",
+    "name": "PT Bank Negara Indonesia (Persero) Tbk",
+    "sector": "IDX",
+    "rank": 16
+  },
+  {
+    "symbol": "PANI",
+    "name": "PT Pantai Indah Kapuk Dua Tbk",
+    "sector": "IDX",
+    "rank": 17
+  },
+  {
+    "symbol": "EMAS",
+    "name": "PT Merdeka Gold Resources Tbk",
+    "sector": "IDX",
+    "rank": 18
+  },
+  {
+    "symbol": "BNLI",
+    "name": "PT Bank Permata Tbk",
+    "sector": "IDX",
+    "rank": 19
+  },
+  {
+    "symbol": "DSSA",
+    "name": "PT Dian Swastatika Sentosa Tbk",
+    "sector": "IDX",
+    "rank": 20
+  },
+  {
+    "symbol": "MPRO",
+    "name": "PT Maha Properti Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 21
+  },
+  {
+    "symbol": "UNTR",
+    "name": "PT United Tractors Tbk",
+    "sector": "IDX",
+    "rank": 22
+  },
+  {
+    "symbol": "BRIS",
+    "name": "PT Bank Syariah Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 23
+  },
+  {
+    "symbol": "CDIA",
+    "name": "PT Chandra Daya Investasi TBK.",
+    "sector": "IDX",
+    "rank": 24
+  },
+  {
+    "symbol": "CASA",
+    "name": "PT Capital Financial Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 25
+  },
+  {
+    "symbol": "CUAN",
+    "name": "PT Petrindo Jaya Kreasi Tbk",
+    "sector": "IDX",
+    "rank": 26
+  },
+  {
+    "symbol": "IMPC",
+    "name": "PT Impack Pratama Industri Tbk",
+    "sector": "IDX",
+    "rank": 27
+  },
+  {
+    "symbol": "ICBP",
+    "name": "PT Indofood CBP Sukses Makmur Tbk",
+    "sector": "IDX",
+    "rank": 28
+  },
+  {
+    "symbol": "HMSP",
+    "name": "PT Hanjaya Mandala Sampoerna Tbk",
+    "sector": "IDX",
+    "rank": 29
+  },
+  {
+    "symbol": "BRMS",
+    "name": "PT Bumi Resources Minerals Tbk",
+    "sector": "IDX",
+    "rank": 30
+  },
+  {
+    "symbol": "ADRO",
+    "name": "PT Alamtri Resources Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 31
+  },
+  {
+    "symbol": "ANTM",
+    "name": "PT Antam (Persero) Tbk",
+    "sector": "IDX",
+    "rank": 32
+  },
+  {
+    "symbol": "UNVR",
+    "name": "PT Unilever Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 33
+  },
+  {
+    "symbol": "ADMR",
+    "name": "PT Alamtri Minerals Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 34
+  },
+  {
+    "symbol": "MDKA",
+    "name": "PT Merdeka Copper Gold Tbk",
+    "sector": "IDX",
+    "rank": 35
+  },
+  {
+    "symbol": "AADI",
+    "name": "PT Adaro Andalan Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 36
+  },
+  {
+    "symbol": "ISAT",
+    "name": "PT Indosat Ooredoo Hutchison Tbk",
+    "sector": "IDX",
+    "rank": 37
+  },
+  {
+    "symbol": "GOTO",
+    "name": "PT GoTo Gojek Tokopedia Tbk",
+    "sector": "IDX",
+    "rank": 38
+  },
+  {
+    "symbol": "INDF",
+    "name": "PT Indofood Sukses Makmur Tbk",
+    "sector": "IDX",
+    "rank": 39
+  },
+  {
+    "symbol": "CPIN",
+    "name": "PT Charoen Pokphand Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 40
+  },
+  {
+    "symbol": "SUPR",
+    "name": "PT Solusi Tunas Pratama Tbk",
+    "sector": "IDX",
+    "rank": 41
+  },
+  {
+    "symbol": "NCKL",
+    "name": "PT Trimegah Bangun Persada Tbk",
+    "sector": "IDX",
+    "rank": 42
+  },
+  {
+    "symbol": "AMRT",
+    "name": "PT Sumber Alfaria Trijaya Tbk",
+    "sector": "IDX",
+    "rank": 43
+  },
+  {
+    "symbol": "BUMI",
+    "name": "PT Bumi Resources Tbk",
+    "sector": "IDX",
+    "rank": 44
+  },
+  {
+    "symbol": "MBMA",
+    "name": "PT Merdeka Battery Materials Tbk.",
+    "sector": "IDX",
+    "rank": 45
+  },
+  {
+    "symbol": "TCPI",
+    "name": "PT Transcoal Pacific Tbk",
+    "sector": "IDX",
+    "rank": 46
+  },
+  {
+    "symbol": "INCO",
+    "name": "PT Vale Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 47
+  },
+  {
+    "symbol": "EXCL",
+    "name": "PT XLSMART Telecom Sejahtera Tbk",
+    "sector": "IDX",
+    "rank": 48
+  },
+  {
+    "symbol": "MEGA",
+    "name": "PT Bank Mega Tbk",
+    "sector": "IDX",
+    "rank": 49
+  },
+  {
+    "symbol": "MTEL",
+    "name": "PT Dayamitra Telekomunikasi Tbk.",
+    "sector": "IDX",
+    "rank": 50
+  },
+  {
+    "symbol": "BNGA",
+    "name": "PT Bank CIMB Niaga Tbk",
+    "sector": "IDX",
+    "rank": 51
+  },
+  {
+    "symbol": "BDMN",
+    "name": "PT Bank Danamon Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 52
+  },
+  {
+    "symbol": "BELI",
+    "name": "PT Global Digital Niaga Tbk",
+    "sector": "IDX",
+    "rank": 53
+  },
+  {
+    "symbol": "MYOR",
+    "name": "PT Mayora Indah Tbk",
+    "sector": "IDX",
+    "rank": 54
+  },
+  {
+    "symbol": "INKP",
+    "name": "PT Indah Kiat Pulp & Paper Tbk",
+    "sector": "IDX",
+    "rank": 55
+  },
+  {
+    "symbol": "MSIN",
+    "name": "PT MNC Digital Entertainment Tbk",
+    "sector": "IDX",
+    "rank": 56
+  },
+  {
+    "symbol": "PTRO",
+    "name": "PT Petrosea Tbk",
+    "sector": "IDX",
+    "rank": 57
+  },
+  {
+    "symbol": "PGAS",
+    "name": "PT Perusahaan Gas Negara (Persero) Tbk",
+    "sector": "IDX",
+    "rank": 58
+  },
+  {
+    "symbol": "TBIG",
+    "name": "PT Tower Bersama Infrastructure Tbk",
+    "sector": "IDX",
+    "rank": 59
+  },
+  {
+    "symbol": "GEMS",
+    "name": "PT Golden Energy Mines Tbk",
+    "sector": "IDX",
+    "rank": 60
+  },
+  {
+    "symbol": "PGUN",
+    "name": "PT Pradiksi Gunatama Tbk",
+    "sector": "IDX",
+    "rank": 61
+  },
+  {
+    "symbol": "CMRY",
+    "name": "PT Cisarua Mountain Dairy Tbk",
+    "sector": "IDX",
+    "rank": 62
+  },
+  {
+    "symbol": "PGEO",
+    "name": "PT Pertamina Geothermal Energy Tbk",
+    "sector": "IDX",
+    "rank": 63
+  },
+  {
+    "symbol": "SILO",
+    "name": "PT Siloam International Hospitals Tbk",
+    "sector": "IDX",
+    "rank": 64
+  },
+  {
+    "symbol": "KLBF",
+    "name": "PT Kalbe Farma Tbk.",
+    "sector": "IDX",
+    "rank": 65
+  },
+  {
+    "symbol": "EMTK",
+    "name": "PT Elang Mahkota Teknologi Tbk",
+    "sector": "IDX",
+    "rank": 66
+  },
+  {
+    "symbol": "ENRG",
+    "name": "PT Energi Mega Persada Tbk",
+    "sector": "IDX",
+    "rank": 67
+  },
+  {
+    "symbol": "MEDC",
+    "name": "PT Medco Energi Internasional Tbk",
+    "sector": "IDX",
+    "rank": 68
+  },
+  {
+    "symbol": "PTBA",
+    "name": "PT Bukit Asam (Persero) Tbk",
+    "sector": "IDX",
+    "rank": 69
+  },
+  {
+    "symbol": "GGRM",
+    "name": "PT Gudang Garam Tbk",
+    "sector": "IDX",
+    "rank": 70
+  },
+  {
+    "symbol": "NISP",
+    "name": "PT Bank OCBC NISP Tbk",
+    "sector": "IDX",
+    "rank": 71
+  },
+  {
+    "symbol": "FAPA",
+    "name": "PT FAP Agri Tbk",
+    "sector": "IDX",
+    "rank": 72
+  },
+  {
+    "symbol": "TAPG",
+    "name": "PT Triputra Agro Persada Tbk",
+    "sector": "IDX",
+    "rank": 73
+  },
+  {
+    "symbol": "MAPI",
+    "name": "PT. Mitra Adiperkasa Tbk",
+    "sector": "IDX",
+    "rank": 74
+  },
+  {
+    "symbol": "ITMG",
+    "name": "PT Indo Tambangraya Megah Tbk",
+    "sector": "IDX",
+    "rank": 75
+  },
+  {
+    "symbol": "BINA",
+    "name": "PT Bank Ina Perdana Tbk",
+    "sector": "IDX",
+    "rank": 76
+  },
+  {
+    "symbol": "ARCI",
+    "name": "PT Archi Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 77
+  },
+  {
+    "symbol": "MLPT",
+    "name": "PT Multipolar Technology Tbk",
+    "sector": "IDX",
+    "rank": 78
+  },
+  {
+    "symbol": "VKTR",
+    "name": "PT VKTR Teknologi Mobilitas Tbk",
+    "sector": "IDX",
+    "rank": 79
+  },
+  {
+    "symbol": "AKRA",
+    "name": "PT AKR Corporindo Tbk",
+    "sector": "IDX",
+    "rank": 80
+  },
+  {
+    "symbol": "TINS",
+    "name": "PT TIMAH Tbk",
+    "sector": "IDX",
+    "rank": 81
+  },
+  {
+    "symbol": "BTPN",
+    "name": "PT Bank SMBC Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 82
+  },
+  {
+    "symbol": "MDIY",
+    "name": "PT Daya Intiguna Yasa Tbk",
+    "sector": "IDX",
+    "rank": 83
+  },
+  {
+    "symbol": "JPFA",
+    "name": "PT Japfa Comfeed Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 84
+  },
+  {
+    "symbol": "MKPI",
+    "name": "PT Metropolitan Kentjana Tbk",
+    "sector": "IDX",
+    "rank": 85
+  },
+  {
+    "symbol": "GIAA",
+    "name": "PT. Garuda Indonesia (Persero) Tbk",
+    "sector": "IDX",
+    "rank": 86
+  },
+  {
+    "symbol": "SUPA",
+    "name": "PT Super Bank Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 87
+  },
+  {
+    "symbol": "PNBN",
+    "name": "PT Bank Pan Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 88
+  },
+  {
+    "symbol": "MIKA",
+    "name": "PT Mitra Keluarga Karyasehat Tbk",
+    "sector": "IDX",
+    "rank": 89
+  },
+  {
+    "symbol": "JSMR",
+    "name": "PT Jasa Marga (Persero) Tbk",
+    "sector": "IDX",
+    "rank": 90
+  },
+  {
+    "symbol": "TOWR",
+    "name": "PT Sarana Menara Nusantara Tbk.",
+    "sector": "IDX",
+    "rank": 91
+  },
+  {
+    "symbol": "XSPI",
+    "name": "Dana Investasi Real Estat Simas Plaza Indonesia",
+    "sector": "IDX",
+    "rank": 92
+  },
+  {
+    "symbol": "CBDK",
+    "name": "PT Bangun Kosambi Sukses Tbk",
+    "sector": "IDX",
+    "rank": 93
+  },
+  {
+    "symbol": "BBHI",
+    "name": "PT Allo Bank Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 94
+  },
+  {
+    "symbol": "AVIA",
+    "name": "PT Avia Avian Tbk",
+    "sector": "IDX",
+    "rank": 95
+  },
+  {
+    "symbol": "SRTG",
+    "name": "PT Saratoga Investama Sedaya Tbk",
+    "sector": "IDX",
+    "rank": 96
+  },
+  {
+    "symbol": "FILM",
+    "name": "PT.MD Entertainment Tbk",
+    "sector": "IDX",
+    "rank": 97
+  },
+  {
+    "symbol": "MGLV",
+    "name": "PT Panca Anugrah Wisesa Tbk",
+    "sector": "IDX",
+    "rank": 98
+  },
+  {
+    "symbol": "MAPA",
+    "name": "PT Map Aktif Adiperkasa Tbk",
+    "sector": "IDX",
+    "rank": 99
+  },
+  {
+    "symbol": "BNBR",
+    "name": "PT Bakrie & Brothers Tbk",
+    "sector": "IDX",
+    "rank": 100
+  },
+  {
+    "symbol": "BBTN",
+    "name": "PT Bank Tabungan Negara (Persero) Tbk",
+    "sector": "IDX",
+    "rank": 101
+  },
+  {
+    "symbol": "BBSI",
+    "name": "PT Krom Bank Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 102
+  },
+  {
+    "symbol": "PSAB",
+    "name": "PT J Resources Asia Pasifik Tbk",
+    "sector": "IDX",
+    "rank": 103
+  },
+  {
+    "symbol": "TKIM",
+    "name": "PT Pabrik Kertas Tjiwi Kimia Tbk",
+    "sector": "IDX",
+    "rank": 104
+  },
+  {
+    "symbol": "JRPT",
+    "name": "PT Jaya Real Property, Tbk.",
+    "sector": "IDX",
+    "rank": 105
+  },
+  {
+    "symbol": "BSIM",
+    "name": "PT Bank Sinarmas Tbk",
+    "sector": "IDX",
+    "rank": 106
+  },
+  {
+    "symbol": "BUVA",
+    "name": "PT Bukit Uluwatu Villa Tbk",
+    "sector": "IDX",
+    "rank": 107
+  },
+  {
+    "symbol": "FASW",
+    "name": "PT Fajar Surya Wisesa Tbk",
+    "sector": "IDX",
+    "rank": 108
+  },
+  {
+    "symbol": "CMNT",
+    "name": "PT Cemindo Gemilang Tbk",
+    "sector": "IDX",
+    "rank": 109
+  },
+  {
+    "symbol": "BNII",
+    "name": "PT Bank Maybank Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 110
+  },
+  {
+    "symbol": "SOHO",
+    "name": "PT Soho Global Health Tbk",
+    "sector": "IDX",
+    "rank": 111
+  },
+  {
+    "symbol": "INTP",
+    "name": "PT Indocement Tunggal Prakarsa Tbk",
+    "sector": "IDX",
+    "rank": 112
+  },
+  {
+    "symbol": "CARE",
+    "name": "PT Metro Healthcare Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 113
+  },
+  {
+    "symbol": "ULTJ",
+    "name": "PT Ultrajaya Milk Industry & Trading Company Tbk",
+    "sector": "IDX",
+    "rank": 114
+  },
+  {
+    "symbol": "LIFE",
+    "name": "PT MSIG Life Insurance Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 115
+  },
+  {
+    "symbol": "RISE",
+    "name": "PT Jaya Sukses Makmur Sentosa Tbk",
+    "sector": "IDX",
+    "rank": 116
+  },
+  {
+    "symbol": "MLBI",
+    "name": "PT Multi Bintang Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 117
+  },
+  {
+    "symbol": "STTP",
+    "name": "PT Siantar Top Tbk",
+    "sector": "IDX",
+    "rank": 118
+  },
+  {
+    "symbol": "MCOL",
+    "name": "PT Prima Andalan Mandiri Tbk",
+    "sector": "IDX",
+    "rank": 119
+  },
+  {
+    "symbol": "ADES",
+    "name": "PT Akasha Wira International Tbk",
+    "sector": "IDX",
+    "rank": 120
+  },
+  {
+    "symbol": "HEAL",
+    "name": "PT Medikaloka Hermina Tbk",
+    "sector": "IDX",
+    "rank": 121
+  },
+  {
+    "symbol": "PWON",
+    "name": "PT Pakuwon Jati Tbk",
+    "sector": "IDX",
+    "rank": 122
+  },
+  {
+    "symbol": "SMAR",
+    "name": "PT Sinar Mas Agro Resources and Technology Tbk",
+    "sector": "IDX",
+    "rank": 123
+  },
+  {
+    "symbol": "IBST",
+    "name": "PT Inti Bangun Sejahtera Tbk",
+    "sector": "IDX",
+    "rank": 124
+  },
+  {
+    "symbol": "DSNG",
+    "name": "PT Dharma Satya Nusantara Tbk",
+    "sector": "IDX",
+    "rank": 125
+  },
+  {
+    "symbol": "ALII",
+    "name": "PT Ancara Logistics Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 126
+  },
+  {
+    "symbol": "SCMA",
+    "name": "PT Surya Citra Media Tbk",
+    "sector": "IDX",
+    "rank": 127
+  },
+  {
+    "symbol": "AALI",
+    "name": "PT Astra Agro Lestari Tbk",
+    "sector": "IDX",
+    "rank": 128
+  },
+  {
+    "symbol": "BSDE",
+    "name": "PT Bumi Serpong Damai Tbk",
+    "sector": "IDX",
+    "rank": 129
+  },
+  {
+    "symbol": "GOOD",
+    "name": "PT Garudafood Putra Putri Jaya Tbk",
+    "sector": "IDX",
+    "rank": 130
+  },
+  {
+    "symbol": "RAJA",
+    "name": "PT Rukun Raharja Tbk",
+    "sector": "IDX",
+    "rank": 131
+  },
+  {
+    "symbol": "ARTO",
+    "name": "PT Bank Jago Tbk",
+    "sector": "IDX",
+    "rank": 132
+  },
+  {
+    "symbol": "JARR",
+    "name": "PT Jhonlin Agro Raya Tbk",
+    "sector": "IDX",
+    "rank": 133
+  },
+  {
+    "symbol": "AUTO",
+    "name": "PT Astra Otoparts Tbk",
+    "sector": "IDX",
+    "rank": 134
+  },
+  {
+    "symbol": "ARKO",
+    "name": "PT Arkora Hydro Tbk",
+    "sector": "IDX",
+    "rank": 135
+  },
+  {
+    "symbol": "POWR",
+    "name": "PT Cikarang Listrindo Tbk",
+    "sector": "IDX",
+    "rank": 136
+  },
+  {
+    "symbol": "CITA",
+    "name": "PT Cita Mineral Investindo Tbk",
+    "sector": "IDX",
+    "rank": 137
+  },
+  {
+    "symbol": "TSPC",
+    "name": "PT Tempo Scan Pacific Tbk",
+    "sector": "IDX",
+    "rank": 138
+  },
+  {
+    "symbol": "SIDO",
+    "name": "PT Industri Jamu dan Farmasi Sido Muncul Tbk",
+    "sector": "IDX",
+    "rank": 139
+  },
+  {
+    "symbol": "YUPI",
+    "name": "PT Yupi Indo Jelly Gum Tbk",
+    "sector": "IDX",
+    "rank": 140
+  },
+  {
+    "symbol": "DEWA",
+    "name": "PT Darma Henwa Tbk",
+    "sector": "IDX",
+    "rank": 141
+  },
+  {
+    "symbol": "BSSR",
+    "name": "PT Baramulti Suksessarana Tbk",
+    "sector": "IDX",
+    "rank": 142
+  },
+  {
+    "symbol": "INDY",
+    "name": "PT. Indika Energy Tbk",
+    "sector": "IDX",
+    "rank": 143
+  },
+  {
+    "symbol": "RATU",
+    "name": "PT Raharja Energi Cepu Tbk",
+    "sector": "IDX",
+    "rank": 144
+  },
+  {
+    "symbol": "SMGR",
+    "name": "PT Semen Indonesia (Persero) Tbk",
+    "sector": "IDX",
+    "rank": 145
+  },
+  {
+    "symbol": "CTRA",
+    "name": "PT Ciputra Development Tbk",
+    "sector": "IDX",
+    "rank": 146
+  },
+  {
+    "symbol": "ESSA",
+    "name": "PT ESSA Industries Indonesia Tbk.",
+    "sector": "IDX",
+    "rank": 147
+  },
+  {
+    "symbol": "EDGE",
+    "name": "PT Indointernet Tbk.",
+    "sector": "IDX",
+    "rank": 148
+  },
+  {
+    "symbol": "BBKP",
+    "name": "PT Bank KB Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 149
+  },
+  {
+    "symbol": "ADMF",
+    "name": "PT Adira Dinamika Multi Finance Tbk",
+    "sector": "IDX",
+    "rank": 150
+  },
+  {
+    "symbol": "STAA",
+    "name": "PT Sumber Tani Agung Resources Tbk",
+    "sector": "IDX",
+    "rank": 151
+  },
+  {
+    "symbol": "BUKA",
+    "name": "PT Bukalapak.com Tbk.",
+    "sector": "IDX",
+    "rank": 152
+  },
+  {
+    "symbol": "MIDI",
+    "name": "PT Midi Utama Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 153
+  },
+  {
+    "symbol": "BKSL",
+    "name": "PT Sentul City Tbk",
+    "sector": "IDX",
+    "rank": 154
+  },
+  {
+    "symbol": "SMSM",
+    "name": "PT Selamat Sempurna Tbk",
+    "sector": "IDX",
+    "rank": 155
+  },
+  {
+    "symbol": "NSSS",
+    "name": "PT Nusantara Sawit Sejahtera Tbk",
+    "sector": "IDX",
+    "rank": 156
+  },
+  {
+    "symbol": "HRTA",
+    "name": "PT Hartadinata Abadi Tbk",
+    "sector": "IDX",
+    "rank": 157
+  },
+  {
+    "symbol": "PLIN",
+    "name": "PT Plaza Indonesia Realty Tbk",
+    "sector": "IDX",
+    "rank": 158
+  },
+  {
+    "symbol": "COIN",
+    "name": "PT Indokripto Koin Semesta Tbk",
+    "sector": "IDX",
+    "rank": 159
+  },
+  {
+    "symbol": "CMNP",
+    "name": "PT Citra Marga Nusaphala Persada Tbk",
+    "sector": "IDX",
+    "rank": 160
+  },
+  {
+    "symbol": "BFIN",
+    "name": "PT BFI Finance Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 161
+  },
+  {
+    "symbol": "BMAS",
+    "name": "PT Bank Maspion Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 162
+  },
+  {
+    "symbol": "PRAY",
+    "name": "PT Famon Awal Bros Sedaya Tbk",
+    "sector": "IDX",
+    "rank": 163
+  },
+  {
+    "symbol": "HRUM",
+    "name": "PT Harum Energy Tbk",
+    "sector": "IDX",
+    "rank": 164
+  },
+  {
+    "symbol": "INPP",
+    "name": "PT Indonesian Paradise Property Tbk",
+    "sector": "IDX",
+    "rank": 165
+  },
+  {
+    "symbol": "BIPI",
+    "name": "PT Astrindo Nusantara Infrastruktur Tbk",
+    "sector": "IDX",
+    "rank": 166
+  },
+  {
+    "symbol": "WIKA",
+    "name": "PT Wijaya Karya (Persero) Tbk",
+    "sector": "IDX",
+    "rank": 167
+  },
+  {
+    "symbol": "RMKE",
+    "name": "PT RMK Energy Tbk",
+    "sector": "IDX",
+    "rank": 168
+  },
+  {
+    "symbol": "BBMD",
+    "name": "PT Bank Mestika Dharma Tbk",
+    "sector": "IDX",
+    "rank": 169
+  },
+  {
+    "symbol": "CLEO",
+    "name": "PT Sariguna Primatirta Tbk",
+    "sector": "IDX",
+    "rank": 170
+  },
+  {
+    "symbol": "RLCO",
+    "name": "PT Abadi Lestari Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 171
+  },
+  {
+    "symbol": "KPIG",
+    "name": "PT MNC Tourism Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 172
+  },
+  {
+    "symbol": "LSIP",
+    "name": "PT Perusahaan Perkebunan London Sumatra Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 173
+  },
+  {
+    "symbol": "DUTI",
+    "name": "PT Duta Pertiwi Tbk",
+    "sector": "IDX",
+    "rank": 174
+  },
+  {
+    "symbol": "BJBR",
+    "name": "PT Bank Pembangunan Daerah Jawa Barat dan Banten Tbk",
+    "sector": "IDX",
+    "rank": 175
+  },
+  {
+    "symbol": "AGII",
+    "name": "PT Samator Indo Gas Tbk",
+    "sector": "IDX",
+    "rank": 176
+  },
+  {
+    "symbol": "BJTM",
+    "name": "PT Bank Pembangunan Daerah Jawa Timur Tbk",
+    "sector": "IDX",
+    "rank": 177
+  },
+  {
+    "symbol": "SIMP",
+    "name": "PT Salim Ivomas Pratama Tbk",
+    "sector": "IDX",
+    "rank": 178
+  },
+  {
+    "symbol": "WIFI",
+    "name": "PT Solusi Sinergi Digital Tbk",
+    "sector": "IDX",
+    "rank": 179
+  },
+  {
+    "symbol": "CYBR",
+    "name": "PT ITSEC Asia Tbk",
+    "sector": "IDX",
+    "rank": 180
+  },
+  {
+    "symbol": "CLAY",
+    "name": "PT Citra Putra Realty Tbk",
+    "sector": "IDX",
+    "rank": 181
+  },
+  {
+    "symbol": "ELPI",
+    "name": "PT Pelayaran Nasional Ekalya Purnamasari Tbk",
+    "sector": "IDX",
+    "rank": 182
+  },
+  {
+    "symbol": "SSIA",
+    "name": "PT Surya Semesta Internusa Tbk",
+    "sector": "IDX",
+    "rank": 183
+  },
+  {
+    "symbol": "SMCB",
+    "name": "PT Solusi Bangun Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 184
+  },
+  {
+    "symbol": "DMAS",
+    "name": "PT Puradelta Lestari Tbk",
+    "sector": "IDX",
+    "rank": 185
+  },
+  {
+    "symbol": "CNMA",
+    "name": "PT Nusantara Sejahtera Raya Tbk",
+    "sector": "IDX",
+    "rank": 186
+  },
+  {
+    "symbol": "PACK",
+    "name": "PT Abadi Nusantara Hijau Investama Tbk",
+    "sector": "IDX",
+    "rank": 187
+  },
+  {
+    "symbol": "BTPS",
+    "name": "PT Bank BTPN Syariah Tbk",
+    "sector": "IDX",
+    "rank": 188
+  },
+  {
+    "symbol": "POLU",
+    "name": "PT Golden Flower Tbk",
+    "sector": "IDX",
+    "rank": 189
+  },
+  {
+    "symbol": "TMAS",
+    "name": "PT Temas Tbk.",
+    "sector": "IDX",
+    "rank": 190
+  },
+  {
+    "symbol": "SSMS",
+    "name": "PT Sawit Sumbermas Sarana Tbk.",
+    "sector": "IDX",
+    "rank": 191
+  },
+  {
+    "symbol": "GMFI",
+    "name": "PT Garuda Maintenance Facility Aero Asia Tbk",
+    "sector": "IDX",
+    "rank": 192
+  },
+  {
+    "symbol": "PNLF",
+    "name": "PT Panin Financial Tbk",
+    "sector": "IDX",
+    "rank": 193
+  },
+  {
+    "symbol": "APIC",
+    "name": "PT Pacific Strategic Financial Tbk",
+    "sector": "IDX",
+    "rank": 194
+  },
+  {
+    "symbol": "EPMT",
+    "name": "PT Enseval Putera Megatrading Tbk.",
+    "sector": "IDX",
+    "rank": 195
+  },
+  {
+    "symbol": "MTDL",
+    "name": "PT Metrodata Electronics Tbk",
+    "sector": "IDX",
+    "rank": 196
+  },
+  {
+    "symbol": "ABMM",
+    "name": "PT ABM Investama Tbk",
+    "sector": "IDX",
+    "rank": 197
+  },
+  {
+    "symbol": "CTBN",
+    "name": "PT Citra Tubindo Tbk",
+    "sector": "IDX",
+    "rank": 198
+  },
+  {
+    "symbol": "TLDN",
+    "name": "PT Teladan Prima Agro Tbk",
+    "sector": "IDX",
+    "rank": 199
+  },
+  {
+    "symbol": "WBSA",
+    "name": "PT BSA Logistics Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 200
+  },
+  {
+    "symbol": "FORE",
+    "name": "PT Fore Kopi Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 201
+  },
+  {
+    "symbol": "ACES",
+    "name": "PT Aspirasi Hidup Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 202
+  },
+  {
+    "symbol": "DMND",
+    "name": "PT Diamond Food Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 203
+  },
+  {
+    "symbol": "BHAT",
+    "name": "PT Bhakti Multi Artha Tbk",
+    "sector": "IDX",
+    "rank": 204
+  },
+  {
+    "symbol": "OMED",
+    "name": "PT Jayamas Medica Industri Tbk",
+    "sector": "IDX",
+    "rank": 205
+  },
+  {
+    "symbol": "YULE",
+    "name": "PT Yulie Sekuritas Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 206
+  },
+  {
+    "symbol": "BSWD",
+    "name": "PT Bank of India Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 207
+  },
+  {
+    "symbol": "NICL",
+    "name": "PT PAM Mineral Tbk",
+    "sector": "IDX",
+    "rank": 208
+  },
+  {
+    "symbol": "ERAA",
+    "name": "PT Erajaya Swasembada Tbk",
+    "sector": "IDX",
+    "rank": 209
+  },
+  {
+    "symbol": "SMMT",
+    "name": "PT Golden Eagle Energy Tbk",
+    "sector": "IDX",
+    "rank": 210
+  },
+  {
+    "symbol": "SAME",
+    "name": "PT Sarana Meditama Metropolitan Tbk",
+    "sector": "IDX",
+    "rank": 211
+  },
+  {
+    "symbol": "BALI",
+    "name": "PT Bali Towerindo Sentra Tbk",
+    "sector": "IDX",
+    "rank": 212
+  },
+  {
+    "symbol": "MPMX",
+    "name": "PT Mitra Pinasthika Mustika Tbk",
+    "sector": "IDX",
+    "rank": 213
+  },
+  {
+    "symbol": "MASB",
+    "name": "PT Bank Multiarta Sentosa Tbk",
+    "sector": "IDX",
+    "rank": 214
+  },
+  {
+    "symbol": "NATO",
+    "name": "PT Surya Permata Andalan Tbk",
+    "sector": "IDX",
+    "rank": 215
+  },
+  {
+    "symbol": "BPII",
+    "name": "PT Batavia Prosperindo Internasional Tbk",
+    "sector": "IDX",
+    "rank": 216
+  },
+  {
+    "symbol": "UNIC",
+    "name": "PT Unggul Indah Cahaya Tbk",
+    "sector": "IDX",
+    "rank": 217
+  },
+  {
+    "symbol": "RDTX",
+    "name": "PT Roda Vivatex Tbk",
+    "sector": "IDX",
+    "rank": 218
+  },
+  {
+    "symbol": "SMRA",
+    "name": "PT Summarecon Agung Tbk",
+    "sector": "IDX",
+    "rank": 219
+  },
+  {
+    "symbol": "SMDR",
+    "name": "PT Samudera Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 220
+  },
+  {
+    "symbol": "BULL",
+    "name": "PT Buana Lintas Lautan Tbk",
+    "sector": "IDX",
+    "rank": 221
+  },
+  {
+    "symbol": "DRMA",
+    "name": "PT Dharma Polimetal Tbk",
+    "sector": "IDX",
+    "rank": 222
+  },
+  {
+    "symbol": "LPKR",
+    "name": "PT Lippo Karawaci Tbk",
+    "sector": "IDX",
+    "rank": 223
+  },
+  {
+    "symbol": "TGKA",
+    "name": "PT Tigaraksa Satria Tbk",
+    "sector": "IDX",
+    "rank": 224
+  },
+  {
+    "symbol": "PALM",
+    "name": "PT Provident Investasi Bersama Tbk",
+    "sector": "IDX",
+    "rank": 225
+  },
+  {
+    "symbol": "SINI",
+    "name": "PT Singaraja Putra Tbk",
+    "sector": "IDX",
+    "rank": 226
+  },
+  {
+    "symbol": "SGRO",
+    "name": "PT Prime Agri Resources Tbk",
+    "sector": "IDX",
+    "rank": 227
+  },
+  {
+    "symbol": "JTPE",
+    "name": "PT Jasuindo Tiga Perkasa Tbk",
+    "sector": "IDX",
+    "rank": 228
+  },
+  {
+    "symbol": "ELSA",
+    "name": "PT Elnusa Tbk",
+    "sector": "IDX",
+    "rank": 229
+  },
+  {
+    "symbol": "SURE",
+    "name": "PT Super Energy Tbk",
+    "sector": "IDX",
+    "rank": 230
+  },
+  {
+    "symbol": "ANJT",
+    "name": "PT Austindo Nusantara Jaya Tbk",
+    "sector": "IDX",
+    "rank": 231
+  },
+  {
+    "symbol": "MBSS",
+    "name": "PT Mitrabahtera Segara Sejati Tbk",
+    "sector": "IDX",
+    "rank": 232
+  },
+  {
+    "symbol": "MTLA",
+    "name": "PT Metropolitan Land Tbk",
+    "sector": "IDX",
+    "rank": 233
+  },
+  {
+    "symbol": "SHIP",
+    "name": "PT Sillo Maritime Perdana Tbk",
+    "sector": "IDX",
+    "rank": 234
+  },
+  {
+    "symbol": "SGER",
+    "name": "PT Sumber Global Energy Tbk",
+    "sector": "IDX",
+    "rank": 235
+  },
+  {
+    "symbol": "TUGU",
+    "name": "PT Asuransi Tugu Pratama Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 236
+  },
+  {
+    "symbol": "MSTI",
+    "name": "PT Mastersystem Infotama Tbk",
+    "sector": "IDX",
+    "rank": 237
+  },
+  {
+    "symbol": "MMIX",
+    "name": "PT Multi Medika Internasional Tbk",
+    "sector": "IDX",
+    "rank": 238
+  },
+  {
+    "symbol": "CASS",
+    "name": "PT Cahaya Aero Services Tbk",
+    "sector": "IDX",
+    "rank": 239
+  },
+  {
+    "symbol": "GJTL",
+    "name": "PT. Gajah Tunggal Tbk",
+    "sector": "IDX",
+    "rank": 240
+  },
+  {
+    "symbol": "INET",
+    "name": "PT Sinergi Inti Andalan Prima Tbk",
+    "sector": "IDX",
+    "rank": 241
+  },
+  {
+    "symbol": "PSGO",
+    "name": "PT Palma Serasih Tbk",
+    "sector": "IDX",
+    "rank": 242
+  },
+  {
+    "symbol": "MKAP",
+    "name": "PT Multikarya Asia Pasifik Raya Tbk",
+    "sector": "IDX",
+    "rank": 243
+  },
+  {
+    "symbol": "BIRD",
+    "name": "PT Blue Bird Tbk",
+    "sector": "IDX",
+    "rank": 244
+  },
+  {
+    "symbol": "PBID",
+    "name": "PT Panca Budi Idaman Tbk",
+    "sector": "IDX",
+    "rank": 245
+  },
+  {
+    "symbol": "HEXA",
+    "name": "PT Hexindo Adiperkasa Tbk",
+    "sector": "IDX",
+    "rank": 246
+  },
+  {
+    "symbol": "BOGA",
+    "name": "PT Apollo Global Interactive Tbk",
+    "sector": "IDX",
+    "rank": 247
+  },
+  {
+    "symbol": "TOTL",
+    "name": "PT Total Bangun Persada Tbk",
+    "sector": "IDX",
+    "rank": 248
+  },
+  {
+    "symbol": "BANK",
+    "name": "PT Bank Aladin Syariah Tbk",
+    "sector": "IDX",
+    "rank": 249
+  },
+  {
+    "symbol": "AMAR",
+    "name": "PT Bank Amar Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 250
+  },
+  {
+    "symbol": "TRIM",
+    "name": "PT Trimegah Sekuritas Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 251
+  },
+  {
+    "symbol": "TBLA",
+    "name": "PT Tunas Baru Lampung Tbk",
+    "sector": "IDX",
+    "rank": 252
+  },
+  {
+    "symbol": "VICI",
+    "name": "PT Victoria Care Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 253
+  },
+  {
+    "symbol": "GGRP",
+    "name": "PT Gunung Raja Paksi Tbk",
+    "sector": "IDX",
+    "rank": 254
+  },
+  {
+    "symbol": "KEJU",
+    "name": "PT Mulia Boga Raya Tbk",
+    "sector": "IDX",
+    "rank": 255
+  },
+  {
+    "symbol": "LPPF",
+    "name": "PT MDS Retailing Tbk",
+    "sector": "IDX",
+    "rank": 256
+  },
+  {
+    "symbol": "KRAS",
+    "name": "PT Krakatau Steel (Persero) Tbk",
+    "sector": "IDX",
+    "rank": 257
+  },
+  {
+    "symbol": "SDRA",
+    "name": "PT Bank Woori Saudara Indonesia 1906 Tbk",
+    "sector": "IDX",
+    "rank": 258
+  },
+  {
+    "symbol": "DAAZ",
+    "name": "PT Daaz Bara Lestari Tbk",
+    "sector": "IDX",
+    "rank": 259
+  },
+  {
+    "symbol": "TFCO",
+    "name": "PT Tifico Fiber Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 260
+  },
+  {
+    "symbol": "NIRO",
+    "name": "PT City Retail Developments Tbk",
+    "sector": "IDX",
+    "rank": 261
+  },
+  {
+    "symbol": "NOBU",
+    "name": "PT Bank Nationalnobu Tbk",
+    "sector": "IDX",
+    "rank": 262
+  },
+  {
+    "symbol": "LINK",
+    "name": "PT Link Net Tbk",
+    "sector": "IDX",
+    "rank": 263
+  },
+  {
+    "symbol": "MAPB",
+    "name": "PT Map Boga Adiperkasa Tbk",
+    "sector": "IDX",
+    "rank": 264
+  },
+  {
+    "symbol": "IMAS",
+    "name": "PT Indomobil Sukses Internasional Tbk",
+    "sector": "IDX",
+    "rank": 265
+  },
+  {
+    "symbol": "VISI",
+    "name": "PT Satu Visi Putra Tbk",
+    "sector": "IDX",
+    "rank": 266
+  },
+  {
+    "symbol": "ROTI",
+    "name": "PT Nippon Indosari Corpindo Tbk",
+    "sector": "IDX",
+    "rank": 267
+  },
+  {
+    "symbol": "AGRO",
+    "name": "PT Bank Raya Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 268
+  },
+  {
+    "symbol": "DKFT",
+    "name": "PT Central Omega Resources Tbk",
+    "sector": "IDX",
+    "rank": 269
+  },
+  {
+    "symbol": "CPRO",
+    "name": "PT Central Proteina Prima Tbk",
+    "sector": "IDX",
+    "rank": 270
+  },
+  {
+    "symbol": "EURO",
+    "name": "PT Estee Gold Feet Tbk",
+    "sector": "IDX",
+    "rank": 271
+  },
+  {
+    "symbol": "BESS",
+    "name": "PT Batulicin Nusantara Maritim Tbk",
+    "sector": "IDX",
+    "rank": 272
+  },
+  {
+    "symbol": "PKPK",
+    "name": "PT Paragon Karya Perkasa Tbk",
+    "sector": "IDX",
+    "rank": 273
+  },
+  {
+    "symbol": "ARNA",
+    "name": "PT Arwana Citramulia Tbk",
+    "sector": "IDX",
+    "rank": 274
+  },
+  {
+    "symbol": "MARK",
+    "name": "PT Mark Dynamics Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 275
+  },
+  {
+    "symbol": "WIIM",
+    "name": "PT Wismilak Inti Makmur Tbk",
+    "sector": "IDX",
+    "rank": 276
+  },
+  {
+    "symbol": "KEEN",
+    "name": "PT Kencana Energi Lestari Tbk",
+    "sector": "IDX",
+    "rank": 277
+  },
+  {
+    "symbol": "APLN",
+    "name": "PT Agung Podomoro Land Tbk",
+    "sector": "IDX",
+    "rank": 278
+  },
+  {
+    "symbol": "GOLF",
+    "name": "PT Intra Golflink Resorts Tbk",
+    "sector": "IDX",
+    "rank": 279
+  },
+  {
+    "symbol": "FISH",
+    "name": "PT FKS Multi Agro Tbk",
+    "sector": "IDX",
+    "rank": 280
+  },
+  {
+    "symbol": "ISSP",
+    "name": "PT Steel Pipe Industry of Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 281
+  },
+  {
+    "symbol": "PNGO",
+    "name": "PT PINAGO UTAMA Tbk",
+    "sector": "IDX",
+    "rank": 282
+  },
+  {
+    "symbol": "JSPT",
+    "name": "PT Jakarta Setiabudi Internasional Tbk",
+    "sector": "IDX",
+    "rank": 283
+  },
+  {
+    "symbol": "MNCN",
+    "name": "PT. Media Nusantara Citra Tbk",
+    "sector": "IDX",
+    "rank": 284
+  },
+  {
+    "symbol": "PNIN",
+    "name": "PT Paninvest Tbk",
+    "sector": "IDX",
+    "rank": 285
+  },
+  {
+    "symbol": "SFAN",
+    "name": "PT Surya Fajar Capital Tbk",
+    "sector": "IDX",
+    "rank": 286
+  },
+  {
+    "symbol": "CBRE",
+    "name": "PT Cakra Buana Resources Energi Tbk",
+    "sector": "IDX",
+    "rank": 287
+  },
+  {
+    "symbol": "SAMF",
+    "name": "PT Saraswanti Anugerah Makmur, Tbk",
+    "sector": "IDX",
+    "rank": 288
+  },
+  {
+    "symbol": "TOBA",
+    "name": "PT TBS Energi Utama Tbk",
+    "sector": "IDX",
+    "rank": 289
+  },
+  {
+    "symbol": "AGRS",
+    "name": "PT Bank IBK Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 290
+  },
+  {
+    "symbol": "BBYB",
+    "name": "PT Bank Neo Commerce Tbk",
+    "sector": "IDX",
+    "rank": 291
+  },
+  {
+    "symbol": "HATM",
+    "name": "PT Habco Trans Maritima Tbk",
+    "sector": "IDX",
+    "rank": 292
+  },
+  {
+    "symbol": "OMRE",
+    "name": "PT Indonesia Prima Property Tbk",
+    "sector": "IDX",
+    "rank": 293
+  },
+  {
+    "symbol": "BLTZ",
+    "name": "PT Graha Layar Prima Tbk",
+    "sector": "IDX",
+    "rank": 294
+  },
+  {
+    "symbol": "PORT",
+    "name": "PT Nusantara Pelabuhan Handal Tbk",
+    "sector": "IDX",
+    "rank": 295
+  },
+  {
+    "symbol": "DWGL",
+    "name": "PT Dwi Guna Laksana Tbk",
+    "sector": "IDX",
+    "rank": 296
+  },
+  {
+    "symbol": "MDLA",
+    "name": "PT Medela Potentia Tbk",
+    "sector": "IDX",
+    "rank": 297
+  },
+  {
+    "symbol": "LPCK",
+    "name": "PT Lippo Cikarang Tbk",
+    "sector": "IDX",
+    "rank": 298
+  },
+  {
+    "symbol": "UANG",
+    "name": "PT Pakuan Tbk",
+    "sector": "IDX",
+    "rank": 299
+  },
+  {
+    "symbol": "DAYA",
+    "name": "PT Duta Intidaya Tbk",
+    "sector": "IDX",
+    "rank": 300
+  },
+  {
+    "symbol": "TOTO",
+    "name": "PT Surya Toto Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 301
+  },
+  {
+    "symbol": "MDIA",
+    "name": "PT Intermedia Capital Tbk",
+    "sector": "IDX",
+    "rank": 302
+  },
+  {
+    "symbol": "MCOR",
+    "name": "PT Bank China Construction Bank Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 303
+  },
+  {
+    "symbol": "MINA",
+    "name": "PT Sanurhasta Mitra Tbk",
+    "sector": "IDX",
+    "rank": 304
+  },
+  {
+    "symbol": "KIJA",
+    "name": "PT Kawasan Industri Jababeka Tbk",
+    "sector": "IDX",
+    "rank": 305
+  },
+  {
+    "symbol": "MGRO",
+    "name": "PT Mahkota Group Tbk",
+    "sector": "IDX",
+    "rank": 306
+  },
+  {
+    "symbol": "MSJA",
+    "name": "PT Multi Spunindo Jaya Tbk",
+    "sector": "IDX",
+    "rank": 307
+  },
+  {
+    "symbol": "MYOH",
+    "name": "PT Samindo Resources Tbk",
+    "sector": "IDX",
+    "rank": 308
+  },
+  {
+    "symbol": "BABP",
+    "name": "PT Bank MNC Internasional Tbk",
+    "sector": "IDX",
+    "rank": 309
+  },
+  {
+    "symbol": "ARGO",
+    "name": "PT Argo Pantes Tbk",
+    "sector": "IDX",
+    "rank": 310
+  },
+  {
+    "symbol": "SKRN",
+    "name": "PT Superkrane Mitra Utama Tbk",
+    "sector": "IDX",
+    "rank": 311
+  },
+  {
+    "symbol": "INPC",
+    "name": "PT Bank Artha Graha Internasional Tbk",
+    "sector": "IDX",
+    "rank": 312
+  },
+  {
+    "symbol": "BGTG",
+    "name": "PT Bank Ganesha Tbk",
+    "sector": "IDX",
+    "rank": 313
+  },
+  {
+    "symbol": "KAEF",
+    "name": "PT Kimia Farma Tbk",
+    "sector": "IDX",
+    "rank": 314
+  },
+  {
+    "symbol": "SMIL",
+    "name": "PT Sarana Mitra Luas Tbk",
+    "sector": "IDX",
+    "rank": 315
+  },
+  {
+    "symbol": "SMDM",
+    "name": "PT Suryamas Dutamakmur Tbk",
+    "sector": "IDX",
+    "rank": 316
+  },
+  {
+    "symbol": "RALS",
+    "name": "PT Ramayana Lestari Sentosa Tbk",
+    "sector": "IDX",
+    "rank": 317
+  },
+  {
+    "symbol": "BCAP",
+    "name": "PT MNC Kapital Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 318
+  },
+  {
+    "symbol": "ABDA",
+    "name": "PT Asuransi Bina Dana Arta Tbk",
+    "sector": "IDX",
+    "rank": 319
+  },
+  {
+    "symbol": "NETV",
+    "name": "PT MDTV Media Technologies Tbk",
+    "sector": "IDX",
+    "rank": 320
+  },
+  {
+    "symbol": "WINS",
+    "name": "PT Wintermar Offshore Marine Tbk",
+    "sector": "IDX",
+    "rank": 321
+  },
+  {
+    "symbol": "PRDA",
+    "name": "PT Prodia Widyahusada Tbk",
+    "sector": "IDX",
+    "rank": 322
+  },
+  {
+    "symbol": "MAHA",
+    "name": "PT Mandiri Herindo Adiperkasa Tbk",
+    "sector": "IDX",
+    "rank": 323
+  },
+  {
+    "symbol": "BACA",
+    "name": "PT Bank Capital Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 324
+  },
+  {
+    "symbol": "BWPT",
+    "name": "PT Eagle High Plantations Tbk",
+    "sector": "IDX",
+    "rank": 325
+  },
+  {
+    "symbol": "NEST",
+    "name": "PT Esta Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 326
+  },
+  {
+    "symbol": "BNBA",
+    "name": "PT Bank Bumi Arta Tbk",
+    "sector": "IDX",
+    "rank": 327
+  },
+  {
+    "symbol": "IFII",
+    "name": "PT Indonesia Fibreboard Industry Tbk",
+    "sector": "IDX",
+    "rank": 328
+  },
+  {
+    "symbol": "MAYA",
+    "name": "PT Bank Mayapada Internasional Tbk",
+    "sector": "IDX",
+    "rank": 329
+  },
+  {
+    "symbol": "SOCI",
+    "name": "PT Soechi Lines Tbk",
+    "sector": "IDX",
+    "rank": 330
+  },
+  {
+    "symbol": "PNBS",
+    "name": "PT Bank Panin Dubai Syariah Tbk",
+    "sector": "IDX",
+    "rank": 331
+  },
+  {
+    "symbol": "MTMH",
+    "name": "PT Murni Sadar Tbk",
+    "sector": "IDX",
+    "rank": 332
+  },
+  {
+    "symbol": "BHIT",
+    "name": "PT MNC Asia Holding Tbk",
+    "sector": "IDX",
+    "rank": 333
+  },
+  {
+    "symbol": "PYFA",
+    "name": "PT Pyridam Farma Tbk",
+    "sector": "IDX",
+    "rank": 334
+  },
+  {
+    "symbol": "BISI",
+    "name": "PT BISI International Tbk",
+    "sector": "IDX",
+    "rank": 335
+  },
+  {
+    "symbol": "ASSA",
+    "name": "PT Adi Sarana Armada Tbk",
+    "sector": "IDX",
+    "rank": 336
+  },
+  {
+    "symbol": "VICO",
+    "name": "PT Victoria Investama Tbk",
+    "sector": "IDX",
+    "rank": 337
+  },
+  {
+    "symbol": "ASRI",
+    "name": "PT Alam Sutera Realty Tbk",
+    "sector": "IDX",
+    "rank": 338
+  },
+  {
+    "symbol": "BRAM",
+    "name": "PT Indo Kordsa Tbk",
+    "sector": "IDX",
+    "rank": 339
+  },
+  {
+    "symbol": "IPCC",
+    "name": "PT Indonesia Kendaraan Terminal Tbk",
+    "sector": "IDX",
+    "rank": 340
+  },
+  {
+    "symbol": "CENT",
+    "name": "PT Centratama Telekomunikasi Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 341
+  },
+  {
+    "symbol": "LPGI",
+    "name": "PT Lippo General Insurance Tbk",
+    "sector": "IDX",
+    "rank": 342
+  },
+  {
+    "symbol": "UDNG",
+    "name": "PT Agro Bahari Nusantara Tbk",
+    "sector": "IDX",
+    "rank": 343
+  },
+  {
+    "symbol": "BUKK",
+    "name": "PT Bukaka Teknik Utama Tbk.",
+    "sector": "IDX",
+    "rank": 344
+  },
+  {
+    "symbol": "IFSH",
+    "name": "PT Ifishdeco Tbk",
+    "sector": "IDX",
+    "rank": 345
+  },
+  {
+    "symbol": "KMTR",
+    "name": "PT Kirana Megatara Tbk",
+    "sector": "IDX",
+    "rank": 346
+  },
+  {
+    "symbol": "PBSA",
+    "name": "PT Paramita Bangun Sarana Tbk",
+    "sector": "IDX",
+    "rank": 347
+  },
+  {
+    "symbol": "ROCK",
+    "name": "PT Rockfields Properti Indonesia Tbk.",
+    "sector": "IDX",
+    "rank": 348
+  },
+  {
+    "symbol": "ASGR",
+    "name": "PT Astra Graphia Tbk",
+    "sector": "IDX",
+    "rank": 349
+  },
+  {
+    "symbol": "BOLT",
+    "name": "PT Garuda Metalindo Tbk",
+    "sector": "IDX",
+    "rank": 350
+  },
+  {
+    "symbol": "SCCO",
+    "name": "PT Supreme Cable Manufacturing & Commerce Tbk",
+    "sector": "IDX",
+    "rank": 351
+  },
+  {
+    "symbol": "ALDO",
+    "name": "PT Alkindo Naratama Tbk",
+    "sector": "IDX",
+    "rank": 352
+  },
+  {
+    "symbol": "MMLP",
+    "name": "PT Mega Manunggal Property Tbk",
+    "sector": "IDX",
+    "rank": 353
+  },
+  {
+    "symbol": "AMAG",
+    "name": "PT Asuransi Multi Artha Guna Tbk",
+    "sector": "IDX",
+    "rank": 354
+  },
+  {
+    "symbol": "BKSW",
+    "name": "PT Bank QNB Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 355
+  },
+  {
+    "symbol": "DATA",
+    "name": "PT Remala Abadi Tbk",
+    "sector": "IDX",
+    "rank": 356
+  },
+  {
+    "symbol": "HUMI",
+    "name": "PT Humpuss Maritim Internasional Tbk",
+    "sector": "IDX",
+    "rank": 357
+  },
+  {
+    "symbol": "IATA",
+    "name": "PT MNC Energy Investments Tbk",
+    "sector": "IDX",
+    "rank": 358
+  },
+  {
+    "symbol": "BMTR",
+    "name": "PT Global Mediacom Tbk",
+    "sector": "IDX",
+    "rank": 359
+  },
+  {
+    "symbol": "JAWA",
+    "name": "PT Jaya Agra Wattie Tbk",
+    "sector": "IDX",
+    "rank": 360
+  },
+  {
+    "symbol": "DGWG",
+    "name": "PT Delta Giri Wacana Tbk",
+    "sector": "IDX",
+    "rank": 361
+  },
+  {
+    "symbol": "DVLA",
+    "name": "PT Darya-Varia Laboratoria Tbk",
+    "sector": "IDX",
+    "rank": 362
+  },
+  {
+    "symbol": "GMTD",
+    "name": "PT Gowa Makassar Tourism Development Tbk",
+    "sector": "IDX",
+    "rank": 363
+  },
+  {
+    "symbol": "MERK",
+    "name": "PT Merck Tbk",
+    "sector": "IDX",
+    "rank": 364
+  },
+  {
+    "symbol": "POLI",
+    "name": "PT Pollux Hotels Group Tbk",
+    "sector": "IDX",
+    "rank": 365
+  },
+  {
+    "symbol": "LUCY",
+    "name": "PT Lima Dua Lima Tiga Tbk",
+    "sector": "IDX",
+    "rank": 366
+  },
+  {
+    "symbol": "GTSI",
+    "name": "PT GTS Internasional Tbk",
+    "sector": "IDX",
+    "rank": 367
+  },
+  {
+    "symbol": "DEPO",
+    "name": "PT Caturkarda Depo Bangunan Tbk",
+    "sector": "IDX",
+    "rank": 368
+  },
+  {
+    "symbol": "MLIA",
+    "name": "PT Mulia Industrindo Tbk",
+    "sector": "IDX",
+    "rank": 369
+  },
+  {
+    "symbol": "TRIN",
+    "name": "PT Perintis Triniti Properti Tbk",
+    "sector": "IDX",
+    "rank": 370
+  },
+  {
+    "symbol": "IPCM",
+    "name": "PT Jasa Armada Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 371
+  },
+  {
+    "symbol": "CSAP",
+    "name": "PT Catur Sentosa Adiprana Tbk",
+    "sector": "IDX",
+    "rank": 372
+  },
+  {
+    "symbol": "DNAR",
+    "name": "PT Bank Oke Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 373
+  },
+  {
+    "symbol": "PSKT",
+    "name": "PT Red Planet Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 374
+  },
+  {
+    "symbol": "INDS",
+    "name": "PT Indospring Tbk",
+    "sector": "IDX",
+    "rank": 375
+  },
+  {
+    "symbol": "UCID",
+    "name": "PT Uni-Charm Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 376
+  },
+  {
+    "symbol": "SUNI",
+    "name": "PT Sunindo Pratama Tbk",
+    "sector": "IDX",
+    "rank": 377
+  },
+  {
+    "symbol": "IRSX",
+    "name": "PT Folago Global Nusantara Tbk",
+    "sector": "IDX",
+    "rank": 378
+  },
+  {
+    "symbol": "BMHS",
+    "name": "PT Bundamedik Tbk",
+    "sector": "IDX",
+    "rank": 379
+  },
+  {
+    "symbol": "KETR",
+    "name": "PT Ketrosden Triasmitra",
+    "sector": "IDX",
+    "rank": 380
+  },
+  {
+    "symbol": "SPTO",
+    "name": "PT Surya Pertiwi Tbk",
+    "sector": "IDX",
+    "rank": 381
+  },
+  {
+    "symbol": "KING",
+    "name": "PT Hoffmen Cleanindo Tbk",
+    "sector": "IDX",
+    "rank": 382
+  },
+  {
+    "symbol": "KINO",
+    "name": "PT Kino Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 383
+  },
+  {
+    "symbol": "DLTA",
+    "name": "PT Delta Djakarta Tbk",
+    "sector": "IDX",
+    "rank": 384
+  },
+  {
+    "symbol": "MKTR",
+    "name": "PT Menthobi Karyatama Raya Tbk",
+    "sector": "IDX",
+    "rank": 385
+  },
+  {
+    "symbol": "MBAP",
+    "name": "PT Mitrabara Adiperdana Tbk",
+    "sector": "IDX",
+    "rank": 386
+  },
+  {
+    "symbol": "FPNI",
+    "name": "PT Lotte Chemical Titan Tbk",
+    "sector": "IDX",
+    "rank": 387
+  },
+  {
+    "symbol": "FMII",
+    "name": "PT Fortune Mate Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 388
+  },
+  {
+    "symbol": "NICE",
+    "name": "PT Adhi Kartiko Pratama Tbk",
+    "sector": "IDX",
+    "rank": 389
+  },
+  {
+    "symbol": "BCIC",
+    "name": "PT Bank JTrust Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 390
+  },
+  {
+    "symbol": "SONA",
+    "name": "PT Sona Topas Tourism Industry Tbk",
+    "sector": "IDX",
+    "rank": 391
+  },
+  {
+    "symbol": "CBUT",
+    "name": "PT Citra Borneo Utama Tbk",
+    "sector": "IDX",
+    "rank": 392
+  },
+  {
+    "symbol": "DOID",
+    "name": "PT Buma Internasional Grup Tbk",
+    "sector": "IDX",
+    "rank": 393
+  },
+  {
+    "symbol": "STAR",
+    "name": "PT Buana Artha Anugerah Tbk",
+    "sector": "IDX",
+    "rank": 394
+  },
+  {
+    "symbol": "OASA",
+    "name": "PT Maharaksa Biru Energi Tbk",
+    "sector": "IDX",
+    "rank": 395
+  },
+  {
+    "symbol": "MAIN",
+    "name": "PT Malindo Feedmill Tbk",
+    "sector": "IDX",
+    "rank": 396
+  },
+  {
+    "symbol": "TRGU",
+    "name": "PT Cerestar Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 397
+  },
+  {
+    "symbol": "PMJS",
+    "name": "PT Putra Mandiri Jembar Tbk",
+    "sector": "IDX",
+    "rank": 398
+  },
+  {
+    "symbol": "HERO",
+    "name": "PT DFI Retail Nusantara Tbk",
+    "sector": "IDX",
+    "rank": 399
+  },
+  {
+    "symbol": "BVIC",
+    "name": "PT Bank Victoria International Tbk",
+    "sector": "IDX",
+    "rank": 400
+  },
+  {
+    "symbol": "SMBR",
+    "name": "PT Semen Baturaja (Persero) Tbk",
+    "sector": "IDX",
+    "rank": 401
+  },
+  {
+    "symbol": "SIPD",
+    "name": "PT Sreeya Sewu Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 402
+  },
+  {
+    "symbol": "IMJS",
+    "name": "PT Indomobil Multi Jasa Tbk",
+    "sector": "IDX",
+    "rank": 403
+  },
+  {
+    "symbol": "CSRA",
+    "name": "PT Cisadane Sawit Raya Tbk",
+    "sector": "IDX",
+    "rank": 404
+  },
+  {
+    "symbol": "ITMA",
+    "name": "PT Sumber Energi Andalan Tbk",
+    "sector": "IDX",
+    "rank": 405
+  },
+  {
+    "symbol": "IPTV",
+    "name": "PT MNC Vision Networks Tbk",
+    "sector": "IDX",
+    "rank": 406
+  },
+  {
+    "symbol": "TRST",
+    "name": "PT Trias Sentosa Tbk",
+    "sector": "IDX",
+    "rank": 407
+  },
+  {
+    "symbol": "PSSI",
+    "name": "PT IMC Pelita Logistik Tbk",
+    "sector": "IDX",
+    "rank": 408
+  },
+  {
+    "symbol": "BSBK",
+    "name": "PT Wulandari Bangun Laksana Tbk",
+    "sector": "IDX",
+    "rank": 409
+  },
+  {
+    "symbol": "WOOD",
+    "name": "PT Integra Indocabinet Tbk",
+    "sector": "IDX",
+    "rank": 410
+  },
+  {
+    "symbol": "GRIA",
+    "name": "PT Ingria Pratama Capitalindo Tbk",
+    "sector": "IDX",
+    "rank": 411
+  },
+  {
+    "symbol": "ACST",
+    "name": "PT Acset Indonusa Tbk",
+    "sector": "IDX",
+    "rank": 412
+  },
+  {
+    "symbol": "KBLI",
+    "name": "PT KMI Wire and Cable Tbk",
+    "sector": "IDX",
+    "rank": 413
+  },
+  {
+    "symbol": "BLUE",
+    "name": "PT Berkah Prima Perkasa Tbk",
+    "sector": "IDX",
+    "rank": 414
+  },
+  {
+    "symbol": "AMFG",
+    "name": "PT Asahimas Flat Glass Tbk",
+    "sector": "IDX",
+    "rank": 415
+  },
+  {
+    "symbol": "CEKA",
+    "name": "PT Wilmar Cahaya Indonesia Tbk.",
+    "sector": "IDX",
+    "rank": 416
+  },
+  {
+    "symbol": "CFIN",
+    "name": "PT. Clipan Finance Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 417
+  },
+  {
+    "symbol": "AYAM",
+    "name": "PT Janu Putra Sejahtera Tbk.",
+    "sector": "IDX",
+    "rank": 418
+  },
+  {
+    "symbol": "CARS",
+    "name": "PT Industri dan Perdagangan Bintraco Dharma Tbk",
+    "sector": "IDX",
+    "rank": 419
+  },
+  {
+    "symbol": "ERAL",
+    "name": "PT Sinar Eka Selaras Tbk",
+    "sector": "IDX",
+    "rank": 420
+  },
+  {
+    "symbol": "TPMA",
+    "name": "PT Trans Power Marine Tbk",
+    "sector": "IDX",
+    "rank": 421
+  },
+  {
+    "symbol": "JGLE",
+    "name": "PT Graha Andrasentra Propertindo Tbk",
+    "sector": "IDX",
+    "rank": 422
+  },
+  {
+    "symbol": "TCID",
+    "name": "PT. Mandom Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 423
+  },
+  {
+    "symbol": "ADHI",
+    "name": "PT Adhi Karya (Persero) Tbk",
+    "sector": "IDX",
+    "rank": 424
+  },
+  {
+    "symbol": "BLOG",
+    "name": "PT Trimitra Trans Persada Tbk",
+    "sector": "IDX",
+    "rank": 425
+  },
+  {
+    "symbol": "NFCX",
+    "name": "PT NFC Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 426
+  },
+  {
+    "symbol": "DILD",
+    "name": "PT Intiland Development Tbk",
+    "sector": "IDX",
+    "rank": 427
+  },
+  {
+    "symbol": "ADCP",
+    "name": "PT Adhi Commuter Properti Tbk",
+    "sector": "IDX",
+    "rank": 428
+  },
+  {
+    "symbol": "INDR",
+    "name": "PT. Indo-Rama Synthetics Tbk",
+    "sector": "IDX",
+    "rank": 429
+  },
+  {
+    "symbol": "PANS",
+    "name": "PT Panin Sekuritas Tbk",
+    "sector": "IDX",
+    "rank": 430
+  },
+  {
+    "symbol": "MLPL",
+    "name": "PT Multipolar Tbk",
+    "sector": "IDX",
+    "rank": 431
+  },
+  {
+    "symbol": "PTSN",
+    "name": "PT Sat Nusapersada Tbk",
+    "sector": "IDX",
+    "rank": 432
+  },
+  {
+    "symbol": "ATIC",
+    "name": "PT Anabatic Technologies Tbk",
+    "sector": "IDX",
+    "rank": 433
+  },
+  {
+    "symbol": "KKGI",
+    "name": "PT Resource Alam Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 434
+  },
+  {
+    "symbol": "BEEF",
+    "name": "PT Estika Tata Tiara Tbk",
+    "sector": "IDX",
+    "rank": 435
+  },
+  {
+    "symbol": "RAAM",
+    "name": "PT Tripar Multivision Plus Tbk",
+    "sector": "IDX",
+    "rank": 436
+  },
+  {
+    "symbol": "PTPP",
+    "name": "PT PP (Persero) Tbk",
+    "sector": "IDX",
+    "rank": 437
+  },
+  {
+    "symbol": "RONY",
+    "name": "PT Aesler Grup Internasional Tbk",
+    "sector": "IDX",
+    "rank": 438
+  },
+  {
+    "symbol": "PSAT",
+    "name": "PT Pancaran Samudera Transport Tbk",
+    "sector": "IDX",
+    "rank": 439
+  },
+  {
+    "symbol": "SKLT",
+    "name": "PT Sekar Laut Tbk",
+    "sector": "IDX",
+    "rank": 440
+  },
+  {
+    "symbol": "TIFA",
+    "name": "PT KDB Tifa Finance Tbk",
+    "sector": "IDX",
+    "rank": 441
+  },
+  {
+    "symbol": "BLES",
+    "name": "PT Superior Prima Sukses Tbk",
+    "sector": "IDX",
+    "rank": 442
+  },
+  {
+    "symbol": "LTLS",
+    "name": "PT Lautan Luas Tbk",
+    "sector": "IDX",
+    "rank": 443
+  },
+  {
+    "symbol": "TEBE",
+    "name": "PT Dana Brata Luhur Tbk",
+    "sector": "IDX",
+    "rank": 444
+  },
+  {
+    "symbol": "BUAH",
+    "name": "PT Segar Kumala Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 445
+  },
+  {
+    "symbol": "ELTY",
+    "name": "PT Bakrieland Development Tbk",
+    "sector": "IDX",
+    "rank": 446
+  },
+  {
+    "symbol": "JKON",
+    "name": "PT Jaya Konstruksi Manggala Pratama Tbk",
+    "sector": "IDX",
+    "rank": 447
+  },
+  {
+    "symbol": "BEKS",
+    "name": "PT. Bank Pembangunan Daerah Banten, Tbk",
+    "sector": "IDX",
+    "rank": 448
+  },
+  {
+    "symbol": "MFMI",
+    "name": "PT Multifiling Mitra Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 449
+  },
+  {
+    "symbol": "DMMX",
+    "name": "PT Digital Mediatama Maxima Tbk",
+    "sector": "IDX",
+    "rank": 450
+  },
+  {
+    "symbol": "ARII",
+    "name": "PT Atlas Resources Tbk",
+    "sector": "IDX",
+    "rank": 451
+  },
+  {
+    "symbol": "BBLD",
+    "name": "PT Buana Finance Tbk",
+    "sector": "IDX",
+    "rank": 452
+  },
+  {
+    "symbol": "SKBM",
+    "name": "PT Sekar Bumi Tbk",
+    "sector": "IDX",
+    "rank": 453
+  },
+  {
+    "symbol": "ASLI",
+    "name": "PT Asri Karya Lestari Tbk",
+    "sector": "IDX",
+    "rank": 454
+  },
+  {
+    "symbol": "FORU",
+    "name": "PT Fortune Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 455
+  },
+  {
+    "symbol": "BKDP",
+    "name": "PT Bukit Darmo Property Tbk",
+    "sector": "IDX",
+    "rank": 456
+  },
+  {
+    "symbol": "GHON",
+    "name": "PT Gihon Telekomunikasi Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 457
+  },
+  {
+    "symbol": "TALF",
+    "name": "PT Tunas Alfin Tbk",
+    "sector": "IDX",
+    "rank": 458
+  },
+  {
+    "symbol": "KDTN",
+    "name": "PT Puri Sentul Permai Tbk",
+    "sector": "IDX",
+    "rank": 459
+  },
+  {
+    "symbol": "FAST",
+    "name": "PT Fast Food Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 460
+  },
+  {
+    "symbol": "GSMF",
+    "name": "PT Equity Development Investment Tbk",
+    "sector": "IDX",
+    "rank": 461
+  },
+  {
+    "symbol": "BUDI",
+    "name": "PT Budi Starch & Sweetener Tbk",
+    "sector": "IDX",
+    "rank": 462
+  },
+  {
+    "symbol": "LIVE",
+    "name": "PT Homeco Victoria Makmur Tbk",
+    "sector": "IDX",
+    "rank": 463
+  },
+  {
+    "symbol": "NRCA",
+    "name": "PT Nusa Raya Cipta Tbk",
+    "sector": "IDX",
+    "rank": 464
+  },
+  {
+    "symbol": "CAMP",
+    "name": "PT Campina Ice Cream Industry, Tbk.",
+    "sector": "IDX",
+    "rank": 465
+  },
+  {
+    "symbol": "ARTA",
+    "name": "PT Arthavest Tbk",
+    "sector": "IDX",
+    "rank": 466
+  },
+  {
+    "symbol": "RELI",
+    "name": "PT Reliance Sekuritas Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 467
+  },
+  {
+    "symbol": "AMAN",
+    "name": "PT Makmur Berkah Amanda Tbk",
+    "sector": "IDX",
+    "rank": 468
+  },
+  {
+    "symbol": "JIHD",
+    "name": "PT Jakarta International Hotels & Development Tbk",
+    "sector": "IDX",
+    "rank": 469
+  },
+  {
+    "symbol": "AISA",
+    "name": "PT FKS Food Sejahtera Tbk",
+    "sector": "IDX",
+    "rank": 470
+  },
+  {
+    "symbol": "GWSA",
+    "name": "PT Greenwood Sejahtera Tbk",
+    "sector": "IDX",
+    "rank": 471
+  },
+  {
+    "symbol": "HITS",
+    "name": "PT Humpuss Intermoda Transportasi Tbk.",
+    "sector": "IDX",
+    "rank": 472
+  },
+  {
+    "symbol": "BEST",
+    "name": "PT Bekasi Fajar Industrial Estate Tbk",
+    "sector": "IDX",
+    "rank": 473
+  },
+  {
+    "symbol": "INRU",
+    "name": "PT Toba Pulp Lestari Tbk",
+    "sector": "IDX",
+    "rank": 474
+  },
+  {
+    "symbol": "MINE",
+    "name": "PT SINAR TERANG MANDIRI Tbk",
+    "sector": "IDX",
+    "rank": 475
+  },
+  {
+    "symbol": "PTPW",
+    "name": "PT Pratama Widya Tbk",
+    "sector": "IDX",
+    "rank": 476
+  },
+  {
+    "symbol": "PPRO",
+    "name": "PT Pembangunan Perumahan Properti Tbk",
+    "sector": "IDX",
+    "rank": 477
+  },
+  {
+    "symbol": "KOTA",
+    "name": "PT DMS Propertindo Tbk",
+    "sector": "IDX",
+    "rank": 478
+  },
+  {
+    "symbol": "KONI",
+    "name": "PT Perdana Bangun Pusaka Tbk",
+    "sector": "IDX",
+    "rank": 479
+  },
+  {
+    "symbol": "TBMS",
+    "name": "PT Tembaga Mulia Semanan Tbk",
+    "sector": "IDX",
+    "rank": 480
+  },
+  {
+    "symbol": "VOKS",
+    "name": "PT Voksel Electric Tbk",
+    "sector": "IDX",
+    "rank": 481
+  },
+  {
+    "symbol": "CMPP",
+    "name": "PT AirAsia Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 482
+  },
+  {
+    "symbol": "SPMA",
+    "name": "PT Suparma Tbk",
+    "sector": "IDX",
+    "rank": 483
+  },
+  {
+    "symbol": "ADMG",
+    "name": "PT. Polychem Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 484
+  },
+  {
+    "symbol": "SHID",
+    "name": "PT Hotel Sahid Jaya International Tbk",
+    "sector": "IDX",
+    "rank": 485
+  },
+  {
+    "symbol": "RANC",
+    "name": "PT Supra Boga Lestari Tbk",
+    "sector": "IDX",
+    "rank": 486
+  },
+  {
+    "symbol": "WOMF",
+    "name": "PT Wahana Ottomitra Multiartha Tbk",
+    "sector": "IDX",
+    "rank": 487
+  },
+  {
+    "symbol": "DOOH",
+    "name": "PT Era Media Sejahtera Tbk",
+    "sector": "IDX",
+    "rank": 488
+  },
+  {
+    "symbol": "ZINC",
+    "name": "PT Kapuas Prima Coal Tbk",
+    "sector": "IDX",
+    "rank": 489
+  },
+  {
+    "symbol": "SOSS",
+    "name": "PT Shield On Service Tbk",
+    "sector": "IDX",
+    "rank": 490
+  },
+  {
+    "symbol": "HGII",
+    "name": "PT Hero Global Investment Tbk",
+    "sector": "IDX",
+    "rank": 491
+  },
+  {
+    "symbol": "BLTA",
+    "name": "PT Berlian Laju Tanker Tbk",
+    "sector": "IDX",
+    "rank": 492
+  },
+  {
+    "symbol": "CHIP",
+    "name": "PT Pelita Teknologi Global Tbk",
+    "sector": "IDX",
+    "rank": 493
+  },
+  {
+    "symbol": "KSIX",
+    "name": "PT Kentanix Supra International Tbk",
+    "sector": "IDX",
+    "rank": 494
+  },
+  {
+    "symbol": "RSCH",
+    "name": "PT Charlie Hospital Semarang Tbk",
+    "sector": "IDX",
+    "rank": 495
+  },
+  {
+    "symbol": "BBRM",
+    "name": "PT Pelayaran Nasional Bina Buana Raya Tbk",
+    "sector": "IDX",
+    "rank": 496
+  },
+  {
+    "symbol": "PPRE",
+    "name": "PT PP Presisi Tbk",
+    "sector": "IDX",
+    "rank": 497
+  },
+  {
+    "symbol": "MTWI",
+    "name": "PT Malacca Trust Wuwungan Insurance Tbk",
+    "sector": "IDX",
+    "rank": 498
+  },
+  {
+    "symbol": "PTMR",
+    "name": "PT Master Print Tbk",
+    "sector": "IDX",
+    "rank": 499
+  },
+  {
+    "symbol": "PADI",
+    "name": "PT Minna Padi Investama Sekuritas Tbk",
+    "sector": "IDX",
+    "rank": 500
+  },
+  {
+    "symbol": "SQMI",
+    "name": "PT Wilton Makmur Indonesia Tbk.",
+    "sector": "IDX",
+    "rank": 501
+  },
+  {
+    "symbol": "FUTR",
+    "name": "PT Lini Imaji Kreasi Ekosistem Tbk",
+    "sector": "IDX",
+    "rank": 502
+  },
+  {
+    "symbol": "KDSI",
+    "name": "PT Kedawung Setia Industrial Tbk",
+    "sector": "IDX",
+    "rank": 503
+  },
+  {
+    "symbol": "BOLA",
+    "name": "PT Bali Bintang Sejahtera Tbk",
+    "sector": "IDX",
+    "rank": 504
+  },
+  {
+    "symbol": "ASLC",
+    "name": "PT Autopedia Sukses Lestari Tbk",
+    "sector": "IDX",
+    "rank": 505
+  },
+  {
+    "symbol": "INDO",
+    "name": "PT Royalindo Investa Wijaya Tbk",
+    "sector": "IDX",
+    "rank": 506
+  },
+  {
+    "symbol": "BSML",
+    "name": "PT Bintang Samudera Mandiri Lines Tbk",
+    "sector": "IDX",
+    "rank": 507
+  },
+  {
+    "symbol": "RODA",
+    "name": "PT Pikko Land Development Tbk",
+    "sector": "IDX",
+    "rank": 508
+  },
+  {
+    "symbol": "WMPP",
+    "name": "PT Widodo Makmur Perkasa Tbk",
+    "sector": "IDX",
+    "rank": 509
+  },
+  {
+    "symbol": "PDPP",
+    "name": "PT Primadaya Plastisindo Tbk",
+    "sector": "IDX",
+    "rank": 510
+  },
+  {
+    "symbol": "GZCO",
+    "name": "PT Gozco Plantations Tbk",
+    "sector": "IDX",
+    "rank": 511
+  },
+  {
+    "symbol": "BPFI",
+    "name": "PT Woori Finance Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 512
+  },
+  {
+    "symbol": "LFLO",
+    "name": "PT Imago Mulia Persada Tbk",
+    "sector": "IDX",
+    "rank": 513
+  },
+  {
+    "symbol": "BIKE",
+    "name": "PT Sepeda Bersama Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 514
+  },
+  {
+    "symbol": "WSBP",
+    "name": "PT Waskita Beton Precast Tbk",
+    "sector": "IDX",
+    "rank": 515
+  },
+  {
+    "symbol": "PJAA",
+    "name": "PT Pembangunan Jaya Ancol Tbk",
+    "sector": "IDX",
+    "rank": 516
+  },
+  {
+    "symbol": "STRK",
+    "name": "PT Lovina Beach Brewery Tbk",
+    "sector": "IDX",
+    "rank": 517
+  },
+  {
+    "symbol": "NICK",
+    "name": "PT Charnic Capital Tbk",
+    "sector": "IDX",
+    "rank": 518
+  },
+  {
+    "symbol": "WMUU",
+    "name": "PT Widodo Makmur Unggas Tbk",
+    "sector": "IDX",
+    "rank": 519
+  },
+  {
+    "symbol": "IPOL",
+    "name": "PT Indopoly Swakarsa Industry Tbk",
+    "sector": "IDX",
+    "rank": 520
+  },
+  {
+    "symbol": "AMOR",
+    "name": "PT Ashmore Asset Management Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 521
+  },
+  {
+    "symbol": "GDST",
+    "name": "PT Gunawan Dianjaya Steel Tbk",
+    "sector": "IDX",
+    "rank": 522
+  },
+  {
+    "symbol": "DPUM",
+    "name": "PT Dua Putra Utama Makmur Tbk",
+    "sector": "IDX",
+    "rank": 523
+  },
+  {
+    "symbol": "BELL",
+    "name": "PT Trisula Textile Industries Tbk",
+    "sector": "IDX",
+    "rank": 524
+  },
+  {
+    "symbol": "IBOS",
+    "name": "PT Indo Boga Sukses Tbk",
+    "sector": "IDX",
+    "rank": 525
+  },
+  {
+    "symbol": "DGIK",
+    "name": "PT Nusa Konstruksi Enjiniring Tbk",
+    "sector": "IDX",
+    "rank": 526
+  },
+  {
+    "symbol": "TAMU",
+    "name": "PT Pelayaran Tamarin Samudra Tbk",
+    "sector": "IDX",
+    "rank": 527
+  },
+  {
+    "symbol": "CITY",
+    "name": "PT Natura City Developments Tbk",
+    "sector": "IDX",
+    "rank": 528
+  },
+  {
+    "symbol": "MDLN",
+    "name": "PT Modernland Realty Tbk",
+    "sector": "IDX",
+    "rank": 529
+  },
+  {
+    "symbol": "WIRG",
+    "name": "PT WIR ASIA Tbk",
+    "sector": "IDX",
+    "rank": 530
+  },
+  {
+    "symbol": "AXIO",
+    "name": "PT Tera Data Indonusa Tbk",
+    "sector": "IDX",
+    "rank": 531
+  },
+  {
+    "symbol": "IDPR",
+    "name": "PT Indonesia Pondasi Raya Tbk",
+    "sector": "IDX",
+    "rank": 532
+  },
+  {
+    "symbol": "BRNA",
+    "name": "PT Berlina Tbk",
+    "sector": "IDX",
+    "rank": 533
+  },
+  {
+    "symbol": "IKBI",
+    "name": "PT Sumi Indo Kabel Tbk",
+    "sector": "IDX",
+    "rank": 534
+  },
+  {
+    "symbol": "MSKY",
+    "name": "PT MNC Sky Vision Tbk",
+    "sector": "IDX",
+    "rank": 535
+  },
+  {
+    "symbol": "BDKR",
+    "name": "PT Berdikari Pondasi Perkasa Tbk",
+    "sector": "IDX",
+    "rank": 536
+  },
+  {
+    "symbol": "RSGK",
+    "name": "PT Kedoya Adyaraya Tbk",
+    "sector": "IDX",
+    "rank": 537
+  },
+  {
+    "symbol": "MOLI",
+    "name": "PT Madusari Murni Indah Tbk",
+    "sector": "IDX",
+    "rank": 538
+  },
+  {
+    "symbol": "PANR",
+    "name": "PT Panorama Sentrawisata Tbk",
+    "sector": "IDX",
+    "rank": 539
+  },
+  {
+    "symbol": "COCO",
+    "name": "PT Wahana Interfood Nusantara Tbk",
+    "sector": "IDX",
+    "rank": 540
+  },
+  {
+    "symbol": "FOLK",
+    "name": "PT Multi Garam Utama Tbk",
+    "sector": "IDX",
+    "rank": 541
+  },
+  {
+    "symbol": "MPPA",
+    "name": "PT Matahari Putra Prima Tbk",
+    "sector": "IDX",
+    "rank": 542
+  },
+  {
+    "symbol": "AREA",
+    "name": "PT Dunia Virtual Online Tbk",
+    "sector": "IDX",
+    "rank": 543
+  },
+  {
+    "symbol": "BAIK",
+    "name": "PT Bersama Mencapai Puncak Tbk",
+    "sector": "IDX",
+    "rank": 544
+  },
+  {
+    "symbol": "URBN",
+    "name": "PT Urban Jakarta Propertindo Tbk.",
+    "sector": "IDX",
+    "rank": 545
+  },
+  {
+    "symbol": "EKAD",
+    "name": "PT Ekadharma International Tbk",
+    "sector": "IDX",
+    "rank": 546
+  },
+  {
+    "symbol": "WTON",
+    "name": "PT Wijaya Karya Beton Tbk",
+    "sector": "IDX",
+    "rank": 547
+  },
+  {
+    "symbol": "VERN",
+    "name": "PT Verona Indah Pictures Tbk",
+    "sector": "IDX",
+    "rank": 548
+  },
+  {
+    "symbol": "GULA",
+    "name": "PT Aman Agrindo Tbk",
+    "sector": "IDX",
+    "rank": 549
+  },
+  {
+    "symbol": "LABS",
+    "name": "PT UBC Medical Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 550
+  },
+  {
+    "symbol": "MITI",
+    "name": "PT Mitra Investindo Tbk",
+    "sector": "IDX",
+    "rank": 551
+  },
+  {
+    "symbol": "HDFA",
+    "name": "PT Radana Bhaskara Finance Tbk",
+    "sector": "IDX",
+    "rank": 552
+  },
+  {
+    "symbol": "SOTS",
+    "name": "PT Satria Mega Kencana Tbk",
+    "sector": "IDX",
+    "rank": 553
+  },
+  {
+    "symbol": "PZZA",
+    "name": "PT Sarimelati Kencana Tbk",
+    "sector": "IDX",
+    "rank": 554
+  },
+  {
+    "symbol": "IRRA",
+    "name": "PT Itama Ranoraya Tbk",
+    "sector": "IDX",
+    "rank": 555
+  },
+  {
+    "symbol": "PEVE",
+    "name": "PT. Penta Valent Tbk",
+    "sector": "IDX",
+    "rank": 556
+  },
+  {
+    "symbol": "PBRX",
+    "name": "PT Pan Brothers Tbk",
+    "sector": "IDX",
+    "rank": 557
+  },
+  {
+    "symbol": "PGJO",
+    "name": "PT Bahtera Bumi Raya Tbk",
+    "sector": "IDX",
+    "rank": 558
+  },
+  {
+    "symbol": "TGUK",
+    "name": "PT Platinum Wahab Nusantara Tbk",
+    "sector": "IDX",
+    "rank": 559
+  },
+  {
+    "symbol": "MREI",
+    "name": "PT Maskapai Reasuransi Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 560
+  },
+  {
+    "symbol": "HOKI",
+    "name": "PT Buyung Poetra Sembada Tbk",
+    "sector": "IDX",
+    "rank": 561
+  },
+  {
+    "symbol": "MAXI",
+    "name": "PT Maxindo Karya Anugerah Tbk",
+    "sector": "IDX",
+    "rank": 562
+  },
+  {
+    "symbol": "GLVA",
+    "name": "PT Galva Technologies Tbk",
+    "sector": "IDX",
+    "rank": 563
+  },
+  {
+    "symbol": "WEGE",
+    "name": "PT Wijaya Karya Bangunan Gedung Tbk",
+    "sector": "IDX",
+    "rank": 564
+  },
+  {
+    "symbol": "UNSP",
+    "name": "PT Bakrie Sumatera Plantations Tbk",
+    "sector": "IDX",
+    "rank": 565
+  },
+  {
+    "symbol": "SMGA",
+    "name": "PT Sumber Mineral Global Abadi Tbk",
+    "sector": "IDX",
+    "rank": 566
+  },
+  {
+    "symbol": "SULI",
+    "name": "PT SLJ Global Tbk",
+    "sector": "IDX",
+    "rank": 567
+  },
+  {
+    "symbol": "AWAN",
+    "name": "PT Era Digital Media Tbk",
+    "sector": "IDX",
+    "rank": 568
+  },
+  {
+    "symbol": "CHEK",
+    "name": "PT Diastika Biotekindo Tbk",
+    "sector": "IDX",
+    "rank": 569
+  },
+  {
+    "symbol": "GDYR",
+    "name": "PT Goodyear Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 570
+  },
+  {
+    "symbol": "TRUE",
+    "name": "PT Triniti Dinamik Tbk",
+    "sector": "IDX",
+    "rank": 571
+  },
+  {
+    "symbol": "NIKL",
+    "name": "PT Pelat Timah Nusantara Tbk",
+    "sector": "IDX",
+    "rank": 572
+  },
+  {
+    "symbol": "ASPR",
+    "name": "PT Asia Pramulia Tbk",
+    "sector": "IDX",
+    "rank": 573
+  },
+  {
+    "symbol": "SWID",
+    "name": "PT Saraswanti Indoland Development Tbk",
+    "sector": "IDX",
+    "rank": 574
+  },
+  {
+    "symbol": "GTBO",
+    "name": "PT Garda Tujuh Buana Tbk",
+    "sector": "IDX",
+    "rank": 575
+  },
+  {
+    "symbol": "ZATA",
+    "name": "PT Bersama Zatta Jaya Tbk",
+    "sector": "IDX",
+    "rank": 576
+  },
+  {
+    "symbol": "LEAD",
+    "name": "PT Logindo Samudramakmur Tbk.",
+    "sector": "IDX",
+    "rank": 577
+  },
+  {
+    "symbol": "ENAK",
+    "name": "PT Champ Resto Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 578
+  },
+  {
+    "symbol": "CLPI",
+    "name": "PT Colorpak Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 579
+  },
+  {
+    "symbol": "TRIS",
+    "name": "PT Trisula International Tbk",
+    "sector": "IDX",
+    "rank": 580
+  },
+  {
+    "symbol": "BBSS",
+    "name": "PT Bumi Benowo Sukses Sejahtera Tbk",
+    "sector": "IDX",
+    "rank": 581
+  },
+  {
+    "symbol": "NZIA",
+    "name": "PT Nusantara Almazia Tbk",
+    "sector": "IDX",
+    "rank": 582
+  },
+  {
+    "symbol": "MDKI",
+    "name": "PT Emdeki Utama Tbk",
+    "sector": "IDX",
+    "rank": 583
+  },
+  {
+    "symbol": "GPRA",
+    "name": "PT Perdana Gapuraprima Tbk",
+    "sector": "IDX",
+    "rank": 584
+  },
+  {
+    "symbol": "BTEK",
+    "name": "PT Bumi Teknokultura Unggul Tbk",
+    "sector": "IDX",
+    "rank": 585
+  },
+  {
+    "symbol": "VIVA",
+    "name": "PT Visi Media Asia Tbk",
+    "sector": "IDX",
+    "rank": 586
+  },
+  {
+    "symbol": "KMDS",
+    "name": "PT Kurniamitra Duta Sentosa, Tbk",
+    "sector": "IDX",
+    "rank": 587
+  },
+  {
+    "symbol": "NELY",
+    "name": "PT Pelayaran Nelly Dwi Putri Tbk",
+    "sector": "IDX",
+    "rank": 588
+  },
+  {
+    "symbol": "PNSE",
+    "name": "PT Pudjiadi and Sons Tbk",
+    "sector": "IDX",
+    "rank": 589
+  },
+  {
+    "symbol": "ESTA",
+    "name": "PT Esta Multi Usaha Tbk",
+    "sector": "IDX",
+    "rank": 590
+  },
+  {
+    "symbol": "APEX",
+    "name": "PT Apexindo Pratama Duta Tbk",
+    "sector": "IDX",
+    "rank": 591
+  },
+  {
+    "symbol": "SOFA",
+    "name": "PT Solusi Environment Asia Tbk",
+    "sector": "IDX",
+    "rank": 592
+  },
+  {
+    "symbol": "JECC",
+    "name": "PT Jembo Cable Company Tbk",
+    "sector": "IDX",
+    "rank": 593
+  },
+  {
+    "symbol": "APLI",
+    "name": "PT Asiaplast Industries Tbk",
+    "sector": "IDX",
+    "rank": 594
+  },
+  {
+    "symbol": "YPAS",
+    "name": "PT Yanaprima Hastapersada Tbk",
+    "sector": "IDX",
+    "rank": 595
+  },
+  {
+    "symbol": "INAF",
+    "name": "PT Indofarma Tbk",
+    "sector": "IDX",
+    "rank": 596
+  },
+  {
+    "symbol": "CRAB",
+    "name": "PT Toba Surimi Industries Tbk",
+    "sector": "IDX",
+    "rank": 597
+  },
+  {
+    "symbol": "FITT",
+    "name": "PT Hotel Fitra International Tbk",
+    "sector": "IDX",
+    "rank": 598
+  },
+  {
+    "symbol": "UNTD",
+    "name": "PT Terang Dunia Internusa Tbk",
+    "sector": "IDX",
+    "rank": 599
+  },
+  {
+    "symbol": "INPS",
+    "name": "PT Indah Prakasa Sentosa Tbk",
+    "sector": "IDX",
+    "rank": 600
+  },
+  {
+    "symbol": "MTFN",
+    "name": "PT Capitalinc Investment Tbk",
+    "sector": "IDX",
+    "rank": 601
+  },
+  {
+    "symbol": "HBAT",
+    "name": "PT Minahasa Membangun Hebat Tbk",
+    "sector": "IDX",
+    "rank": 602
+  },
+  {
+    "symbol": "HAIS",
+    "name": "PT Hasnur Internasional Shipping Tbk",
+    "sector": "IDX",
+    "rank": 603
+  },
+  {
+    "symbol": "IGAR",
+    "name": "PT Champion Pacific Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 604
+  },
+  {
+    "symbol": "CBPE",
+    "name": "PT Citra Buana Prasida Tbk",
+    "sector": "IDX",
+    "rank": 605
+  },
+  {
+    "symbol": "SSTM",
+    "name": "PT Sunson Textile Manufacturer Tbk",
+    "sector": "IDX",
+    "rank": 606
+  },
+  {
+    "symbol": "RIGS",
+    "name": "PT Rig Tenders Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 607
+  },
+  {
+    "symbol": "VRNA",
+    "name": "PT Mizuho Leasing Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 608
+  },
+  {
+    "symbol": "AMMS",
+    "name": "PT Agung Menjangan Mas Tbk",
+    "sector": "IDX",
+    "rank": 609
+  },
+  {
+    "symbol": "SMKL",
+    "name": "PT Satyamitra Kemas Lestari Tbk",
+    "sector": "IDX",
+    "rank": 610
+  },
+  {
+    "symbol": "DADA",
+    "name": "PT Diamond Citra Propertindo Tbk",
+    "sector": "IDX",
+    "rank": 611
+  },
+  {
+    "symbol": "SATU",
+    "name": "PT Kota Satu Properti Tbk",
+    "sector": "IDX",
+    "rank": 612
+  },
+  {
+    "symbol": "TIRT",
+    "name": "PT Tirta Mahakam Resources Tbk",
+    "sector": "IDX",
+    "rank": 613
+  },
+  {
+    "symbol": "NASA",
+    "name": "PT Andalan Perkasa Abadi Tbk",
+    "sector": "IDX",
+    "rank": 614
+  },
+  {
+    "symbol": "UFOE",
+    "name": "PT Damai Sejahtera Abadi Tbk",
+    "sector": "IDX",
+    "rank": 615
+  },
+  {
+    "symbol": "PDES",
+    "name": "PT Destinasi Tirta Nusantara Tbk",
+    "sector": "IDX",
+    "rank": 616
+  },
+  {
+    "symbol": "BAYU",
+    "name": "PT Bayu Buana Tbk",
+    "sector": "IDX",
+    "rank": 617
+  },
+  {
+    "symbol": "GUNA",
+    "name": "PT Gunanusa Eramandiri Tbk",
+    "sector": "IDX",
+    "rank": 618
+  },
+  {
+    "symbol": "EAST",
+    "name": "PT Eastparc Hotel Tbk",
+    "sector": "IDX",
+    "rank": 619
+  },
+  {
+    "symbol": "MHKI",
+    "name": "PT Multi Hanna Kreasindo Tbk",
+    "sector": "IDX",
+    "rank": 620
+  },
+  {
+    "symbol": "DART",
+    "name": "PT Duta Anggada Realty Tbk.",
+    "sector": "IDX",
+    "rank": 621
+  },
+  {
+    "symbol": "TYRE",
+    "name": "PT King Tire Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 622
+  },
+  {
+    "symbol": "PMUI",
+    "name": "PT Prima Multi Usaha Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 623
+  },
+  {
+    "symbol": "WINE",
+    "name": "PT HATTEN BALI Tbk",
+    "sector": "IDX",
+    "rank": 624
+  },
+  {
+    "symbol": "SRSN",
+    "name": "PT Indo Acidatama Tbk",
+    "sector": "IDX",
+    "rank": 625
+  },
+  {
+    "symbol": "MYTX",
+    "name": "PT Asia Pacific Investama Tbk",
+    "sector": "IDX",
+    "rank": 626
+  },
+  {
+    "symbol": "KOCI",
+    "name": "PT Kokoh Exa Nusantara Tbk",
+    "sector": "IDX",
+    "rank": 627
+  },
+  {
+    "symbol": "MUTU",
+    "name": "PT Mutuagung Lestari Tbk",
+    "sector": "IDX",
+    "rank": 628
+  },
+  {
+    "symbol": "PIPA",
+    "name": "PT. Multi Makmur Lemindo",
+    "sector": "IDX",
+    "rank": 629
+  },
+  {
+    "symbol": "VTNY",
+    "name": "PT Venteny Fortuna International Tbk",
+    "sector": "IDX",
+    "rank": 630
+  },
+  {
+    "symbol": "BEER",
+    "name": "PT Jobubu Jarum Minahasa Tbk",
+    "sector": "IDX",
+    "rank": 631
+  },
+  {
+    "symbol": "KOBX",
+    "name": "PT Kobexindo Tractors Tbk",
+    "sector": "IDX",
+    "rank": 632
+  },
+  {
+    "symbol": "REAL",
+    "name": "PT Repower Asia Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 633
+  },
+  {
+    "symbol": "FUJI",
+    "name": "PT Fuji Finance Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 634
+  },
+  {
+    "symbol": "ATAP",
+    "name": "PT Trimitra Prawara Goldland Tbk",
+    "sector": "IDX",
+    "rank": 635
+  },
+  {
+    "symbol": "SURI",
+    "name": "PT Maja Agung Latexindo Tbk",
+    "sector": "IDX",
+    "rank": 636
+  },
+  {
+    "symbol": "SCNP",
+    "name": "PT Selaras Citra Nusantara Perkasa Tbk",
+    "sector": "IDX",
+    "rank": 637
+  },
+  {
+    "symbol": "TIRA",
+    "name": "PT Tira Austenite Tbk",
+    "sector": "IDX",
+    "rank": 638
+  },
+  {
+    "symbol": "BOBA",
+    "name": "PT Formosa Ingredient Factory Tbk",
+    "sector": "IDX",
+    "rank": 639
+  },
+  {
+    "symbol": "HYGN",
+    "name": "PT Ecocare Indo Pasifik Tbk",
+    "sector": "IDX",
+    "rank": 640
+  },
+  {
+    "symbol": "KBLM",
+    "name": "PT Kabelindo Murni Tbk",
+    "sector": "IDX",
+    "rank": 641
+  },
+  {
+    "symbol": "KIAS",
+    "name": "PT Keramika Indonesia Assosiasi Tbk",
+    "sector": "IDX",
+    "rank": 642
+  },
+  {
+    "symbol": "COAL",
+    "name": "PT Black Diamond Resources Tbk",
+    "sector": "IDX",
+    "rank": 643
+  },
+  {
+    "symbol": "ATLA",
+    "name": "PT Atlantis Subsea Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 644
+  },
+  {
+    "symbol": "GOLD",
+    "name": "PT Visi Telekomunikasi Infrastruktur Tbk",
+    "sector": "IDX",
+    "rank": 645
+  },
+  {
+    "symbol": "BMSR",
+    "name": "PT Bintang Mitra Semestaraya Tbk",
+    "sector": "IDX",
+    "rank": 646
+  },
+  {
+    "symbol": "HALO",
+    "name": "PT Haloni Jane Tbk",
+    "sector": "IDX",
+    "rank": 647
+  },
+  {
+    "symbol": "GTRA",
+    "name": "PT Grahaprima Suksesmandiri Tbk",
+    "sector": "IDX",
+    "rank": 648
+  },
+  {
+    "symbol": "ASRM",
+    "name": "PT Asuransi Ramayana Tbk",
+    "sector": "IDX",
+    "rank": 649
+  },
+  {
+    "symbol": "VAST",
+    "name": "PT Vastland Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 650
+  },
+  {
+    "symbol": "RMKO",
+    "name": "PT Royaltama Mulia Kontraktorindo Tbk",
+    "sector": "IDX",
+    "rank": 651
+  },
+  {
+    "symbol": "BABY",
+    "name": "PT Multitrend Indo Tbk",
+    "sector": "IDX",
+    "rank": 652
+  },
+  {
+    "symbol": "DYAN",
+    "name": "PT Dyandra Media International Tbk",
+    "sector": "IDX",
+    "rank": 653
+  },
+  {
+    "symbol": "WICO",
+    "name": "Pt Wicaksana Overseas International Tbk",
+    "sector": "IDX",
+    "rank": 654
+  },
+  {
+    "symbol": "TFAS",
+    "name": "PT Telefast Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 655
+  },
+  {
+    "symbol": "TARA",
+    "name": "PT Agung Semesta Sejahtera Tbk",
+    "sector": "IDX",
+    "rank": 656
+  },
+  {
+    "symbol": "MICE",
+    "name": "PT Multi Indocitra Tbk",
+    "sector": "IDX",
+    "rank": 657
+  },
+  {
+    "symbol": "ELIT",
+    "name": "PT Data Sinergitama Jaya Tbk",
+    "sector": "IDX",
+    "rank": 658
+  },
+  {
+    "symbol": "ZONE",
+    "name": "PT Mega Perintis Tbk",
+    "sector": "IDX",
+    "rank": 659
+  },
+  {
+    "symbol": "IKPM",
+    "name": "PT Ikapharmindo Putramas Tbk",
+    "sector": "IDX",
+    "rank": 660
+  },
+  {
+    "symbol": "UVCR",
+    "name": "PT Trimegah Karya Pratama Tbk",
+    "sector": "IDX",
+    "rank": 661
+  },
+  {
+    "symbol": "AHAP",
+    "name": "PT Asuransi Harta Aman Pratama Tbk",
+    "sector": "IDX",
+    "rank": 662
+  },
+  {
+    "symbol": "JATI",
+    "name": "PT Informasi Teknologi Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 663
+  },
+  {
+    "symbol": "BOAT",
+    "name": "PT Newport Marine Services TBK",
+    "sector": "IDX",
+    "rank": 664
+  },
+  {
+    "symbol": "ALMI",
+    "name": "PT Alumindo Light Metal Industry Tbk",
+    "sector": "IDX",
+    "rank": 665
+  },
+  {
+    "symbol": "AKPI",
+    "name": "PT Argha Karya Prima Industry Tbk",
+    "sector": "IDX",
+    "rank": 666
+  },
+  {
+    "symbol": "PADA",
+    "name": "PT Personel Alih Daya Tbk",
+    "sector": "IDX",
+    "rank": 667
+  },
+  {
+    "symbol": "MPXL",
+    "name": "PT MPX Logistics International Tbk",
+    "sector": "IDX",
+    "rank": 668
+  },
+  {
+    "symbol": "HOMI",
+    "name": "PT Grand House Mulia Tbk",
+    "sector": "IDX",
+    "rank": 669
+  },
+  {
+    "symbol": "CCSI",
+    "name": "PT Communication Cable Systems Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 670
+  },
+  {
+    "symbol": "GRPM",
+    "name": "PT Graha Prima Mentari Tbk",
+    "sector": "IDX",
+    "rank": 671
+  },
+  {
+    "symbol": "CNKO",
+    "name": "PT Exploitasi Energi Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 672
+  },
+  {
+    "symbol": "AMIN",
+    "name": "PT Ateliers Mecaniques D'Indonesie Tbk",
+    "sector": "IDX",
+    "rank": 673
+  },
+  {
+    "symbol": "LPLI",
+    "name": "PT Star Pacific Tbk",
+    "sector": "IDX",
+    "rank": 674
+  },
+  {
+    "symbol": "WGSH",
+    "name": "PT Wira Global Solusi Tbk",
+    "sector": "IDX",
+    "rank": 675
+  },
+  {
+    "symbol": "IOTF",
+    "name": "PT Sumber Sinergi Makmur Tbk",
+    "sector": "IDX",
+    "rank": 676
+  },
+  {
+    "symbol": "ALKA",
+    "name": "PT Alakasa Industrindo Tbk",
+    "sector": "IDX",
+    "rank": 677
+  },
+  {
+    "symbol": "UNIQ",
+    "name": "PT Ulima Nitra Tbk",
+    "sector": "IDX",
+    "rank": 678
+  },
+  {
+    "symbol": "CRSN",
+    "name": "PT Carsurin Tbk",
+    "sector": "IDX",
+    "rank": 679
+  },
+  {
+    "symbol": "DGNS",
+    "name": "PT Diagnos Laboratorium Utama Tbk",
+    "sector": "IDX",
+    "rank": 680
+  },
+  {
+    "symbol": "PJHB",
+    "name": "PT Pelayaran Jaya Hidup Baru TBK",
+    "sector": "IDX",
+    "rank": 681
+  },
+  {
+    "symbol": "HRME",
+    "name": "PT Menteng Heritage Realty Tbk",
+    "sector": "IDX",
+    "rank": 682
+  },
+  {
+    "symbol": "ASHA",
+    "name": "PT Cilacap Samudera Fishing Industry Tbk",
+    "sector": "IDX",
+    "rank": 683
+  },
+  {
+    "symbol": "SOLA",
+    "name": "PT Xolare RCR Energy TBK",
+    "sector": "IDX",
+    "rank": 684
+  },
+  {
+    "symbol": "PEGE",
+    "name": "PT Panca Global Kapital Tbk",
+    "sector": "IDX",
+    "rank": 685
+  },
+  {
+    "symbol": "BIPP",
+    "name": "PT Bhuwanatala Indah Permai Tbk",
+    "sector": "IDX",
+    "rank": 686
+  },
+  {
+    "symbol": "JMAS",
+    "name": "PT Asuransi Jiwa Syariah Jasa Mitra Abadi Tbk",
+    "sector": "IDX",
+    "rank": 687
+  },
+  {
+    "symbol": "PRIM",
+    "name": "PT Royal Prima Tbk",
+    "sector": "IDX",
+    "rank": 688
+  },
+  {
+    "symbol": "SAFE",
+    "name": "PT Steady Safe Tbk",
+    "sector": "IDX",
+    "rank": 689
+  },
+  {
+    "symbol": "KOKA",
+    "name": "PT Koka Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 690
+  },
+  {
+    "symbol": "BTON",
+    "name": "PT Betonjaya Manunggal Tbk",
+    "sector": "IDX",
+    "rank": 691
+  },
+  {
+    "symbol": "CSIS",
+    "name": "PT Cahayasakti Investindo Sukses Tbk",
+    "sector": "IDX",
+    "rank": 692
+  },
+  {
+    "symbol": "AKKU",
+    "name": "PT Anugerah Kagum Karya Utama Tbk",
+    "sector": "IDX",
+    "rank": 693
+  },
+  {
+    "symbol": "BPTR",
+    "name": "PT Batavia Prosperindo Trans Tbk",
+    "sector": "IDX",
+    "rank": 694
+  },
+  {
+    "symbol": "IKAI",
+    "name": "PT Intikeramik Alamasri Industri Tbk",
+    "sector": "IDX",
+    "rank": 695
+  },
+  {
+    "symbol": "CGAS",
+    "name": "PT Citra Nusantara Gemilang Tbk",
+    "sector": "IDX",
+    "rank": 696
+  },
+  {
+    "symbol": "YOII",
+    "name": "PT Asuransi Digital Bersama TBK",
+    "sector": "IDX",
+    "rank": 697
+  },
+  {
+    "symbol": "GPSO",
+    "name": "PT Geoprima Solusi Tbk",
+    "sector": "IDX",
+    "rank": 698
+  },
+  {
+    "symbol": "NAIK",
+    "name": "PT Adiwarna Anugerah Abadi Tbk",
+    "sector": "IDX",
+    "rank": 699
+  },
+  {
+    "symbol": "HOPE",
+    "name": "PT Harapan Duta Pertiwi Tbk",
+    "sector": "IDX",
+    "rank": 700
+  },
+  {
+    "symbol": "TOSK",
+    "name": "PT Topindo Solusi Komunika Tbk",
+    "sector": "IDX",
+    "rank": 701
+  },
+  {
+    "symbol": "BEBS",
+    "name": "PT Berkah Beton Sadaya Tbk",
+    "sector": "IDX",
+    "rank": 702
+  },
+  {
+    "symbol": "CASH",
+    "name": "PT Cashlez Worldwide Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 703
+  },
+  {
+    "symbol": "BATR",
+    "name": "PT Benteng Api Technic Tbk",
+    "sector": "IDX",
+    "rank": 704
+  },
+  {
+    "symbol": "DEWI",
+    "name": "PT Dewi Shri Farmindo Tbk.",
+    "sector": "IDX",
+    "rank": 705
+  },
+  {
+    "symbol": "MGNA",
+    "name": "PT Magna Investama Mandiri Tbk",
+    "sector": "IDX",
+    "rank": 706
+  },
+  {
+    "symbol": "HAJJ",
+    "name": "PT Arsy Buana Travelindo Tbk",
+    "sector": "IDX",
+    "rank": 707
+  },
+  {
+    "symbol": "KBAG",
+    "name": "PT Karya Bersama Anugerah Tbk",
+    "sector": "IDX",
+    "rank": 708
+  },
+  {
+    "symbol": "LAPD",
+    "name": "PT Leyand International Tbk",
+    "sector": "IDX",
+    "rank": 709
+  },
+  {
+    "symbol": "MDRN",
+    "name": "PT Modern Internasional Tbk",
+    "sector": "IDX",
+    "rank": 710
+  },
+  {
+    "symbol": "AGAR",
+    "name": "PT Asia Sejahtera Mina Tbk",
+    "sector": "IDX",
+    "rank": 711
+  },
+  {
+    "symbol": "ASPI",
+    "name": "PT Andalan Sakti Primaindo Tbk",
+    "sector": "IDX",
+    "rank": 712
+  },
+  {
+    "symbol": "ESTI",
+    "name": "PT Ever Shine Tex Tbk",
+    "sector": "IDX",
+    "rank": 713
+  },
+  {
+    "symbol": "BAJA",
+    "name": "PT Saranacentral Bajatama Tbk",
+    "sector": "IDX",
+    "rank": 714
+  },
+  {
+    "symbol": "DOSS",
+    "name": "PT Global Sukses Digital Tbk",
+    "sector": "IDX",
+    "rank": 715
+  },
+  {
+    "symbol": "SDPC",
+    "name": "PT Millennium Pharmacon International Tbk",
+    "sector": "IDX",
+    "rank": 716
+  },
+  {
+    "symbol": "KREN",
+    "name": "PT Quantum Clovera Investama Tbk",
+    "sector": "IDX",
+    "rank": 717
+  },
+  {
+    "symbol": "PUDP",
+    "name": "PT Pudjiadi Prestige Tbk",
+    "sector": "IDX",
+    "rank": 718
+  },
+  {
+    "symbol": "INTA",
+    "name": "PT Intraco Penta Tbk",
+    "sector": "IDX",
+    "rank": 719
+  },
+  {
+    "symbol": "ASJT",
+    "name": "PT Asuransi Jasa Tania Tbk",
+    "sector": "IDX",
+    "rank": 720
+  },
+  {
+    "symbol": "TRON",
+    "name": "PT Teknologi Karya Digital Nusa Tbk",
+    "sector": "IDX",
+    "rank": 721
+  },
+  {
+    "symbol": "ASDM",
+    "name": "PT Asuransi Dayin Mitra Tbk",
+    "sector": "IDX",
+    "rank": 722
+  },
+  {
+    "symbol": "PTPS",
+    "name": "PT Pulau Subur Tbk",
+    "sector": "IDX",
+    "rank": 723
+  },
+  {
+    "symbol": "HILL",
+    "name": "PT Hillcon Tbk",
+    "sector": "IDX",
+    "rank": 724
+  },
+  {
+    "symbol": "PTSP",
+    "name": "PT Pioneerindo Gourmet International Tbk",
+    "sector": "IDX",
+    "rank": 725
+  },
+  {
+    "symbol": "KLAS",
+    "name": "PT Pelayaran Kurnia Lautan Semesta Tbk",
+    "sector": "IDX",
+    "rank": 726
+  },
+  {
+    "symbol": "RELF",
+    "name": "PT Graha Mitra Asia Tbk",
+    "sector": "IDX",
+    "rank": 727
+  },
+  {
+    "symbol": "TRUS",
+    "name": "PT Trust Finance Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 728
+  },
+  {
+    "symbol": "OKAS",
+    "name": "PT Ancora Indonesia Resources Tbk",
+    "sector": "IDX",
+    "rank": 729
+  },
+  {
+    "symbol": "ACRO",
+    "name": "PT Samcro Hyosung Adilestari Tbk",
+    "sector": "IDX",
+    "rank": 730
+  },
+  {
+    "symbol": "BINO",
+    "name": "PT Perma Plasindo Tbk",
+    "sector": "IDX",
+    "rank": 731
+  },
+  {
+    "symbol": "SAGE",
+    "name": "PT Saptausaha Gemilangindah Tbk",
+    "sector": "IDX",
+    "rank": 732
+  },
+  {
+    "symbol": "NPGF",
+    "name": "PT Nusa Palapa Gemilang Tbk",
+    "sector": "IDX",
+    "rank": 733
+  },
+  {
+    "symbol": "PART",
+    "name": "PT Cipta Perdana Lancar Tbk",
+    "sector": "IDX",
+    "rank": 734
+  },
+  {
+    "symbol": "MRAT",
+    "name": "PT Mustika Ratu Tbk",
+    "sector": "IDX",
+    "rank": 735
+  },
+  {
+    "symbol": "PURA",
+    "name": "PT Putra Rajawali Kencana Tbk",
+    "sector": "IDX",
+    "rank": 736
+  },
+  {
+    "symbol": "APII",
+    "name": "PT Arita Prima Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 737
+  },
+  {
+    "symbol": "INOV",
+    "name": "PT Inocycle Technology Group Tbk",
+    "sector": "IDX",
+    "rank": 738
+  },
+  {
+    "symbol": "DFAM",
+    "name": "PT Dafam Property Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 739
+  },
+  {
+    "symbol": "PEHA",
+    "name": "PT Phapros Tbk",
+    "sector": "IDX",
+    "rank": 740
+  },
+  {
+    "symbol": "VINS",
+    "name": "PT Victoria Insurance Tbk",
+    "sector": "IDX",
+    "rank": 741
+  },
+  {
+    "symbol": "PSDN",
+    "name": "PT Prasidha Aneka Niaga Tbk",
+    "sector": "IDX",
+    "rank": 742
+  },
+  {
+    "symbol": "EMDE",
+    "name": "PT Megapolitan Developments Tbk",
+    "sector": "IDX",
+    "rank": 743
+  },
+  {
+    "symbol": "GLOB",
+    "name": "PT Globe Kita Terang Tbk",
+    "sector": "IDX",
+    "rank": 744
+  },
+  {
+    "symbol": "MANG",
+    "name": "PT Manggung Polahraya Tbk",
+    "sector": "IDX",
+    "rank": 745
+  },
+  {
+    "symbol": "ITIC",
+    "name": "PT Indonesian Tobacco Tbk",
+    "sector": "IDX",
+    "rank": 746
+  },
+  {
+    "symbol": "MTPS",
+    "name": "PT Meta Epsi Tbk.",
+    "sector": "IDX",
+    "rank": 747
+  },
+  {
+    "symbol": "EPAC",
+    "name": "PT Megalestari Epack Sentosaraya Tbk",
+    "sector": "IDX",
+    "rank": 748
+  },
+  {
+    "symbol": "POLA",
+    "name": "PT Pool Advista Finance Tbk",
+    "sector": "IDX",
+    "rank": 749
+  },
+  {
+    "symbol": "MEJA",
+    "name": "PT Harta Djaya Karya Tbk",
+    "sector": "IDX",
+    "rank": 750
+  },
+  {
+    "symbol": "SAPX",
+    "name": "PT Satria Antaran Prima Tbk",
+    "sector": "IDX",
+    "rank": 751
+  },
+  {
+    "symbol": "KAQI",
+    "name": "PT Jantra Grupo Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 752
+  },
+  {
+    "symbol": "LION",
+    "name": "PT Lion Metal Works Tbk",
+    "sector": "IDX",
+    "rank": 753
+  },
+  {
+    "symbol": "PTMP",
+    "name": "PT Mitra Pack Tbk",
+    "sector": "IDX",
+    "rank": 754
+  },
+  {
+    "symbol": "CINT",
+    "name": "PT Chitose Internasional Tbk",
+    "sector": "IDX",
+    "rank": 755
+  },
+  {
+    "symbol": "SMLE",
+    "name": "PT Sinergi Multi Lestarindo Tbk",
+    "sector": "IDX",
+    "rank": 756
+  },
+  {
+    "symbol": "BAPA",
+    "name": "PT Bekasi Asri Pemula Tbk",
+    "sector": "IDX",
+    "rank": 757
+  },
+  {
+    "symbol": "LPIN",
+    "name": "PT Multi Prima Sejahtera Tbk",
+    "sector": "IDX",
+    "rank": 758
+  },
+  {
+    "symbol": "PAMG",
+    "name": "PT Bima Sakti Pertiwi Tbk",
+    "sector": "IDX",
+    "rank": 759
+  },
+  {
+    "symbol": "MCAS",
+    "name": "PT M Cash Integrasi Tbk",
+    "sector": "IDX",
+    "rank": 760
+  },
+  {
+    "symbol": "ZYRX",
+    "name": "PT Zyrexindo Mandiri Buana Tbk",
+    "sector": "IDX",
+    "rank": 761
+  },
+  {
+    "symbol": "PTIS",
+    "name": "PT Indo Straits Tbk",
+    "sector": "IDX",
+    "rank": 762
+  },
+  {
+    "symbol": "NAYZ",
+    "name": "PT Hassana Boga Sejahtera Tbk",
+    "sector": "IDX",
+    "rank": 763
+  },
+  {
+    "symbol": "TRJA",
+    "name": "PT Transkon Jaya Tbk",
+    "sector": "IDX",
+    "rank": 764
+  },
+  {
+    "symbol": "WEHA",
+    "name": "PT WEHA Transportasi Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 765
+  },
+  {
+    "symbol": "LPPS",
+    "name": "PT Lenox Pasifik Investama Tbk",
+    "sector": "IDX",
+    "rank": 766
+  },
+  {
+    "symbol": "RGAS",
+    "name": "PT Kian Santang Muliatama Tbk",
+    "sector": "IDX",
+    "rank": 767
+  },
+  {
+    "symbol": "TAMA",
+    "name": "PT Lancartama Sejati Tbk",
+    "sector": "IDX",
+    "rank": 768
+  },
+  {
+    "symbol": "MSIE",
+    "name": "PT Multisarana Intan Eduka Tbk",
+    "sector": "IDX",
+    "rank": 769
+  },
+  {
+    "symbol": "CAKK",
+    "name": "PT Cahayaputra Asa Keramik Tbk",
+    "sector": "IDX",
+    "rank": 770
+  },
+  {
+    "symbol": "ERTX",
+    "name": "PT Eratex Djaja Tbk",
+    "sector": "IDX",
+    "rank": 771
+  },
+  {
+    "symbol": "TRUK",
+    "name": "PT Guna Timur Raya Tbk",
+    "sector": "IDX",
+    "rank": 772
+  },
+  {
+    "symbol": "LAND",
+    "name": "PT Trimitra Propertindo Tbk",
+    "sector": "IDX",
+    "rank": 773
+  },
+  {
+    "symbol": "NTBK",
+    "name": "PT Nusatama Berkah Tbk",
+    "sector": "IDX",
+    "rank": 774
+  },
+  {
+    "symbol": "ASBI",
+    "name": "PT Asuransi Bintang Tbk",
+    "sector": "IDX",
+    "rank": 775
+  },
+  {
+    "symbol": "ECII",
+    "name": "PT Electronic City Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 776
+  },
+  {
+    "symbol": "RBMS",
+    "name": "PT Ristia Bintang Mahkotasejati Tbk",
+    "sector": "IDX",
+    "rank": 777
+  },
+  {
+    "symbol": "KLIN",
+    "name": "PT Klinko Karya Imaji Tbk",
+    "sector": "IDX",
+    "rank": 778
+  },
+  {
+    "symbol": "ICON",
+    "name": "PT Island Concepts Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 779
+  },
+  {
+    "symbol": "ANDI",
+    "name": "PT Andira Agro, Tbk",
+    "sector": "IDX",
+    "rank": 780
+  },
+  {
+    "symbol": "DKHH",
+    "name": "PT Cipta Sarana Medika Tbk",
+    "sector": "IDX",
+    "rank": 781
+  },
+  {
+    "symbol": "NINE",
+    "name": "PT Techno9 Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 782
+  },
+  {
+    "symbol": "PMMP",
+    "name": "PT Panca Mitra Multiperdana Tbk",
+    "sector": "IDX",
+    "rank": 783
+  },
+  {
+    "symbol": "INTD",
+    "name": "PT Inter Delta Tbk",
+    "sector": "IDX",
+    "rank": 784
+  },
+  {
+    "symbol": "WOWS",
+    "name": "PT Ginting Jaya Energi Tbk",
+    "sector": "IDX",
+    "rank": 785
+  },
+  {
+    "symbol": "KARW",
+    "name": "PT Meratus Jasa Prima Tbk",
+    "sector": "IDX",
+    "rank": 786
+  },
+  {
+    "symbol": "DIVA",
+    "name": "PT Distribusi Voucher Nusantara Tbk",
+    "sector": "IDX",
+    "rank": 787
+  },
+  {
+    "symbol": "OBMD",
+    "name": "PT OBM Drilchem Tbk",
+    "sector": "IDX",
+    "rank": 788
+  },
+  {
+    "symbol": "FIRE",
+    "name": "PT Alfa Energi Investama Tbk",
+    "sector": "IDX",
+    "rank": 789
+  },
+  {
+    "symbol": "ABBA",
+    "name": "PT Mahaka Media Tbk",
+    "sector": "IDX",
+    "rank": 790
+  },
+  {
+    "symbol": "ZBRA",
+    "name": "PT Dosni Roha Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 791
+  },
+  {
+    "symbol": "ASMI",
+    "name": "PT Asuransi Maximus Graha Persada Tbk",
+    "sector": "IDX",
+    "rank": 792
+  },
+  {
+    "symbol": "OBAT",
+    "name": "PT Brigit Biofarmaka Technologi Tbk",
+    "sector": "IDX",
+    "rank": 793
+  },
+  {
+    "symbol": "INCI",
+    "name": "PT Intanwijaya Internasional Tbk",
+    "sector": "IDX",
+    "rank": 794
+  },
+  {
+    "symbol": "AKSI",
+    "name": "PT Mineral Sumberdaya Mandiri Tbk",
+    "sector": "IDX",
+    "rank": 795
+  },
+  {
+    "symbol": "SDMU",
+    "name": "PT Sidomulyo Selaras Tbk",
+    "sector": "IDX",
+    "rank": 796
+  },
+  {
+    "symbol": "IPAC",
+    "name": "PT Era Graharealty Tbk",
+    "sector": "IDX",
+    "rank": 797
+  },
+  {
+    "symbol": "SLIS",
+    "name": "PT Gaya Abadi Sempurna Tbk",
+    "sector": "IDX",
+    "rank": 798
+  },
+  {
+    "symbol": "TAXI",
+    "name": "PT Express Transindo Utama Tbk",
+    "sector": "IDX",
+    "rank": 799
+  },
+  {
+    "symbol": "PPRI",
+    "name": "PT Paperocks Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 800
+  },
+  {
+    "symbol": "LMPI",
+    "name": "PT Langgeng Makmur Industri Tbk",
+    "sector": "IDX",
+    "rank": 801
+  },
+  {
+    "symbol": "PURI",
+    "name": "PT Puri Global Sukses Tbk",
+    "sector": "IDX",
+    "rank": 802
+  },
+  {
+    "symbol": "RUIS",
+    "name": "PT Radiant Utama Interinsco Tbk",
+    "sector": "IDX",
+    "rank": 803
+  },
+  {
+    "symbol": "MPIX",
+    "name": "PT Mitra Pedagang Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 804
+  },
+  {
+    "symbol": "FWCT",
+    "name": "PT Wijaya Cahaya Timber Tbk",
+    "sector": "IDX",
+    "rank": 805
+  },
+  {
+    "symbol": "ENZO",
+    "name": "PT Morenzo Abadi Perkasa Tbk",
+    "sector": "IDX",
+    "rank": 806
+  },
+  {
+    "symbol": "GEMA",
+    "name": "PT Gema Grahasarana Tbk",
+    "sector": "IDX",
+    "rank": 807
+  },
+  {
+    "symbol": "CTTH",
+    "name": "PT Citatah Tbk",
+    "sector": "IDX",
+    "rank": 808
+  },
+  {
+    "symbol": "MTSM",
+    "name": "PT Metro Realty Tbk",
+    "sector": "IDX",
+    "rank": 809
+  },
+  {
+    "symbol": "FOOD",
+    "name": "PT Sentra Food Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 810
+  },
+  {
+    "symbol": "PPGL",
+    "name": "PT Prima Globalindo Logistik Tbk",
+    "sector": "IDX",
+    "rank": 811
+  },
+  {
+    "symbol": "MARI",
+    "name": "PT Mahaka Radio Integra Tbk",
+    "sector": "IDX",
+    "rank": 812
+  },
+  {
+    "symbol": "YELO",
+    "name": "PT Yelooo Integra Datanet Tbk",
+    "sector": "IDX",
+    "rank": 813
+  },
+  {
+    "symbol": "WAPO",
+    "name": "PT Wahana Pronatural Tbk",
+    "sector": "IDX",
+    "rank": 814
+  },
+  {
+    "symbol": "HELI",
+    "name": "PT Jaya Trishindo Tbk",
+    "sector": "IDX",
+    "rank": 815
+  },
+  {
+    "symbol": "RAFI",
+    "name": "PT Sari Kreasi Boga Tbk",
+    "sector": "IDX",
+    "rank": 816
+  },
+  {
+    "symbol": "SEMA",
+    "name": "PT Semacom Integrated Tbk",
+    "sector": "IDX",
+    "rank": 817
+  },
+  {
+    "symbol": "LAJU",
+    "name": "PT Jasa Berdikari Logistics Tbk",
+    "sector": "IDX",
+    "rank": 818
+  },
+  {
+    "symbol": "TOOL",
+    "name": "PT Rohartindo Nusantara Luas Tbk",
+    "sector": "IDX",
+    "rank": 819
+  },
+  {
+    "symbol": "FLMC",
+    "name": "PT Falmaco Nonwoven Industri Tbk",
+    "sector": "IDX",
+    "rank": 820
+  },
+  {
+    "symbol": "PTDU",
+    "name": "PT Djasa Ubersakti Tbk",
+    "sector": "IDX",
+    "rank": 821
+  },
+  {
+    "symbol": "MEDS",
+    "name": "PT Hetzer Medical Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 822
+  },
+  {
+    "symbol": "MBTO",
+    "name": "PT Martina Berto Tbk",
+    "sector": "IDX",
+    "rank": 823
+  },
+  {
+    "symbol": "DPNS",
+    "name": "PT Duta Pertiwi Nusantara Tbk",
+    "sector": "IDX",
+    "rank": 824
+  },
+  {
+    "symbol": "DSFI",
+    "name": "PT Dharma Samudera Fishing Industries Tbk",
+    "sector": "IDX",
+    "rank": 825
+  },
+  {
+    "symbol": "ESIP",
+    "name": "PT Sinergi Inti Plastindo Tbk",
+    "sector": "IDX",
+    "rank": 826
+  },
+  {
+    "symbol": "KUAS",
+    "name": "PT Ace Oldfields Tbk",
+    "sector": "IDX",
+    "rank": 827
+  },
+  {
+    "symbol": "SNLK",
+    "name": "PT Sunter Lakeside Hotel Tbk",
+    "sector": "IDX",
+    "rank": 828
+  },
+  {
+    "symbol": "KBLV",
+    "name": "PT First Media Tbk",
+    "sector": "IDX",
+    "rank": 829
+  },
+  {
+    "symbol": "BAUT",
+    "name": "PT Mitra Angkasa Sejahtera Tbk",
+    "sector": "IDX",
+    "rank": 830
+  },
+  {
+    "symbol": "WINR",
+    "name": "PT Winner Nusantara Jaya Tbk",
+    "sector": "IDX",
+    "rank": 831
+  },
+  {
+    "symbol": "MERI",
+    "name": "PT Merry Riana Edukasi Tbk",
+    "sector": "IDX",
+    "rank": 832
+  },
+  {
+    "symbol": "CANI",
+    "name": "PT Capitol Nusantara Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 833
+  },
+  {
+    "symbol": "TMPO",
+    "name": "PT Tempo Inti Media Tbk",
+    "sector": "IDX",
+    "rank": 834
+  },
+  {
+    "symbol": "KOPI",
+    "name": "PT Mitra Energi Persada Tbk",
+    "sector": "IDX",
+    "rank": 835
+  },
+  {
+    "symbol": "OLIV",
+    "name": "PT Oscar Mitra Sukses Sejahtera Tbk",
+    "sector": "IDX",
+    "rank": 836
+  },
+  {
+    "symbol": "LCKM",
+    "name": "PT LCK Global Kedaton Tbk",
+    "sector": "IDX",
+    "rank": 837
+  },
+  {
+    "symbol": "CHEM",
+    "name": "PT Chemstar Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 838
+  },
+  {
+    "symbol": "NANO",
+    "name": "PT Nanotech Indonesia Global Tbk",
+    "sector": "IDX",
+    "rank": 839
+  },
+  {
+    "symbol": "BAPI",
+    "name": "PT Bhakti Agung Propertindo Tbk",
+    "sector": "IDX",
+    "rank": 840
+  },
+  {
+    "symbol": "SBMA",
+    "name": "PT Surya Biru Murni Acetylene Tbk",
+    "sector": "IDX",
+    "rank": 841
+  },
+  {
+    "symbol": "INAI",
+    "name": "PT Indal Aluminium Industry Tbk",
+    "sector": "IDX",
+    "rank": 842
+  },
+  {
+    "symbol": "SICO",
+    "name": "PT Sigma Energy Compressindo Tbk",
+    "sector": "IDX",
+    "rank": 843
+  },
+  {
+    "symbol": "KRYA",
+    "name": "PT Bangun Karya Perkasa Jaya Tbk",
+    "sector": "IDX",
+    "rank": 844
+  },
+  {
+    "symbol": "AYLS",
+    "name": "PT Agro Yasa Lestari Tbk",
+    "sector": "IDX",
+    "rank": 845
+  },
+  {
+    "symbol": "INCF",
+    "name": "PT Indo Komoditi Korpora Tbk",
+    "sector": "IDX",
+    "rank": 846
+  },
+  {
+    "symbol": "NASI",
+    "name": "PT Wahana Inti Makmur Tbk",
+    "sector": "IDX",
+    "rank": 847
+  },
+  {
+    "symbol": "JAYA",
+    "name": "PT Armada Berjaya Trans Tbk",
+    "sector": "IDX",
+    "rank": 848
+  },
+  {
+    "symbol": "BATA",
+    "name": "PT Sepatu Bata Tbk.",
+    "sector": "IDX",
+    "rank": 849
+  },
+  {
+    "symbol": "IBFN",
+    "name": "PT Intan Baru Prana Tbk",
+    "sector": "IDX",
+    "rank": 850
+  },
+  {
+    "symbol": "PGLI",
+    "name": "PT Pembangunan Graha Lestari Indah Tbk",
+    "sector": "IDX",
+    "rank": 851
+  },
+  {
+    "symbol": "ISEA",
+    "name": "PT Indo American Seafoods Tbk",
+    "sector": "IDX",
+    "rank": 852
+  },
+  {
+    "symbol": "POLY",
+    "name": "PT Asia Pacific Fibers Tbk",
+    "sector": "IDX",
+    "rank": 853
+  },
+  {
+    "symbol": "BCIP",
+    "name": "PT Bumi Citra Permai Tbk",
+    "sector": "IDX",
+    "rank": 854
+  },
+  {
+    "symbol": "SMKM",
+    "name": "PT Sumber Mas Konstruksi Tbk",
+    "sector": "IDX",
+    "rank": 855
+  },
+  {
+    "symbol": "ISAP",
+    "name": "PT Isra Presisi Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 856
+  },
+  {
+    "symbol": "HDIT",
+    "name": "PT Hensel Davest Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 857
+  },
+  {
+    "symbol": "MENN",
+    "name": "PT Menn Teknologi Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 858
+  },
+  {
+    "symbol": "JAST",
+    "name": "PT. Jasnita Telekomindo Tbk",
+    "sector": "IDX",
+    "rank": 859
+  },
+  {
+    "symbol": "MPOW",
+    "name": "PT Megapower Makmur Tbk",
+    "sector": "IDX",
+    "rank": 860
+  },
+  {
+    "symbol": "LABA",
+    "name": "PT Green Power Group Tbk",
+    "sector": "IDX",
+    "rank": 861
+  },
+  {
+    "symbol": "XCIS",
+    "name": "DIRE Ciptadana Properti Ritel Indonesia",
+    "sector": "IDX",
+    "rank": 862
+  },
+  {
+    "symbol": "TGRA",
+    "name": "PT. Terregra Asia Energy Tbk",
+    "sector": "IDX",
+    "rank": 863
+  },
+  {
+    "symbol": "AIMS",
+    "name": "PT Artha Mahiya Investama Tbk",
+    "sector": "IDX",
+    "rank": 864
+  },
+  {
+    "symbol": "LUCK",
+    "name": "PT Sentral Mitra Informatika Tbk",
+    "sector": "IDX",
+    "rank": 865
+  },
+  {
+    "symbol": "KOIN",
+    "name": "PT Kokoh Inti Arebama Tbk",
+    "sector": "IDX",
+    "rank": 866
+  },
+  {
+    "symbol": "OPMS",
+    "name": "PT Optima Prima Metal Sinergi Tbk",
+    "sector": "IDX",
+    "rank": 867
+  },
+  {
+    "symbol": "OILS",
+    "name": "PT Indo Oil Perkasa Tbk",
+    "sector": "IDX",
+    "rank": 868
+  },
+  {
+    "symbol": "MIRA",
+    "name": "PT Mitra International Resources Tbk",
+    "sector": "IDX",
+    "rank": 869
+  },
+  {
+    "symbol": "RUNS",
+    "name": "PT Global Sukses Solusi Tbk",
+    "sector": "IDX",
+    "rank": 870
+  },
+  {
+    "symbol": "LOPI",
+    "name": "PT Logisticsplus International Tbk",
+    "sector": "IDX",
+    "rank": 871
+  },
+  {
+    "symbol": "TELE",
+    "name": "PT Omni Inovasi Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 872
+  },
+  {
+    "symbol": "IPPE",
+    "name": "PT Indo Pureco Pratama Tbk",
+    "sector": "IDX",
+    "rank": 873
+  },
+  {
+    "symbol": "RCCC",
+    "name": "PT Utama Radar Cahaya Tbk",
+    "sector": "IDX",
+    "rank": 874
+  },
+  {
+    "symbol": "PICO",
+    "name": "PT Pelangi Indah Canindo Tbk",
+    "sector": "IDX",
+    "rank": 875
+  },
+  {
+    "symbol": "DEFI",
+    "name": "PT Danasupra Erapacific Tbk",
+    "sector": "IDX",
+    "rank": 876
+  },
+  {
+    "symbol": "KIOS",
+    "name": "PT Kioson Komersial Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 877
+  },
+  {
+    "symbol": "LRNA",
+    "name": "PT Eka Sari Lorena Transport Tbk",
+    "sector": "IDX",
+    "rank": 878
+  },
+  {
+    "symbol": "CSMI",
+    "name": "PT Cipta Selera Murni Tbk",
+    "sector": "IDX",
+    "rank": 879
+  },
+  {
+    "symbol": "TAYS",
+    "name": "PT Jaya Swarasa Agung Tbk",
+    "sector": "IDX",
+    "rank": 880
+  },
+  {
+    "symbol": "GRPH",
+    "name": "PT Griptha Putra Persada Tbk",
+    "sector": "IDX",
+    "rank": 881
+  },
+  {
+    "symbol": "TNCA",
+    "name": "PT Trimuda Nuansa Citra Tbk",
+    "sector": "IDX",
+    "rank": 882
+  },
+  {
+    "symbol": "IKAN",
+    "name": "PT Era Mandiri Cemerlang Tbk",
+    "sector": "IDX",
+    "rank": 883
+  },
+  {
+    "symbol": "KKES",
+    "name": "PT Kusuma Kemindo Sentosa Tbk",
+    "sector": "IDX",
+    "rank": 884
+  },
+  {
+    "symbol": "BIMA",
+    "name": "PT. Primarindo Asia Infrastructure, Tbk.",
+    "sector": "IDX",
+    "rank": 885
+  },
+  {
+    "symbol": "BRRC",
+    "name": "PT Raja Roti Cemerlang Tbk",
+    "sector": "IDX",
+    "rank": 886
+  },
+  {
+    "symbol": "IDEA",
+    "name": "PT Idea Indonesia Akademi Tbk",
+    "sector": "IDX",
+    "rank": 887
+  },
+  {
+    "symbol": "LMAX",
+    "name": "PT Lupromax Pelumas Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 888
+  },
+  {
+    "symbol": "DIGI",
+    "name": "PT Arkadia Digital Media Tbk",
+    "sector": "IDX",
+    "rank": 889
+  },
+  {
+    "symbol": "KJEN",
+    "name": "PT Krida Jaringan Nusantara Tbk",
+    "sector": "IDX",
+    "rank": 890
+  },
+  {
+    "symbol": "SWAT",
+    "name": "PT Sriwahana Adityakarta Tbk",
+    "sector": "IDX",
+    "rank": 891
+  },
+  {
+    "symbol": "SPRE",
+    "name": "PT Soraya Berjaya Indonesia Tbk",
+    "sector": "IDX",
+    "rank": 892
+  },
+  {
+    "symbol": "ARKA",
+    "name": "PT Arkha Jayanti Persada Tbk",
+    "sector": "IDX",
+    "rank": 893
+  },
+  {
+    "symbol": "PCAR",
+    "name": "PT Prima Cakrawala Abadi Tbk",
+    "sector": "IDX",
+    "rank": 894
+  },
+  {
+    "symbol": "KICI",
+    "name": "PT Kedaung Indah Can Tbk",
+    "sector": "IDX",
+    "rank": 895
+  },
+  {
+    "symbol": "RICY",
+    "name": "PT Ricky Putra Globalindo Tbk",
+    "sector": "IDX",
+    "rank": 896
+  },
+  {
+    "symbol": "ALTO",
+    "name": "PT Tri Banyan Tirta Tbk",
+    "sector": "IDX",
+    "rank": 897
+  },
+  {
+    "symbol": "AEGS",
+    "name": "PT. Anugerah Spareparts Sejahtera Tbk",
+    "sector": "IDX",
+    "rank": 898
+  },
+  {
+    "symbol": "SOUL",
+    "name": "PT Mitra Tirta Buwana Tbk",
+    "sector": "IDX",
+    "rank": 899
+  },
+  {
+    "symbol": "TOPS",
+    "name": "PT Totalindo Eka Persada Tbk",
+    "sector": "IDX",
+    "rank": 900
+  },
+  {
+    "symbol": "WIDI",
+    "name": "PT Widiant Jaya Krenindo Tbk",
+    "sector": "IDX",
+    "rank": 901
+  },
+  {
+    "symbol": "HADE",
+    "name": "PT Himalaya Energi Perkasa Tbk",
+    "sector": "IDX",
+    "rank": 902
+  },
+  {
+    "symbol": "FIMP",
+    "name": "PT Fimperkasa Utama Tbk",
+    "sector": "IDX",
+    "rank": 903
+  },
+  {
+    "symbol": "PLAN",
+    "name": "PT Planet Properindo Jaya Tbk",
+    "sector": "IDX",
+    "rank": 904
+  },
+  {
+    "symbol": "BMBL",
+    "name": "PT Lavender Bina Cendikia Tbk",
+    "sector": "IDX",
+    "rank": 905
+  },
+  {
+    "symbol": "INDX",
+    "name": "PT Tanah Laut Tbk",
+    "sector": "IDX",
+    "rank": 906
+  },
+  {
+    "symbol": "LMSH",
+    "name": "PT Lionmesh Prima Tbk",
+    "sector": "IDX",
+    "rank": 907
+  },
+  {
+    "symbol": "MKNT",
+    "name": "PT Mitra Komunikasi Nusantara Tbk",
+    "sector": "IDX",
+    "rank": 908
+  }
+]
