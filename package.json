@@ -1,0 +1,13 @@
+{
+  "name": "idx-scanner-1.0",
+  "version": "2.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "vercel dev",
+    "check": "node --check api/idx-quotes.js && node --check api/flow-upload.js && node --check api/health.js"
+  }
+}
+
