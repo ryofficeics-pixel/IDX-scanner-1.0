@@ -381,8 +381,8 @@ async function fetchLive() {
     applyPayload(payload);
     saveToLocalCache(payload);
     STATE.lastSync = Date.now();
-    var uiState = (payload.freshness === 'LIVE') ? 'live'
-                : (payload.freshness === 'STALE') ? 'stale' : 'local';
+    var uiState = (payload.freshness === 'LIVE' || payload.freshness === 'LIVE_PRICE') ? 'live'
+                : (payload.freshness === 'STALE' || payload.freshness === 'STALE_PRICE') ? 'stale' : 'local';
     setSyncUI(uiState);
     addLog('Sync berhasil. Freshness: ' + payload.freshness);
     renderCurrent();
@@ -728,8 +728,8 @@ function dataModeBadge(mode) {
   return badgeHTML(m.l, m.c, m.bg, 9);
 }
 function freshnessColor(f) {
-  if(f==='LIVE')   return C.green;
-  if(f==='STALE')  return C.orange;
+  if(f==='LIVE' || f==='LIVE_PRICE')   return C.green;
+  if(f==='STALE' || f==='STALE_PRICE') return C.orange;
   if(f==='LOCAL_SAMPLE') return C.purple;
   return C.ter;
 }
