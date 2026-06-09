@@ -71,7 +71,7 @@ button{border:none;cursor:pointer;background:none;}
 <div id="app">
   <div id="topbar">
     <div style="display:flex;align-items:center;gap:9px;">
-      <div style="width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,#00D4FF,#3A7BFF);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 14px rgba(0,212,255,.5);">â—ˆ</div>
+      <div style="width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,#00D4FF,#3A7BFF);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;box-shadow:0 0 14px rgba(0,212,255,.5);">IDX</div>
       <div>
         <div style="font-size:13px;font-weight:800;letter-spacing:.06em;line-height:1;">IDX FLOW</div>
         <div style="font-size:8px;color:rgba(255,255,255,.38);letter-spacing:.12em;margin-top:1px;">SCANNER v2.0</div>
@@ -82,9 +82,9 @@ button{border:none;cursor:pointer;background:none;}
         <span id="syncDot" style="width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.38);flex-shrink:0;"></span>
         <span id="syncLabel" style="font-size:9px;font-weight:700;letter-spacing:.07em;color:rgba(255,255,255,.38);">STANDBY</span>
         <span id="syncTime"  style="font-size:8px;color:rgba(255,255,255,.38);"></span>
-        <span style="font-size:9px;color:rgba(255,255,255,.38);">â†»</span>
+        <span style="font-size:9px;color:rgba(255,255,255,.38);">SYNC</span>
       </button>
-      <button onclick="showPage('upload')" style="background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.38);border-radius:999px;padding:5px 12px;color:#00D4FF;font-size:11px;font-weight:700;">â¬†</button>
+      <button onclick="showPage('upload')" style="background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.38);border-radius:999px;padding:5px 12px;color:#00D4FF;font-size:11px;font-weight:700;">CSV</button>
     </div>
   </div>
 
@@ -97,20 +97,20 @@ button{border:none;cursor:pointer;background:none;}
   <div id="page-upload"    class="page fade-in"></div>
 
   <div id="navbar">
-    <button class="nav-btn active" onclick="showPage('dashboard')" id="nav-dashboard"><span class="nav-icon">âŠž</span>Home</button>
-    <button class="nav-btn" onclick="showPage('scanner')"   id="nav-scanner"><span class="nav-icon">âŠ¡</span>Scanner</button>
-    <button class="nav-btn" onclick="showPage('signals')"   id="nav-signals"><span class="nav-icon">â—Ž</span>Signals</button>
-    <button class="nav-btn" onclick="showPage('watchlist')" id="nav-watchlist"><span class="nav-icon">â˜…</span>Watch</button>
-    <button class="nav-btn" onclick="showPage('settings')"  id="nav-settings"><span class="nav-icon">â—ˆ</span>Settings</button>
+    <button class="nav-btn active" onclick="showPage('dashboard')" id="nav-dashboard"><span class="nav-icon">H</span>Home</button>
+    <button class="nav-btn" onclick="showPage('scanner')"   id="nav-scanner"><span class="nav-icon">S</span>Scanner</button>
+    <button class="nav-btn" onclick="showPage('signals')"   id="nav-signals"><span class="nav-icon">B</span>Signals</button>
+    <button class="nav-btn" onclick="showPage('watchlist')" id="nav-watchlist"><span class="nav-icon">W</span>Watch</button>
+    <button class="nav-btn" onclick="showPage('settings')"  id="nav-settings"><span class="nav-icon">G</span>Settings</button>
   </div>
 </div>
 
 <script>
 'use strict';
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// SAFE MATH HELPERS â€” no NaN, no Infinity
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
+// SAFE MATH HELPERS  no NaN, no Infinity
+// ----
 function num(v, fb) {
   fb = arguments.length < 2 ? 0 : fb;
   var n = Number(v);
@@ -153,9 +153,9 @@ function todayWIB() {
   return new Date().toLocaleDateString('en-CA', { timeZone:'Asia/Jakarta' });
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 // COLOR / FORMAT HELPERS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 var C = {
   cyan:'#00D4FF', green:'#00FF9C', pink:'#FF3D7F',
   yellow:'#FFD600', orange:'#FF8C42', purple:'#A78BFA',
@@ -180,7 +180,7 @@ function fmtPrice(n) {
   return Number(n).toLocaleString('id-ID');
 }
 function fmtTime(ts) {
-  if (!ts) return 'â€”';
+  if (!ts) return '-';
   return new Date(ts).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 }
 function pctColor(v) { return num(v) >= 0 ? C.green : C.pink; }
@@ -190,10 +190,10 @@ function pctStr(v, dec) {
   return (n >= 0 ? '+' : '') + n.toFixed(dec) + '%';
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 // DEMO FLOW DATA (never used for production scoring)
 // Kept only as reference shape for manual testing.
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 var DEMO_FLOW_BASE = {
   BBCA:{brokerBuy:9500, brokerSell:9200, foreignBuy:85e9, foreignSell:62e9, netBuy:23e9,   freqBuy:4200, freqSell:3100, volumeAvg5d:38e6},
   BBRI:{brokerBuy:4700, brokerSell:4900, foreignBuy:45e9, foreignSell:78e9, netBuy:-12e9,  freqBuy:5800, freqSell:6400, volumeAvg5d:95e6},
@@ -232,9 +232,9 @@ var STOCK_META = {
 };
 var SYMBOLS = Object.keys(STOCK_META);
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 // INITIAL SPARKLINES
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 var SPARKS = {};
 (function(){
   var prices = {BBCA:9800,BBRI:4820,TLKM:3920,ASII:5125,GOTO:68,BMRI:6175,SMGR:4250,INCO:3680,BYAN:22500,ARTO:2840,ADRO:2780,PTBA:3180,UNVR:2560,SIDO:680,EXCL:2240,MAPA:745};
@@ -247,17 +247,17 @@ var SPARKS = {};
 })();
 var IHSG_SPARK=[6820,6795,6842,6801,6870,6855,6890,6915,6932,6898,6945,6978,6965,7012,6998,7025,7048,7031,7065,7089];
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 // APP STATE
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 var STATE = {
   page:'dashboard', selectedSym:null,
   watchlist:['BBCA','TLKM','BYAN','GOTO','ADRO'],
   // Live data from backend
   liveQuotes:{}, liveIHSG:null,
   freshness:'LOCAL_SAMPLE',
-  provider:'â€”',
-  dataSource:'â€”',
+  provider:'-',
+  dataSource:'-',
   lastSync:null, lastAsOf:null,
   syncErrors:[], syncWarnings:[],
   // UI state
@@ -271,9 +271,9 @@ var STATE = {
   scanView:'card', scanSearch:'', sigTab:'buy', detailTab:'signal',
 };
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 // LOCAL CACHE (localStorage)
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 var LS_KEY = 'idx_flow_cache_v2';
 var PREF_KEY = 'idx_flow_preferences_v2';
 function saveToLocalCache(payload) {
@@ -310,9 +310,9 @@ function loadPrefs() {
   } catch(e) {}
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 // PAYLOAD VALIDATION & APPLICATION
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 function validatePayload(p) {
   if (!p || typeof p !== 'object') throw new Error('Invalid payload: not an object');
   if (!p.quotes || typeof p.quotes !== 'object') throw new Error('Invalid payload: missing quotes');
@@ -336,8 +336,8 @@ function applyPayload(p) {
     STATE.liveIHSG = p.IHSG;
   }
   STATE.freshness   = p.freshness  || 'STALE';
-  STATE.provider    = p.provider   || p.source || 'â€”';
-  STATE.dataSource  = p.source     || 'â€”';
+  STATE.provider    = p.provider   || p.source || '';
+  STATE.dataSource  = p.source     || '';
   STATE.lastAsOf    = p.asOf       || null;
   STATE.syncErrors  = Array.isArray(p.errors)   ? p.errors   : [];
   STATE.syncWarnings= Array.isArray(p.warnings) ? p.warnings : [];
@@ -355,9 +355,9 @@ function getFreshnessAge(asOf) {
   return 'STALE';
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// SYNC ENGINE â€” calls /api/idx-quotes
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
+// SYNC ENGINE  calls /api/idx-quotes
+// ----
 function addLog(msg) {
   STATE.syncLog.push({ts:Date.now(), msg:String(msg)});
   if (STATE.syncLog.length > 30) STATE.syncLog.shift();
@@ -367,7 +367,7 @@ async function fetchLive() {
   if (STATE.fetching) return;
   STATE.fetching = true;
   setSyncUI('fetching');
-  addLog('Mengambil data dari backend web syncâ€¦');
+  addLog('Mengambil data dari backend web sync');
 
   try {
     var res = await fetch('/api/idx-quotes', {
@@ -442,9 +442,9 @@ function setSyncUI(state) {
   if (tEl && STATE.lastSync) tEl.textContent = fmtTime(STATE.lastSync);
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 // SIGNAL ENGINE
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 function calcNetBuy(s) {
   var nb = maybeNum(s.netBuy);
   if (nb === null) return null;
@@ -558,7 +558,7 @@ function calcTrading(s) {
   var hasFull = (mode === 'FULL_FLOW');
 
   var action, ac, ab, ag;
-  // BUY requires full/partial flow data â€” don't signal BUY on price-only
+  // BUY requires full/partial flow data  don't signal BUY on price-only
   if (rawScore === null) {
     action='HOLD'; ac=C.yellow; ab='rgba(255,214,0,.12)'; ag=C.yellow;
   } else if (hasFull && score >= 70 && risk.length <= 1 && num(fP,50) >= 50 && num(frP,50) >= 55) {
@@ -569,13 +569,13 @@ function calcTrading(s) {
     action='HOLD'; ac=C.yellow; ab='rgba(255,214,0,.12)'; ag=C.yellow;
   }
 
-  // Confidence â€” reduced for price-only data
+  // Confidence  reduced for price-only data
   var rawConf = action==='BUY'  ? clamp((score-70)/30*100,0,100)
               : action==='SELL' ? clamp((40-score)/40*100,0,100) : 50;
   var confMult = (mode==='PRICE_ONLY'||mode==='LOCAL_SAMPLE') ? 0.5 : (mode==='PARTIAL_FLOW' ? 0.75 : 1.0);
   var conf = Math.round(clamp(rawConf * confMult, 0, 100));
 
-  // Levels â€” only calculate if price is valid
+  // Levels  only calculate if price is valid
   var price = num(s.price);
   var bb    = num(s.brokerBuy,  price);
   var bs    = num(s.brokerSell, price);
@@ -588,7 +588,7 @@ function calcTrading(s) {
   var t1    = validPrice(price) ? rnd(price*(1+up*.5)) : null;
   var t2    = validPrice(price) ? rnd(price*(1+up))    : null;
   var sl    = validPrice(price) ? rnd(Math.min(price*(1-slP), bs*.98)) : null;
-  var rr    = (t2&&sl&&t2>price&&sl<price) ? safeDiv(t2-price,price-sl).toFixed(1) : 'â€”';
+  var rr    = (t2&&sl&&t2>price&&sl<price) ? safeDiv(t2-price,price-sl).toFixed(1) : '-';
 
   var slabel = conf>=80?'SANGAT KUAT':conf>=60?'KUAT':conf>=40?'SEDANG':'LEMAH';
   var scolor = conf>=80?C.green:conf>=60?C.cyan:conf>=40?C.yellow:C.orange;
@@ -602,8 +602,8 @@ function calcTrading(s) {
   if (frP !== null && frP > 60) reasons.push({t:'Freq buy dominan '+frP.toFixed(0)+'%', p:true});
   var vs = calcVolSpike(s);
   if (vs !== null && vs > 65) reasons.push({t:'Volume spike aktif', p:true});
-  if (mode === 'PRICE_ONLY')    reasons.push({t:'Data flow tidak tersedia â€” confidence terbatas', p:false});
-  if (mode === 'LOCAL_SAMPLE')  reasons.push({t:'Data sample lokal â€” bukan harga real', p:false});
+  if (mode === 'PRICE_ONLY')    reasons.push({t:'Data flow tidak tersedia  confidence terbatas', p:false});
+  if (mode === 'LOCAL_SAMPLE')  reasons.push({t:'Data sample lokal  bukan harga real', p:false});
   risk.forEach(function(f){ reasons.push({t:f.label, p:false}); });
 
   return {action,ac,ab,ag,conf,slabel,scolor,eL,eH,t1,t2,sl,rr,reasons};
@@ -611,7 +611,7 @@ function calcTrading(s) {
 
 function enrich(sym, liveQ) {
   var flow = STATE.uploadedFlow[sym] || {};
-  var meta = STOCK_META[sym] || {name:sym, sector:'â€”'};
+  var meta = STOCK_META[sym] || {name:sym, sector:''};
   // Merge: live price overrides base; flow data from upload
   var s = {
     symbol:    sym,
@@ -624,7 +624,7 @@ function enrich(sym, liveQ) {
     low:       liveQ ? maybeNum(liveQ.low)    : null,
     volume:    liveQ ? maybeNum(liveQ.volume) : null,
     pctChg:    liveQ ? num(liveQ.pctChg)      : 0,
-    // Flow fields â€” from upload only (not faked)
+    // Flow fields  from upload only (not faked)
     brokerBuy:   liveQ && liveQ.brokerBuy   != null ? maybeNum(liveQ.brokerBuy)   : maybeNum(flow.brokerBuy),
     brokerSell:  liveQ && liveQ.brokerSell  != null ? maybeNum(liveQ.brokerSell)  : maybeNum(flow.brokerSell),
     foreignBuy:  liveQ && liveQ.foreignBuy  != null ? maybeNum(liveQ.foreignBuy)  : maybeNum(flow.foreignBuy),
@@ -639,7 +639,7 @@ function enrich(sym, liveQ) {
     // Source metadata
     dataMode: liveQ ? (liveQ.dataMode||'PRICE_ONLY') : 'NO_DATA',
     asOf:     liveQ ? (liveQ.asOf||null) : null,
-    source:   liveQ ? (liveQ.source||'â€”') : 'base-data',
+    source:   liveQ ? (liveQ.source||'-') : 'base-data',
   };
   // Override dataMode based on actual available fields
   s.dataMode = dataMode(s);
@@ -665,14 +665,14 @@ function getEnriched() {
   return SYMBOLS.map(function(sym){ return enrich(sym, STATE.liveQuotes[sym]||null); });
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 // SVG & HTML HELPERS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 function sparkSVG(data, w, h, color, filled) {
-  if (!data||data.length<2) return '';
+  if (!data||data.length<2) return '-';
   var min=Math.min.apply(null,data),max=Math.max.apply(null,data),rng=max-min||1;
   var pts=data.map(function(v,i){return (i/(data.length-1))*w+','+(h-2-((v-min)/rng)*(h-6));}).join(' ');
-  var id='sp'+w+h+(color||'').replace(/\W/g,'');
+  var id='sp'+w+h+(color||'-').replace(/\W/g,'');
   var poly=filled?'<polygon points="0,'+h+' '+pts+' '+w+','+h+'" fill="url(#'+id+')"/>':'';
   return '<svg width="'+w+'" height="'+h+'" style="display:block;overflow:visible"><defs><linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+color+'" stop-opacity=".35"/><stop offset="100%" stop-color="'+color+'" stop-opacity="0"/></linearGradient></defs>'+poly+'<polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>';
 }
@@ -734,16 +734,16 @@ function freshnessColor(f) {
   return C.ter;
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 // STOCK CARD
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 function stockCardHTML(s, compact) {
   var tr=s.trading, spark=SPARKS[s.symbol], col=s.pctChg>=0?C.green:C.pink;
   return '<div onclick="openDetail(\''+s.symbol+'\')" style="background:radial-gradient(ellipse at 15% 0%,'+s.signal.color+'12 0%,rgba(255,255,255,.04) 60%);border:1px solid '+s.signal.color+'28;border-radius:20px;padding:'+(compact?'11px 13px':'14px 16px')+';margin-bottom:8px;cursor:pointer;transition:transform .16s ease;" onmousedown="this.style.transform=\'scale(.984)\'" onmouseup="this.style.transform=\'\'" ontouchstart="this.style.transform=\'scale(.984)\'" ontouchend="this.style.transform=\'\'">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:'+(compact?5:8)+'px;">'
     +'<div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;"><span style="font-size:'+(compact?13:15)+'px;font-weight:800;letter-spacing:.03em;">'+s.symbol+'</span>'+badgeHTML(s.signal.short,s.signal.color,s.signal.bg,9,true)+actionBadgeHTML(tr.action)+'</div>'
     +(compact?'':'<div style="font-size:10px;color:'+C.ter+';margin-bottom:4px;">'+s.name+'</div>')
-    +'<div style="display:flex;gap:5px;flex-wrap:wrap;">'+badgeHTML(s.sector,C.ter,'rgba(255,255,255,.05)',9)+dataModeBadge(s.dataMode)+(s.riskFlags.length?badgeHTML('âš  '+s.riskFlags.length,C.pink,'rgba(255,61,127,.12)',9):'')+'</div></div>'
+    +'<div style="display:flex;gap:5px;flex-wrap:wrap;">'+badgeHTML(s.sector,C.ter,'rgba(255,255,255,.05)',9)+dataModeBadge(s.dataMode)+(s.riskFlags.length?badgeHTML(' '+s.riskFlags.length,C.pink,'rgba(255,61,127,.12)',9):'')+'</div></div>'
     +'<div style="text-align:right;"><div class="mono" style="font-size:'+(compact?13:16)+'px;font-weight:700;line-height:1;">'+fmtPrice(s.price)+'</div>'+pctHTML(s.pctChg,compact?11:12)+((!compact&&spark)?'<div style="margin-top:4px;">'+sparkSVG(spark,70,24,col,true)+'</div>':'')+'</div></div>'
     +(!compact
       ? '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;">'
@@ -767,9 +767,50 @@ function miniCardHTML(s) {
     +'</div>';
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+function isStrongBuyCandidate(s) {
+  return s.dataMode === 'FULL_FLOW' && s.trading.action === 'BUY' && s.trading.conf >= 80 && scoreValue(s) >= 80 && s.riskFlags.length <= 1;
+}
+function sessionPlan(s) {
+  var pct = num(s.pctChg);
+  var conf = s.trading.conf;
+  if (pct <= 1.5 && conf >= 70) return {label:'PAGI', time:'09:00-10:30', note:'entry awal jika harga bertahan di zona entry'};
+  if (pct > 1.5 && pct <= 5) return {label:'SORE', time:'14:30-15:50', note:'tunggu konfirmasi menjelang penutupan'};
+  return {label:'WAIT', time:'-', note:'jangan kejar harga; tunggu pullback atau flow baru'};
+}
+function planCardHTML(s) {
+  var tr = s.trading;
+  var plan = sessionPlan(s);
+  return '<div onclick="openDetail(\''+s.symbol+'\')" style="min-width:174px;background:rgba(255,255,255,.04);border:1px solid '+tr.ac+'35;border-radius:16px;padding:12px 13px;cursor:pointer;flex-shrink:0;">'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;"><div><div style="font-size:14px;font-weight:900;">'+s.symbol+'</div><div style="font-size:9px;color:'+C.ter+';margin-top:2px;">'+s.name+'</div></div>'+actionBadgeHTML(tr.action)+'</div>'
+    +'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;">'+badgeHTML('STRONG BUY',C.green,'rgba(0,255,156,.12)',9)+badgeHTML(plan.label,C.cyan,'rgba(0,212,255,.12)',9)+'</div>'
+    +'<div class="mono" style="font-size:10px;color:'+C.sec+';line-height:1.7;">Conf '+tr.conf+'% | Score '+scoreText(s.score)+'<br>Waktu '+plan.time+'<br>Entry '+(tr.eL!=null&&tr.eH!=null?fmtPrice(tr.eL)+'-'+fmtPrice(tr.eH):'N/A')+'</div>'
+    +'<div style="font-size:9px;color:'+C.ter+';margin-top:8px;line-height:1.35;">'+plan.note+'</div>'
+    +'</div>';
+}
+function recommendationPanelHTML(enriched) {
+  var strong = enriched.filter(isStrongBuyCandidate).sort(function(a,b){return b.trading.conf-a.trading.conf;});
+  var morning = strong.filter(function(s){return sessionPlan(s).label==='PAGI';});
+  var afternoon = strong.filter(function(s){return sessionPlan(s).label==='SORE';});
+  var watch = enriched.filter(function(s){return s.dataMode==='PRICE_ONLY' && validPrice(s.price);})
+    .sort(function(a,b){return num(b.pctChg)-num(a.pctChg);}).slice(0,3);
+  return '<div class="card" style="padding:14px 16px;margin-bottom:14px;border-color:rgba(0,255,156,.22);background:radial-gradient(ellipse at 20% 0%,rgba(0,255,156,.10),rgba(255,255,255,.04) 62%);">'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;">'
+    +'<div><div style="font-size:12px;font-weight:900;color:'+C.green+';letter-spacing:.06em;">SIGNAL REKOMENDASI</div><div style="font-size:10px;color:'+C.ter+';margin-top:3px;">Strong Buy hanya valid jika flow lengkap dan tanggal hari ini.</div></div>'
+    +'<div class="mono" style="font-size:18px;font-weight:900;color:'+C.green+';">'+strong.length+'</div></div>'
+    +(strong.length
+      ? '<div class="hscroll" style="margin-bottom:10px;">'+strong.slice(0,6).map(planCardHTML).join('')+'</div>'
+      : '<div style="padding:12px;background:rgba(255,214,0,.08);border:1px solid rgba(255,214,0,.25);border-radius:12px;color:'+C.yellow+';font-size:11px;line-height:1.5;margin-bottom:10px;">Belum ada STRONG BUY valid. Import CSV flow dengan TradeDate hari ini untuk mengaktifkan rekomendasi buy.</div>')
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">'
+    +'<div style="background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.18);border-radius:12px;padding:10px;"><div style="font-size:10px;font-weight:800;color:'+C.cyan+';">BELI PAGI</div><div class="mono" style="font-size:18px;font-weight:900;color:'+C.cyan+';">'+morning.length+'</div><div style="font-size:9px;color:'+C.ter+';">09:00-10:30, entry awal saat flow kuat.</div></div>'
+    +'<div style="background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.18);border-radius:12px;padding:10px;"><div style="font-size:10px;font-weight:800;color:'+C.purple+';">BELI SORE</div><div class="mono" style="font-size:18px;font-weight:900;color:'+C.purple+';">'+afternoon.length+'</div><div style="font-size:9px;color:'+C.ter+';">14:30-15:50, tunggu konfirmasi close.</div></div>'
+    +'</div>'
+    +(watch.length?'<div style="font-size:10px;color:'+C.ter+';line-height:1.45;">Pantauan price-only: '+watch.map(function(s){return s.symbol+' '+pctStr(s.pctChg);}).join(', ')+'. Ini bukan sinyal BUY karena flow belum tersedia.</div>':'')
+    +'</div>';
+}
+
+// ----
 // PAGE: DASHBOARD
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 function renderDashboard() {
   var enriched = getEnriched();
   var ihsg = STATE.liveIHSG || {price:7089,chg:87,pctChg:1.24,high:7112,low:7042,marketState:'CLOSED'};
@@ -798,7 +839,7 @@ function renderDashboard() {
     +'<div class="mono" style="font-size:30px;font-weight:800;line-height:1;">'+fmtPrice(num(ihsg.price).toFixed(2))+'</div>'
     +'<div style="display:flex;gap:10px;margin-top:6px;align-items:center;"><span class="mono" style="font-size:13px;font-weight:700;color:'+chgColor+';">'+(num(ihsg.chg)>=0?'+':'')+num(ihsg.chg).toFixed(2)+'</span>'+pctHTML(ihsg.pctChg,13)
     +(STATE.lastSync?'<span style="font-size:9px;color:'+C.ter+';">'+fmtTime(STATE.lastSync)+'</span>':'')+'</div>'
-    +(STATE.provider!=='â€”'?'<div style="font-size:9px;color:'+C.ter+';margin-top:4px;">Sumber: '+STATE.provider+'</div>':'')+'</div>'
+    +(STATE.provider && STATE.provider !== '-'?'<div style="font-size:9px;color:'+C.ter+';margin-top:4px;">Sumber: '+STATE.provider+'</div>':'')+'</div>'
     +'<div style="text-align:right;">'+sparkSVG(IHSG_SPARK,88,36,C.cyan,true)
     +'<div style="display:flex;gap:10px;margin-top:5px;justify-content:flex-end;"><div><div style="font-size:8px;color:'+C.ter+';">HIGH</div><div class="mono" style="font-size:10px;color:'+C.green+';">'+fmtPrice(Math.round(num(ihsg.high,7112)))+'</div></div>'
     +'<div><div style="font-size:8px;color:'+C.ter+';">LOW</div><div class="mono" style="font-size:10px;color:'+C.pink+';">'+fmtPrice(Math.round(num(ihsg.low,7042)))+'</div></div></div></div></div>'
@@ -808,16 +849,17 @@ function renderDashboard() {
       ['SELL',enriched.filter(function(s){return s.trading.action==='SELL';}).length,C.pink],
       ['NAIK',enriched.filter(function(s){return s.pctChg>0;}).length,C.green]]
      .map(function(m){return '<div style="text-align:center;"><div class="mono" style="font-size:17px;font-weight:800;color:'+m[2]+';">'+m[1]+'</div><div style="font-size:8px;color:'+C.ter+';">'+m[0]+'</div></div>';}).join('')+'</div></div>'
-    +'<div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-size:11px;font-weight:700;color:'+C.green+';letter-spacing:.06em;">â–² TOP BUY SIGNALS</span><button onclick="showPage(\'signals\')" style="color:'+C.cyan+';font-size:11px;">Semua â†’</button></div><div class="hscroll">'+buys.slice(0,8).map(miniCardHTML).join('')+'</div></div>'
+    +recommendationPanelHTML(enriched)
+    +'<div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-size:11px;font-weight:700;color:'+C.green+';letter-spacing:.06em;">TOP BUY SIGNALS</span><button onclick="showPage(\'signals\')" style="color:'+C.cyan+';font-size:11px;">Semua &gt;</button></div><div class="hscroll">'+buys.slice(0,8).map(miniCardHTML).join('')+'</div></div>'
     +'<div style="margin-bottom:12px;"><div style="font-size:11px;font-weight:700;color:'+C.sec+';letter-spacing:.06em;margin-bottom:8px;">TOP GAINERS</div><div class="hscroll">'+gainers.map(miniCardHTML).join('')+'</div></div>'
     +'<div class="tab-row" style="margin-bottom:12px;">'+tabs.map(function(t){return '<button class="tab-btn" onclick="setDashTab(\''+t.id+'\')" style="background:'+(STATE.dashTab===t.id?t.color+'18':'rgba(255,255,255,.04)')+';border:1px solid '+(STATE.dashTab===t.id?t.color+'50':'rgba(255,255,255,.08)')+';color:'+(STATE.dashTab===t.id?t.color:'rgba(255,255,255,.38)')+';">'+t.label+' <span style="background:'+t.color+'22;border-radius:999px;padding:1px 5px;font-size:8px;">'+t.count+'</span></button>';}).join('')+'</div>'
     +(tabList.length===0?'<div style="text-align:center;padding:32px;color:'+C.ter+';font-size:13px;">Tidak ada saham pada filter ini</div>':tabList.map(stockCardHTML).join(''));
 }
 function setDashTab(t){STATE.dashTab=t;renderDashboard();}
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 // PAGE: SCANNER
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 function renderScanner() {
   var enriched=getEnriched();
   var q=STATE.scanSearch.toUpperCase();
@@ -846,9 +888,9 @@ function renderScanner() {
     listHTML=enriched.map(function(s){return stockCardHTML(s,STATE.scanView==='compact');}).join('');
   }
   document.getElementById('page-scanner').innerHTML=
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div style="font-size:18px;font-weight:800;">âŠ¡ Scanner</div>'
-    +'<div style="display:flex;gap:4px;">'+['card','compact','table'].map(function(m){return '<button onclick="setScanView(\''+m+'\')" style="background:'+(STATE.scanView===m?'rgba(0,212,255,.15)':'rgba(255,255,255,.05)')+';border:1px solid '+(STATE.scanView===m?'rgba(0,212,255,.5)':'rgba(255,255,255,.08)')+';border-radius:8px;padding:5px 9px;color:'+(STATE.scanView===m?C.cyan:'rgba(255,255,255,.38)')+';font-size:10px;font-weight:700;">'+(m==='card'?'â–¦':m==='compact'?'â–¤':'â–¥')+'</button>';}).join('')+'</div></div>'
-    +'<div class="search-wrap"><span class="search-icon">âŠ˜</span><input class="search-input" placeholder="Cari saham, sektorâ€¦" value="'+STATE.scanSearch+'" oninput="setScanSearch(this.value)"></div>'
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div style="font-size:18px;font-weight:800;">Scanner</div>'
+    +'<div style="display:flex;gap:4px;">'+['card','compact','table'].map(function(m){return '<button onclick="setScanView(\''+m+'\')" style="background:'+(STATE.scanView===m?'rgba(0,212,255,.15)':'rgba(255,255,255,.05)')+';border:1px solid '+(STATE.scanView===m?'rgba(0,212,255,.5)':'rgba(255,255,255,.08)')+';border-radius:8px;padding:5px 9px;color:'+(STATE.scanView===m?C.cyan:'rgba(255,255,255,.38)')+';font-size:10px;font-weight:700;">'+(m==='card'?'Card':m==='compact'?'List':'Table')+'</button>';}).join('')+'</div></div>'
+    +'<div class="search-wrap"><span class="search-icon"></span><input class="search-input" placeholder="Cari saham, sektor" value="'+STATE.scanSearch+'" oninput="setScanSearch(this.value)"></div>'
     +'<div class="tab-row" style="margin-bottom:6px;">'+filters.map(function(f){return '<button class="tab-btn" onclick="setScanFilter(\''+f[0]+'\')" style="background:'+(STATE.scanFilter===f[0]?f[2]+'18':'rgba(255,255,255,.04)')+';border:1px solid '+(STATE.scanFilter===f[0]?f[2]+'50':'rgba(255,255,255,.08)')+';color:'+(STATE.scanFilter===f[0]?f[2]:'rgba(255,255,255,.38)')+';">'+f[1]+'</button>';}).join('')+'</div>'
     +'<div class="tab-row" style="margin-bottom:10px;align-items:center;"><span style="font-size:9px;color:'+C.ter+';white-space:nowrap;">SORT:</span>'+sorts.map(function(s){return '<button class="tab-btn" onclick="setScanSort(\''+s[0]+'\')" style="background:'+(STATE.scanSort===s[0]?'rgba(255,214,0,.12)':'rgba(255,255,255,.04)')+';border:1px solid '+(STATE.scanSort===s[0]?'rgba(255,214,0,.5)':'rgba(255,255,255,.08)')+';color:'+(STATE.scanSort===s[0]?C.yellow:'rgba(255,255,255,.38)')+';">'+s[1]+'</button>';}).join('')+'</div>'
     +'<div style="font-size:11px;color:'+C.ter+';margin-bottom:10px;">'+enriched.length+' saham ditemukan</div>'+listHTML;
@@ -858,9 +900,9 @@ function setScanSort(s){STATE.scanSort=s;renderScanner();}
 function setScanView(v){STATE.scanView=v;renderScanner();}
 function setScanSearch(v){STATE.scanSearch=v;renderScanner();}
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 // PAGE: SIGNALS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 function renderSignals() {
   var enriched=getEnriched();
   var buys=enriched.filter(function(s){return s.trading.action==='BUY';}).sort(function(a,b){return b.trading.conf-a.trading.conf;});
@@ -868,7 +910,7 @@ function renderSignals() {
   var sells=enriched.filter(function(s){return s.trading.action==='SELL';}).sort(function(a,b){return b.trading.conf-a.trading.conf;});
   var list=STATE.sigTab==='buy'?buys:STATE.sigTab==='hold'?holds:sells;
   document.getElementById('page-signals').innerHTML=
-    '<div style="font-size:18px;font-weight:800;margin-bottom:14px;">â—Ž Trading Signals</div>'
+    '<div style="font-size:18px;font-weight:800;margin-bottom:14px;">Trading Signals</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">'
     +[['buy','BUY',buys.length,C.green],['hold','HOLD',holds.length,C.yellow],['sell','SELL',sells.length,C.pink]].map(function(t){return '<button onclick="setSigTab(\''+t[0]+'\')" style="background:'+(STATE.sigTab===t[0]?t[3]+'18':'rgba(255,255,255,.04)')+';border:1px solid '+(STATE.sigTab===t[0]?t[3]+'50':'rgba(255,255,255,.08)')+';border-radius:14px;padding:12px 8px;cursor:pointer;text-align:center;"><div class="mono" style="font-size:22px;font-weight:900;color:'+t[3]+';">'+t[2]+'</div><div style="font-size:10px;color:'+t[3]+';font-weight:700;margin-top:2px;letter-spacing:.07em;">'+t[1]+'</div></button>';}).join('')+'</div>'
     +(list.length===0?'<div style="text-align:center;padding:40px 0;color:'+C.ter+';font-size:13px;">Tidak ada sinyal '+STATE.sigTab.toUpperCase()+' saat ini</div>':list.map(function(s){
@@ -884,9 +926,9 @@ function renderSignals() {
 function setSigTab(t){STATE.sigTab=t;renderSignals();}
 
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 // PAGE: DETAIL
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 function renderDetail() {
   var enriched=getEnriched();
   var s=enriched.find(function(e){return e.symbol===STATE.selectedSym;});
@@ -907,7 +949,7 @@ function renderDetail() {
     +'<div style="display:flex;justify-content:space-between;margin-top:3px;">'+['LEMAH','SEDANG','KUAT','SANGAT KUAT'].map(function(l){return '<span style="font-size:7px;color:'+C.ter+';">'+l+'</span>';}).join('')+'</div></div></div>'
     +'<div class="levels-grid">'
     +[['Entry Zone',tr.eL!=null&&tr.eH!=null?fmtPrice(tr.eL)+' - '+fmtPrice(tr.eH):'N/A',C.cyan],
-      ['Risk/Reward','1 : '+tr.rr,(tr.rr!=='â€”'&&Number(tr.rr)>=2)?C.green:C.yellow],
+      ['Risk/Reward','1 : '+tr.rr,(tr.rr!=='-'&&Number(tr.rr)>=2)?C.green:C.yellow],
       ['Target 1',tr.t1!=null?fmtPrice(tr.t1):'N/A',C.green],
       ['Target 2',tr.t2!=null?fmtPrice(tr.t2):'N/A',C.green],
       ['Stop Loss',tr.sl!=null?fmtPrice(tr.sl):'N/A',C.pink],
@@ -928,7 +970,7 @@ function renderDetail() {
       ? '<div class="card" style="padding:12px 14px;"><div style="font-size:10px;color:'+C.ter+';margin-bottom:8px;letter-spacing:.06em;">ALASAN SINYAL</div>'
         +tr.reasons.slice(0,6).map(function(r){
           return '<div style="display:flex;align-items:flex-start;gap:7px;margin-bottom:5px;">'
-            +'<span style="font-size:11px;color:'+(r.p?C.green:C.pink)+';flex-shrink:0;margin-top:1px;">'+(r.p?'â–²':'â–¼')+'</span>'
+            +'<span style="font-size:11px;color:'+(r.p?C.green:C.pink)+';flex-shrink:0;margin-top:1px;">'+(r.p?'+':'-')+'</span>'
             +'<span style="font-size:11px;color:'+(r.p?C.sec:C.orange)+';line-height:1.4;">'+r.t+'</span>'
             +'</div>';
         }).join('')+'</div>'
@@ -1007,17 +1049,17 @@ function renderDetail() {
   var riskHTML=''
     +'<div class="card" style="padding:16px;margin-bottom:10px;">'
     +'<div style="font-size:11px;font-weight:700;margin-bottom:12px;color:'+(s.riskFlags.length>0?C.pink:C.green)+'">'
-    +(s.riskFlags.length>0?'âš  '+s.riskFlags.length+' RISK FLAG TERDETEKSI':'âœ“ TIDAK ADA RISK FLAG')
+    +(s.riskFlags.length>0?'! '+s.riskFlags.length+' RISK FLAG TERDETEKSI':'OK TIDAK ADA RISK FLAG')
     +'</div>'
     +(s.riskFlags.length===0?'<div style="text-align:center;padding:20px 0;color:'+C.ter+';font-size:13px;">Saham ini bersih dari risk flag</div>':'')
     +s.riskFlags.map(function(f){
       var desc={
-        'Risiko ARA':           'Harga naik lebih dari 20% â€” potensi Auto Rejection Above',
-        'Jauh Broker Avg':      'Harga lebih dari 10% dari rata-rata broker â€” potensi reversal',
-        'Foreign Sell':         'Asing menjual lebih dari 65% â€” tekanan jual kuat',
-        'Volume Spike Ekstrem': 'Volume lebih dari 4.5x rata-rata 5 hari â€” waspada pump/dump',
-        'Frequency Lemah':      'Frekuensi beli kurang dari 35% â€” tekanan jual dominan',
-        'Distribusi Terselubung':'Net sell dan foreign sell tinggi â€” indikasi distribusi tersembunyi',
+        'Risiko ARA':           'Harga naik lebih dari 20%  potensi Auto Rejection Above',
+        'Jauh Broker Avg':      'Harga lebih dari 10% dari rata-rata broker  potensi reversal',
+        'Foreign Sell':         'Asing menjual lebih dari 65%  tekanan jual kuat',
+        'Volume Spike Ekstrem': 'Volume lebih dari 4.5x rata-rata 5 hari  waspada pump/dump',
+        'Frequency Lemah':      'Frekuensi beli kurang dari 35%  tekanan jual dominan',
+        'Distribusi Terselubung':'Net sell dan foreign sell tinggi  indikasi distribusi tersembunyi',
       };
       return '<div style="padding:12px 14px;background:'+f.color+'10;border:1px solid '+f.color+'30;border-radius:14px;margin-bottom:8px;">'
         +'<div style="font-size:12px;font-weight:700;color:'+f.color+';">'+f.label+'</div>'
@@ -1040,7 +1082,7 @@ function renderDetail() {
   var tabContent={signal:signalHTML, overview:overviewHTML, score:scoreHTML, risk:riskHTML};
 
   document.getElementById('page-detail').innerHTML=''
-    +'<button onclick="showPage(\'scanner\')" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:6px 14px;color:'+C.sec+';font-size:12px;cursor:pointer;margin-bottom:14px;">â† Kembali</button>'
+    +'<button onclick="showPage(\'scanner\')" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:6px 14px;color:'+C.sec+';font-size:12px;cursor:pointer;margin-bottom:14px;">&lt; Kembali</button>'
     +'<div class="card" style="background:radial-gradient(ellipse at 20% 0%,'+s.signal.color+'18 0%,rgba(255,255,255,.04) 70%);border-color:'+s.signal.color+'28;box-shadow:0 0 22px '+s.signal.color+'12;padding:18px 20px;margin-bottom:12px;">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">'
     +'<div>'
@@ -1082,9 +1124,9 @@ function renderDetail() {
 }
 function setDetailTab(t){STATE.detailTab=t;renderDetail();}
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 // PAGE: WATCHLIST
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 function renderWatchlist() {
   var enriched=getEnriched();
   var wl=enriched.filter(function(s){return STATE.watchlist.includes(s.symbol);});
@@ -1092,7 +1134,7 @@ function renderWatchlist() {
   var avgScore=scored.length?scored.reduce(function(a,s){return a+scoreValue(s);},0)/scored.length:null;
   var rest=enriched.filter(function(s){return !STATE.watchlist.includes(s.symbol);});
   document.getElementById('page-watchlist').innerHTML=''
-    +'<div style="font-size:18px;font-weight:800;margin-bottom:14px;">â˜… Watchlist</div>'
+    +'<div style="font-size:18px;font-weight:800;margin-bottom:14px;">Watchlist</div>'
     +'<div class="card card-cyan" style="padding:14px 18px;margin-bottom:14px;">'
     +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;text-align:center;">'
     +[['SAHAM',wl.length,C.cyan],
@@ -1101,11 +1143,11 @@ function renderWatchlist() {
       ['SELL',wl.filter(function(s){return s.trading.action==='SELL';}).length,C.pink]]
      .map(function(m){return '<div><div class="mono" style="font-size:18px;font-weight:800;color:'+m[2]+';">'+m[1]+'</div><div style="font-size:8px;color:'+C.ter+';margin-top:2px;">'+m[0]+'</div></div>';}).join('')
     +'</div></div>'
-    +(wl.length===0?'<div style="text-align:center;padding:40px 0;color:'+C.ter+';"><div style="font-size:36px;opacity:.3;margin-bottom:8px;">â˜…</div><div style="font-size:14px;">Watchlist kosong</div></div>':'')
+    +(wl.length===0?'<div style="text-align:center;padding:40px 0;color:'+C.ter+';"><div style="font-size:18px;opacity:.55;margin-bottom:8px;">WATCH</div><div style="font-size:14px;">Watchlist kosong</div></div>':'')
     +wl.map(function(s){
       return '<div style="position:relative;">'
         +stockCardHTML(s)
-        +'<button onclick="toggleWatchlist(\''+s.symbol+'\')" style="position:absolute;top:14px;right:14px;width:24px;height:24px;background:rgba(255,61,127,.15);border:1px solid rgba(255,61,127,.4);border-radius:8px;color:'+C.pink+';font-size:12px;display:flex;align-items:center;justify-content:center;">âœ•</button>'
+        +'<button onclick="toggleWatchlist(\''+s.symbol+'\')" style="position:absolute;top:14px;right:14px;width:24px;height:24px;background:rgba(255,61,127,.15);border:1px solid rgba(255,61,127,.4);border-radius:8px;color:'+C.pink+';font-size:12px;display:flex;align-items:center;justify-content:center;">x</button>'
         +'</div>';
     }).join('')
     +'<div style="margin-top:20px;">'
@@ -1130,9 +1172,9 @@ function toggleWatchlist(sym){
   renderWatchlist();
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 // PAGE: SETTINGS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 function renderSettings() {
   var enriched=getEnriched();
   var priceOnlyCount=enriched.filter(function(s){return s.dataMode==='PRICE_ONLY';}).length;
@@ -1141,11 +1183,11 @@ function renderSettings() {
   var syncLogRows=STATE.syncLog.slice(-8).reverse();
 
   document.getElementById('page-settings').innerHTML=''
-    +'<div style="font-size:18px;font-weight:800;margin-bottom:20px;">â—ˆ Settings</div>'
+    +'<div style="font-size:18px;font-weight:800;margin-bottom:20px;">Settings</div>'
     +'<div class="card card-blue" style="padding:20px;text-align:center;margin-bottom:14px;">'
-    +'<div style="width:58px;height:58px;border-radius:18px;background:linear-gradient(135deg,'+C.cyan+','+C.accent+');margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 0 28px rgba(0,212,255,.5);">â—ˆ</div>'
+    +'<div style="width:58px;height:58px;border-radius:18px;background:linear-gradient(135deg,'+C.cyan+','+C.accent+');margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 0 28px rgba(0,212,255,.5);"></div>'
     +'<div style="font-size:16px;font-weight:800;">IDX Flow Scanner</div>'
-    +'<div style="font-size:11px;color:'+C.ter+';margin-top:2px;">v2.0 â€” Auto Web Sync</div>'
+    +'<div style="font-size:11px;color:'+C.ter+';margin-top:2px;">v2.0  Auto Web Sync</div>'
     +'<div style="display:flex;gap:5px;justify-content:center;margin-top:10px;flex-wrap:wrap;">'
     +['HTML5','Vanilla JS','Auto Web Sync','Server Cache'].map(function(l){return badgeHTML(l,C.sec,'rgba(255,255,255,.07)',9);}).join('')
     +'</div></div>'
@@ -1156,8 +1198,8 @@ function renderSettings() {
     +[['Endpoint',    '/api/idx-quotes',              C.cyan],
       ['Freshness',   STATE.freshness,                freshnessColor(STATE.freshness)],
       ['Provider',    STATE.provider,                 C.sec],
-      ['Last Sync',   STATE.lastSync?fmtTime(STATE.lastSync):'â€”', C.sec],
-      ['Data asOf',   STATE.lastAsOf?new Date(STATE.lastAsOf).toLocaleTimeString('id-ID'):'â€”', C.sec]]
+      ['Last Sync',   STATE.lastSync?fmtTime(STATE.lastSync):'', C.sec],
+      ['Data asOf',   STATE.lastAsOf?new Date(STATE.lastAsOf).toLocaleTimeString('id-ID'):'', C.sec]]
      .map(function(m){return '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);"><span style="font-size:11px;color:'+C.ter+';">'+m[0]+'</span><span class="mono" style="font-size:10px;color:'+m[2]+';">'+m[1]+'</span></div>';}).join('')
     +'<div style="margin-top:14px;"><div style="font-size:11px;color:'+C.ter+';margin-bottom:8px;">Interval Sync</div>'
     +'<div style="display:flex;gap:6px;">'
@@ -1165,8 +1207,8 @@ function renderSettings() {
       return '<button onclick="setIntervalSec('+s+')" style="flex:1;background:'+(STATE.syncInterval===s?'rgba(0,212,255,.15)':'rgba(255,255,255,.05)')+';border:1px solid '+(STATE.syncInterval===s?'rgba(0,212,255,.5)':'rgba(255,255,255,.08)')+';border-radius:10px;padding:8px 4px;color:'+(STATE.syncInterval===s?C.cyan:'rgba(255,255,255,.38)')+';font-size:10px;font-weight:700;">'+(s<60?s+'d':s/60+'m')+'</button>';
     }).join('')+'</div></div>'
     +'<div style="display:flex;gap:8px;margin-top:14px;">'
-    +'<button onclick="forceSync()" style="flex:1;background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.4);border-radius:12px;padding:10px;color:'+C.cyan+';font-size:12px;font-weight:700;">â†» Force Sync</button>'
-    +'<button onclick="clearCache()" style="flex:1;background:rgba(255,61,127,.08);border:1px solid rgba(255,61,127,.3);border-radius:12px;padding:10px;color:'+C.pink+';font-size:12px;font-weight:700;">âœ• Clear Cache</button>'
+    +'<button onclick="forceSync()" style="flex:1;background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.4);border-radius:12px;padding:10px;color:'+C.cyan+';font-size:12px;font-weight:700;">Force Sync</button>'
+    +'<button onclick="clearCache()" style="flex:1;background:rgba(255,61,127,.08);border:1px solid rgba(255,61,127,.3);border-radius:12px;padding:10px;color:'+C.pink+';font-size:12px;font-weight:700;">Clear Cache</button>'
     +'</div></div>'
 
     // DATA QUALITY section
@@ -1202,17 +1244,17 @@ function renderSettings() {
 function setIntervalSec(s){STATE.syncInterval=s;savePrefs();startSyncTimer();renderSettings();}
 function clearCache(){clearLocalCache();addLog('Cache lokal dihapus.');renderSettings();}
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 // PAGE: UPLOAD (Emergency Offline Fallback)
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 function renderUpload() {
   document.getElementById('page-upload').innerHTML=''
-    +'<div style="font-size:18px;font-weight:800;margin-bottom:6px;">â¬† Import Darurat</div>'
-    +'<div style="font-size:12px;color:'+C.ter+';margin-bottom:6px;">Fallback offline â€” bukan sync utama</div>'
-    +'<div style="padding:10px 14px;background:rgba(255,214,0,.08);border:1px solid rgba(255,214,0,.3);border-radius:12px;margin-bottom:20px;font-size:11px;color:'+C.yellow+';">âš  Fitur ini hanya untuk kondisi darurat saat backend tidak tersedia. Data live otomatis diambil dari <span class="mono">/api/idx-quotes</span>.</div>'
+    +'<div style="font-size:18px;font-weight:800;margin-bottom:6px;">Import Darurat</div>'
+    +'<div style="font-size:12px;color:'+C.ter+';margin-bottom:6px;">Fallback offline - bukan sync utama</div>'
+    +'<div style="padding:10px 14px;background:rgba(255,214,0,.08);border:1px solid rgba(255,214,0,.3);border-radius:12px;margin-bottom:20px;font-size:11px;color:'+C.yellow+';">Catatan: fitur ini hanya untuk kondisi darurat saat backend tidak tersedia. Data live otomatis diambil dari <span class="mono">/api/idx-quotes</span>.</div>'
     +'<div onclick="document.getElementById(\'fileInput\').click()" style="border:2px dashed rgba(0,212,255,.5);border-radius:20px;padding:28px 20px;text-align:center;margin-bottom:16px;cursor:pointer;background:rgba(0,212,255,.04);">'
     +'<input id="fileInput" type="file" accept=".csv" style="display:none;" onchange="handleUpload(this)">'
-    +'<div style="font-size:36px;margin-bottom:10px;">ðŸ“„</div>'
+    +'<div style="font-size:18px;font-weight:900;color:'+C.cyan+';margin-bottom:10px;">CSV</div>'
     +'<div style="font-size:14px;font-weight:700;margin-bottom:6px;">Upload CSV Broker Summary</div>'
     +'<div style="font-size:11px;color:'+C.ter+';margin-bottom:14px;">Hanya kolom flow data (broker, foreign, freq)</div>'
     +'<span style="background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.5);border-radius:999px;padding:8px 24px;color:'+C.cyan+';font-size:13px;font-weight:700;">Pilih File CSV</span>'
@@ -1304,7 +1346,7 @@ function handleUpload(input) {
     var accepted = [], rejected = [];
     for(var i=1;i<csv.length;i++){
       var cols=csv[i];
-      var sym=idx.symbol>=0 ? String(cols[idx.symbol]||'').trim().toUpperCase().replace('.JK','') : '';
+      var sym=idx.symbol>=0 ? String(cols[idx.symbol]||'-').trim().toUpperCase().replace('.JK','') : '';
       var tradeDate=idx.tradeDate>=0 ? normalizeTradeDate(cols[idx.tradeDate]) : null;
       if(!sym || !SYMBOLS.includes(sym)){ rejected.push('Row '+(i+1)+': unknown symbol'); continue; }
       if(!tradeDate){ rejected.push('Row '+(i+1)+': TradeDate required'); continue; }
@@ -1364,9 +1406,9 @@ function renderCurrent(){
   }
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 // INIT
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ----
 loadPrefs();
 renderDashboard();
 setTimeout(fetchLive, 1500);
