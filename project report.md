@@ -213,4 +213,48 @@ Production URL:
 
 Deployment status:
 
-- Pending final deployment after this hardening commit.
+- Completed.
+
+Latest deployed commit:
+
+- `4b2c2c1` - `Harden production scan observability and tests`
+
+Vercel deployment:
+
+- `https://idx-scanner-1-0-9po4btxl0-estora-v1.vercel.app`
+- Production alias: `https://idx-scanner-1-0.vercel.app`
+
+## Live Verification After Deployment
+
+### /api/health
+
+```json
+{"ok":true,"version":"4b2c2c1","session":"AFTERNOON","providerStatus":"unknown","cache":"empty"}
+```
+
+The health route includes last scan fields. On Vercel, route memory is per runtime instance, so last scan fields can be `null` until available in that route instance.
+
+### /api/scan?symbols=BBCA,BBRI,BMRI&debug=1
+
+```json
+{"ok":true,"scanned":3,"valid":3,"noData":0,"failed":0,"primary":"error","fallback":"ok","validRatio":1,"noDataRatio":0,"freshness":"live"}
+```
+
+### /api/scan?symbols=BBCA&debug=1&forceProviderFail=1
+
+```json
+{"ok":true,"valid":0,"noData":1,"fakePrices":0,"primary":"error","fallback":"error","freshness":"no-data"}
+```
+
+### Production HTML Checks
+
+```json
+{"hasLastUpdated":true,"hasDataAge":true,"hasMode":true,"hasStaleWarning":true,"hasBrokerFlowUnavailable":true,"hasOldCsvWarning":false}
+```
+
+### Git Sync
+
+```text
+## main...origin/main
+0 0
+```
