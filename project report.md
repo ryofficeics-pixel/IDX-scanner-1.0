@@ -27,6 +27,8 @@ Added safety behavior:
 - If cache marketDate is not today, cached data is rendered as `Last saved snapshot`, not active recommendation.
 - Cache mode is explicit and never silently shown as live.
 
+Full IDX universe scanning is done in 150-symbol chunks, while the UI renders a lighter active subset to keep tab switching responsive.
+
 ### API Diagnostics
 
 Enhanced `/api/scan` diagnostics with:
@@ -239,6 +241,14 @@ The health route includes last scan fields. On Vercel, route memory is per runti
 ```json
 {"ok":true,"scanned":3,"valid":3,"noData":0,"failed":0,"primary":"error","fallback":"ok","validRatio":1,"noDataRatio":0,"freshness":"live"}
 ```
+
+### Local full-universe cap check
+
+```json
+{"ok":true,"scanned":908,"noData":908,"failed":908}
+```
+
+This used `forceProviderFail=1` to verify full universe coverage without calling the provider.
 
 ### /api/scan?symbols=BBCA&debug=1&forceProviderFail=1
 

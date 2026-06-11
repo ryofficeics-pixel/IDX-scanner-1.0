@@ -255,6 +255,7 @@ if (window.IDX_STOCK_META) {
 var SYMBOLS = Object.keys(STOCK_META);
 var DEFAULT_QUOTE_SYMBOLS = (window.IDX_DEFAULT_SYMBOLS || SYMBOLS.slice(0,120)).filter(function(sym){ return STOCK_META[sym]; });
 var DEFAULT_QUOTE_SET = new Set(DEFAULT_QUOTE_SYMBOLS);
+var FULL_SCAN_CHUNK_SIZE = 150;
 
 // ----
 // INITIAL SPARKLINES
@@ -504,6 +505,52 @@ function symbolsForSync() {
   return Array.from(set).slice(0, 160);
 }
 
+function mergeScanPayload(base, next) {
+  if (!base) return next;
+  var merged = JSON.parse(JSON.stringify(base));
+  var nextSummary = next.summary || {};
+  var summary = merged.summary || {};
+  summary.scanned = num(summary.scanned) + num(nextSummary.scanned);
+  summary.valid = num(summary.valid) + num(nextSummary.valid);
+  summary.noData = num(summary.noData) + num(nextSummary.noData);
+  summary.errorCount = num(summary.errorCount) + num(nextSummary.errorCount);
+  ['strongBuyCount','buyCount','holdCount','sellCount','topGainerCount','accumulationProxyCount','distributionProxyCount'].forEach(function(k){
+    summary[k] = num(summary[k]) + num(nextSummary[k]);
+  });
+  merged.summary = summary;
+  var buckets = ['strongBuy','beliPagi','beliSore','topBuy','topGainers','accumulationProxy','distributionProxy','risk','hold','sell'];
+  buckets.forEach(function(bucket){
+    var bySymbol = {};
+    (merged.recommendations[bucket] || []).concat((next.recommendations && next.recommendations[bucket]) || []).forEach(function(sig){
+      if (!sig || !sig.symbol) return;
+      if (!bySymbol[sig.symbol] || num(sig.score) > num(bySymbol[sig.symbol].score)) bySymbol[sig.symbol] = sig;
+    });
+    merged.recommendations[bucket] = Object.keys(bySymbol).map(function(sym){ return bySymbol[sym]; })
+      .sort(function(a,b){ return num(b.score)-num(a.score); })
+      .slice(0, bucket === 'hold' || bucket === 'sell' ? 80 : 30);
+  });
+  merged.diagnostics = merged.diagnostics || {};
+  var nextDiag = next.diagnostics || {};
+  merged.diagnostics.failedSymbols = Array.from(new Set([].concat(merged.diagnostics.failedSymbols || [], nextDiag.failedSymbols || [])));
+  merged.diagnostics.providerLatencyMs = num(merged.diagnostics.providerLatencyMs) + num(nextDiag.providerLatencyMs);
+  merged.diagnostics.validRatio = merged.summary.scanned ? merged.summary.valid / merged.summary.scanned : 0;
+  merged.diagnostics.noDataRatio = merged.summary.scanned ? merged.summary.noData / merged.summary.scanned : 0;
+  merged.diagnostics.scanFinishedAt = nextDiag.scanFinishedAt || merged.diagnostics.scanFinishedAt;
+  return merged;
+}
+
+async function fetchScanPayload(params) {
+  var res = await fetch('/api/scan?' + params.toString(), {
+    method: 'GET',
+    headers: { 'Accept': 'application/json' },
+    signal: AbortSignal.timeout(45000)
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  var payload = await res.json();
+  validatePayload(payload);
+  return payload;
+}
+
 async function fetchLive(force) {
   if (STATE.fetching) return;
   STATE.fetching = true;
@@ -511,23 +558,37 @@ async function fetchLive(force) {
   addLog('Mengambil data dari backend web sync');
 
   try {
-    var params = new URLSearchParams();
-    params.set('symbols', symbolsForSync().join(','));
-    params.set('limit', '120');
-    var res = await fetch('/api/scan?' + params.toString(), {
-      method: 'GET',
-      headers: { 'Accept': 'application/json' },
-      signal: AbortSignal.timeout(20000)
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    var payload = await res.json();
-    validatePayload(payload);
+    var payload = null;
+    if (STATE.scanSearch) {
+      var params = new URLSearchParams();
+      params.set('symbols', symbolsForSync().join(','));
+      params.set('limit', '120');
+      payload = await fetchScanPayload(params);
+    } else {
+      var total = SYMBOLS.length || (window.IDX_UNIVERSE_COUNT || 900);
+      for (var offset=0; offset<total; offset+=FULL_SCAN_CHUNK_SIZE) {
+        var chunkParams = new URLSearchParams();
+        chunkParams.set('limit', String(FULL_SCAN_CHUNK_SIZE));
+        chunkParams.set('offset', String(offset));
+        var chunk = await fetchScanPayload(chunkParams);
+        payload = mergeScanPayload(payload, chunk);
+        addLog('Scan universe '+Math.min(offset+FULL_SCAN_CHUNK_SIZE,total)+' / '+total);
+        if (offset === 0) {
+          STATE.cacheStatus = 'fresh';
+          applyPayload(payload);
+          STATE.lastSync = Date.now();
+          setSyncUI('live');
+          renderCurrent();
+        }
+      }
+    }
     STATE.cacheStatus = 'fresh';
     applyPayload(payload);
     saveToLocalCache(payload);
     STATE.lastSync = Date.now();
-    var uiState = (payload.freshness === 'LIVE' || payload.freshness === 'LIVE_PRICE') ? 'live'
-                : (payload.freshness === 'STALE' || payload.freshness === 'STALE_PRICE') ? 'stale' : 'local';
+    var dataFreshness = payload.diagnostics && payload.diagnostics.dataFreshness;
+    var uiState = (payload.freshness === 'LIVE' || payload.freshness === 'LIVE_PRICE' || dataFreshness === 'live') ? 'live'
+                : (payload.freshness === 'STALE' || payload.freshness === 'STALE_PRICE' || dataFreshness === 'stale') ? 'stale' : 'local';
     setSyncUI(uiState);
     addLog('Sync berhasil. Freshness: ' + payload.freshness);
     renderCurrent();

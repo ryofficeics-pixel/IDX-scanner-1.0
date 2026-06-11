@@ -61,7 +61,8 @@ module.exports = async function handler(req, res) {
 
   const scanStartedAt = new Date().toISOString();
   const providerStart = Date.now();
-  const limit = Math.max(1, Math.min(Number(req.query?.limit) || 120, 180));
+  const limit = Math.max(1, Math.min(Number(req.query?.limit) || 120, 1000));
+  const offset = Math.max(0, Number(req.query?.offset) || 0);
   const debug = req.query?.debug === '1';
   const mockTime = debug && req.query?.mockTime ? new Date(String(req.query.mockTime)) : null;
   const now = mockTime && Number.isFinite(mockTime.getTime()) ? mockTime : new Date();
@@ -70,7 +71,7 @@ module.exports = async function handler(req, res) {
   const forceChartFail = debug && req.query?.forceChartFail === '1';
   const corruptOneSymbol = debug && req.query?.corruptOneSymbol === '1';
   const mockProviderDelayMs = debug ? Math.max(0, Math.min(Number(req.query?.mockProviderDelayMs) || 0, 10000)) : 0;
-  const universe = getUniverse({ symbols:req.query?.symbols, limit });
+  const universe = getUniverse({ symbols:req.query?.symbols, limit, offset });
   const symbols = universe.map((row) => row.symbol);
   const cacheKey = `scan:${symbols.join(',')}:${debug ? JSON.stringify(req.query) : 'normal'}`;
   const cached = cache.get(cacheKey, 60 * 1000);

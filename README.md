@@ -20,6 +20,19 @@ Repository:
 
 CSV upload is optional and is only for broker-flow enrichment. The core scanner must work without CSV.
 
+## Universe Coverage
+
+The IDX universe is loaded from `data/idx-symbols.json` and currently contains 900+ symbols. The frontend scans the full universe in chunks of 150 symbols so all issuers can be covered without rendering 900 cards at once or blocking tab navigation.
+
+The UI renders a lighter active subset by default:
+
+- current scan recommendations
+- live quote results
+- default liquid symbols
+- user watchlist
+
+Search can still query the wider universe.
+
 ## Provider Limitations
 
 Primary provider:

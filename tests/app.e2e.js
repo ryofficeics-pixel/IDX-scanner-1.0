@@ -45,6 +45,7 @@ test.afterAll(async () => {
 });
 
 test('fresh open runs scan and does not require CSV', async ({ page }) => {
+  await page.route('**/api/scan**', (route) => route.fulfill({ contentType:'application/json', body:JSON.stringify(sampleScan()) }));
   await page.goto(local.url);
   await page.evaluate(() => localStorage.clear());
   const scanResponse = page.waitForResponse((res) => res.url().includes('/api/scan') && res.status() === 200);
