@@ -5,7 +5,8 @@ Production-ready Vercel MVP for IDX Flow Scanner.
 ## Routes
 
 - `/` serves `public/index.html`
-- `/api/idx-quotes` returns Yahoo Finance price-only quotes plus optional Supabase flow data
+- `/api/scan` returns auto-generated quote-driven recommendations without requiring CSV
+- `/api/idx-quotes` remains available for legacy Yahoo Finance price-only quotes plus optional Supabase flow data
 - `/api/flow-upload` upserts validated flow rows to Supabase when env vars are configured
 - `/api/health` returns deployment health and Supabase configuration status
 
@@ -46,8 +47,7 @@ CREATE TABLE IF NOT EXISTS idx_flow_data (
 
 - `npm run check`
 - `vercel dev`, then open `/api/health`
-- Open `/api/idx-quotes?symbols=BBCA,BBRI&force=true`
-- Confirm Yahoo Finance quotes show `dataMode: "PRICE_ONLY"` when no flow exists
-- Import CSV with `TradeDate`; accepted rows should become `FULL_FLOW` only when complete and current
-- Confirm no BUY signal appears for `PRICE_ONLY`, `NO_DATA`, `LOCAL_SAMPLE`, or `FLOW_STALE`
-
+- Open `/api/scan?symbols=BBCA,BBRI&debug=1`
+- Confirm the response includes `summary`, `recommendations`, and `diagnostics`
+- Confirm recommendations are generated from quote, volume, momentum, liquidity, and risk filters without CSV upload
+- CSV upload is optional for future broker-flow enrichment only

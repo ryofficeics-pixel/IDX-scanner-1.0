@@ -91,7 +91,7 @@ button{border:none;cursor:pointer;background:none;}
         <span id="syncTime"  style="font-size:8px;color:rgba(255,255,255,.38);"></span>
         <span style="font-size:9px;color:rgba(255,255,255,.38);">SYNC</span>
       </button>
-      <button onclick="showPage('upload')" style="background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.38);border-radius:999px;padding:5px 12px;color:#00D4FF;font-size:11px;font-weight:700;">CSV</button>
+      <button onclick="showPage('upload')" style="background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.38);border-radius:999px;padding:5px 12px;color:#00D4FF;font-size:11px;font-weight:700;">CSV OPTIONAL</button>
     </div>
   </div>
 
@@ -275,6 +275,7 @@ var STATE = {
   watchlist:['BBCA','TLKM','BYAN','GOTO','ADRO'],
   // Live data from backend
   liveQuotes:{}, liveIHSG:null,
+  scanResult:null, cacheStatus:'none',
   freshness:'LOCAL_SAMPLE',
   provider:'-',
   dataSource:'-',
@@ -335,12 +336,72 @@ function loadPrefs() {
 // ----
 function validatePayload(p) {
   if (!p || typeof p !== 'object') throw new Error('Invalid payload: not an object');
+  if (p.ok && p.recommendations) return;
   if (!p.quotes || typeof p.quotes !== 'object') throw new Error('Invalid payload: missing quotes');
   if (Object.keys(p.quotes).length === 0) throw new Error('Payload has 0 quotes');
 }
 
+function flattenScanRecommendations(scan) {
+  var out = {}, recs = scan && scan.recommendations ? scan.recommendations : {};
+  Object.keys(recs).forEach(function(key){
+    (recs[key] || []).forEach(function(sig){
+      if (!sig || !sig.symbol) return;
+      if (!out[sig.symbol] || num(sig.score) > num(out[sig.symbol].score)) out[sig.symbol] = sig;
+    });
+  });
+  return Object.keys(out).map(function(k){ return out[k]; });
+}
+
+function quoteFromSignal(sig) {
+  return {
+    symbol:sig.symbol,
+    price:sig.lastPrice,
+    prevClose:sig.previousClose,
+    high:sig.indicators && sig.indicators.dayHigh ? sig.indicators.dayHigh : sig.lastPrice,
+    low:sig.indicators && sig.indicators.dayLow ? sig.indicators.dayLow : sig.lastPrice,
+    volume:sig.volume,
+    pctChg:sig.changePct,
+    volumeAvg5d:sig.avgVolume20,
+    asOf:sig.timestamp,
+    source:sig.source || 'scan',
+    dataMode:sig.action === 'NO_DATA' ? 'NO_DATA' : 'PRICE_ONLY',
+    backendSignal:sig
+  };
+}
+
 function applyPayload(p) {
   if (!p) return;
+  if (p.ok && p.recommendations) {
+    STATE.scanResult = p;
+    STATE.freshness = p.diagnostics && p.diagnostics.cacheHit ? 'STALE_PRICE' : 'LIVE_PRICE';
+    STATE.provider = (p.diagnostics && p.diagnostics.provider) || (p.market && p.market.source) || 'scan';
+    STATE.dataSource = (p.market && p.market.source) || 'scan';
+    STATE.lastAsOf = p.generatedAt || null;
+    STATE.syncErrors = p.diagnostics && Array.isArray(p.diagnostics.errors) ? p.diagnostics.errors : [];
+    STATE.syncWarnings = p.diagnostics && Array.isArray(p.diagnostics.warnings) ? p.diagnostics.warnings : [];
+    if (p.market) {
+      STATE.liveIHSG = {
+        price:p.market.ihsgPrice,
+        prevClose:null,
+        chg:null,
+        pctChg:p.market.ihsgChangePct,
+        high:p.market.ihsgPrice,
+        low:p.market.ihsgPrice,
+        marketState:p.session ? p.session.status : 'UNKNOWN',
+        asOf:p.market.timestamp,
+        source:p.market.source
+      };
+    }
+    flattenScanRecommendations(p).forEach(function(sig){
+      if (!STOCK_META[sig.symbol]) {
+        STOCK_META[sig.symbol] = {name:sig.name || sig.symbol, sector:'IDX'};
+        SYMBOLS.push(sig.symbol);
+      }
+      STATE.liveQuotes[sig.symbol] = quoteFromSignal(sig);
+    });
+    addLog((p.summary ? p.summary.scanned : flattenScanRecommendations(p).length) + ' saham discan. Sumber: ' + STATE.provider);
+    return;
+  }
   var quotes = p.quotes || {};
   Object.keys(quotes).forEach(function(sym) {
     var q = quotes[sym];
@@ -379,7 +440,7 @@ function getFreshnessAge(asOf) {
 }
 
 // ----
-// SYNC ENGINE  calls /api/idx-quotes
+// SYNC ENGINE  calls /api/scan
 // ----
 function addLog(msg) {
   STATE.syncLog.push({ts:Date.now(), msg:String(msg)});
@@ -415,8 +476,8 @@ async function fetchLive(force) {
   try {
     var params = new URLSearchParams();
     params.set('symbols', symbolsForSync().join(','));
-    if (force) params.set('force', 'true');
-    var res = await fetch('/api/idx-quotes?' + params.toString(), {
+    params.set('limit', '120');
+    var res = await fetch('/api/scan?' + params.toString(), {
       method: 'GET',
       headers: { 'Accept': 'application/json' },
       signal: AbortSignal.timeout(20000)
@@ -424,6 +485,7 @@ async function fetchLive(force) {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     var payload = await res.json();
     validatePayload(payload);
+    STATE.cacheStatus = 'fresh';
     applyPayload(payload);
     saveToLocalCache(payload);
     STATE.lastSync = Date.now();
@@ -440,6 +502,7 @@ async function fetchLive(force) {
     var cached = loadFromLocalCache();
     if (cached && cached.payload) {
       addLog('Memakai cache lokal terakhir (STALE).');
+      STATE.cacheStatus = 'localStorage';
       cached.payload.freshness = 'STALE';
       applyPayload(cached.payload);
       STATE.lastSync = cached.savedAt || null;
@@ -447,9 +510,9 @@ async function fetchLive(force) {
       renderCurrent();
       focusScannerSearch();
     } else {
-      addLog('Tidak ada cache. Menampilkan data sample lokal.');
-      STATE.freshness = 'LOCAL_SAMPLE';
-      setSyncUI('local');
+      addLog('Tidak ada cache. Menampilkan state kosong; coba sync ulang.');
+      STATE.freshness = 'NO_DATA';
+      setSyncUI('error');
       renderCurrent();
       focusScannerSearch();
     }
@@ -459,6 +522,7 @@ async function fetchLive(force) {
 }
 
 function forceSync() { fetchLive(true); }
+function runAutoScan() { fetchLive(true); }
 
 function startSyncTimer() {
   if (STATE.syncTimer) clearInterval(STATE.syncTimer);
@@ -560,6 +624,7 @@ function calcRiskFlags(s) {
 }
 
 function calcScore(s) {
+  if (s.backendSignal && Number.isFinite(Number(s.backendSignal.score))) return Number(s.backendSignal.score);
   var mode = dataMode(s);
   if (mode === 'PRICE_ONLY' || mode === 'LOCAL_SAMPLE' || mode === 'NO_DATA' || mode === 'FLOW_STALE') return null;
   var components = 0, total = 0;
@@ -598,6 +663,30 @@ function classifySig(score) {
 }
 
 function calcTrading(s) {
+  if (s.backendSignal) {
+    var sig = s.backendSignal;
+    var action = sig.action === 'STRONG_BUY' ? 'BUY'
+      : sig.action === 'WATCH' ? 'HOLD'
+      : sig.action === 'AVOID' || sig.action === 'NO_DATA' ? 'SELL'
+      : sig.action;
+    if (!['BUY','HOLD','SELL'].includes(action)) action = 'HOLD';
+    var ac = action==='BUY'?C.green:action==='SELL'?C.pink:C.yellow;
+    var ab = action==='BUY'?'rgba(0,255,156,.14)':action==='SELL'?'rgba(255,61,127,.14)':'rgba(255,214,0,.12)';
+    var reasons = (sig.reasons || []).map(function(t){ return {t:t, p:true}; })
+      .concat((sig.warnings || []).map(function(t){ return {t:t, p:false}; }));
+    return {
+      action:action, ac:ac, ab:ab, ag:ac, conf:Math.round(clamp(sig.confidence || 0,0,100)),
+      slabel:(sig.confidence||0)>=80?'SANGAT KUAT':(sig.confidence||0)>=60?'KUAT':(sig.confidence||0)>=40?'SEDANG':'LEMAH',
+      scolor:(sig.confidence||0)>=80?C.green:(sig.confidence||0)>=60?C.cyan:(sig.confidence||0)>=40?C.yellow:C.orange,
+      eL:validPrice(s.price)?Math.round(s.price*.99/10)*10:null,
+      eH:validPrice(s.price)?Math.round(s.price*1.01/10)*10:null,
+      t1:validPrice(s.price)?Math.round(s.price*1.025/10)*10:null,
+      t2:validPrice(s.price)?Math.round(s.price*1.05/10)*10:null,
+      sl:validPrice(s.price)?Math.round(s.price*.96/10)*10:null,
+      rr:'-',
+      reasons:reasons
+    };
+  }
   var rawScore= calcScore(s);
   var score   = rawScore === null ? 0 : num(rawScore);
   var risk    = calcRiskFlags(s);
@@ -689,12 +778,15 @@ function enrich(sym, liveQ) {
     dataMode: liveQ ? (liveQ.dataMode||'PRICE_ONLY') : 'NO_DATA',
     asOf:     liveQ ? (liveQ.asOf||null) : null,
     source:   liveQ ? (liveQ.source||'-') : 'base-data',
+    backendSignal: liveQ ? liveQ.backendSignal : null,
   };
   // Override dataMode based on actual available fields
   s.dataMode = dataMode(s);
 
   var score     = calcScore(s);
-  var signal    = classifySig(score);
+  var signal    = s.backendSignal
+    ? {label:s.backendSignal.category === 'ACCUMULATION_PROXY' ? 'AKUMULASI PROXY' : s.backendSignal.category === 'DISTRIBUTION_PROXY' ? 'DISTRIBUSI PROXY' : s.backendSignal.action, short:s.backendSignal.action === 'STRONG_BUY' ? 'SB' : s.backendSignal.action, color:s.backendSignal.action === 'STRONG_BUY' || s.backendSignal.action === 'BUY' ? C.green : s.backendSignal.action === 'SELL' || s.backendSignal.action === 'AVOID' || s.backendSignal.riskLevel === 'HIGH' ? C.pink : C.yellow, bg:'rgba(255,255,255,.08)'}
+    : classifySig(score);
   var brokerAvg = (num(s.brokerBuy)+num(s.brokerSell))/2 || num(s.price);
   return Object.assign(s, {
     score,
@@ -703,7 +795,7 @@ function enrich(sym, liveQ) {
     pbDist:     validPrice(brokerAvg) ? safeDiv(num(s.price)-brokerAvg, brokerAvg)*100 : 0,
     foreignNet: num(s.foreignBuy) - num(s.foreignSell),
     foreignPct: (function(){ var f=calcForeign(s); return f!==null?f-50:null; })(),
-    riskFlags:  calcRiskFlags(s),
+    riskFlags:  s.backendSignal && s.backendSignal.riskLevel === 'HIGH' ? [{label:'Risk tinggi', color:C.pink}].concat((s.backendSignal.warnings || []).slice(0,2).map(function(w){ return {label:w, color:C.orange}; })) : calcRiskFlags(s),
     volRatio:   (function(){ var a=maybeNum(s.volumeAvg5d); return a&&a>0?safeDiv(s.volume,a):null; })(),
     freqRatio:  (function(){ var b=maybeNum(s.freqBuy),c=maybeNum(s.freqSell); return b!==null&&c!==null?safeDiv(b,b+c)*100:null; })(),
     trading:    calcTrading(s),
@@ -817,9 +909,12 @@ function miniCardHTML(s) {
 }
 
 function isStrongBuyCandidate(s) {
+  if (s.backendSignal) return s.backendSignal.action === 'STRONG_BUY';
   return s.dataMode === 'FULL_FLOW' && s.trading.action === 'BUY' && s.trading.conf >= 80 && scoreValue(s) >= 80 && s.riskFlags.length <= 1;
 }
 function sessionPlan(s) {
+  if (s.backendSignal && s.backendSignal.category === 'BELI_PAGI') return {label:'PAGI', time:'09:00-10:30', note:'window beli pagi aktif berdasarkan auto scan'};
+  if (s.backendSignal && s.backendSignal.category === 'BELI_SORE') return {label:'SORE', time:'14:30-15:50', note:'window beli sore aktif berdasarkan auto scan'};
   var pct = num(s.pctChg);
   var conf = s.trading.conf;
   if (pct <= 1.5 && conf >= 70) return {label:'PAGI', time:'09:00-10:30', note:'entry awal jika harga bertahan di zona entry'};
@@ -838,22 +933,26 @@ function planCardHTML(s) {
 }
 function recommendationPanelHTML(enriched) {
   var strong = enriched.filter(isStrongBuyCandidate).sort(function(a,b){return b.trading.conf-a.trading.conf;});
-  var morning = strong.filter(function(s){return sessionPlan(s).label==='PAGI';});
-  var afternoon = strong.filter(function(s){return sessionPlan(s).label==='SORE';});
+  var morning = enriched.filter(function(s){return s.backendSignal ? s.backendSignal.category==='BELI_PAGI' : sessionPlan(s).label==='PAGI' && isStrongBuyCandidate(s);});
+  var afternoon = enriched.filter(function(s){return s.backendSignal ? s.backendSignal.category==='BELI_SORE' : sessionPlan(s).label==='SORE' && isStrongBuyCandidate(s);});
   var watch = enriched.filter(function(s){return s.dataMode==='PRICE_ONLY' && validPrice(s.price);})
     .sort(function(a,b){return num(b.pctChg)-num(a.pctChg);}).slice(0,3);
+  var scan = STATE.scanResult;
+  var scanInfo = scan && scan.summary
+    ? 'Scan '+scan.summary.scanned+' saham | valid '+scan.summary.valid+' | gagal '+((scan.diagnostics && scan.diagnostics.failedSymbols) ? scan.diagnostics.failedSymbols.length : 0)+' | '+(STATE.cacheStatus==='localStorage'?'Menggunakan cache terakhir':'Auto scan aktif')
+    : 'Auto scan aktif';
   return '<div class="card" style="padding:14px 16px;margin-bottom:14px;border-color:rgba(0,255,156,.22);background:radial-gradient(ellipse at 20% 0%,rgba(0,255,156,.10),rgba(255,255,255,.04) 62%);">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;">'
-    +'<div><div style="font-size:12px;font-weight:900;color:'+C.green+';letter-spacing:.06em;">SIGNAL REKOMENDASI</div><div style="font-size:10px;color:'+C.ter+';margin-top:3px;">Strong Buy hanya valid jika flow lengkap dan tanggal hari ini.</div></div>'
+    +'<div><div style="font-size:12px;font-weight:900;color:'+C.green+';letter-spacing:.06em;">SIGNAL REKOMENDASI</div><div style="font-size:10px;color:'+C.ter+';margin-top:3px;">'+scanInfo+'</div></div>'
     +'<div class="mono" style="font-size:18px;font-weight:900;color:'+C.green+';">'+strong.length+'</div></div>'
     +(strong.length
       ? '<div class="hscroll" style="margin-bottom:10px;">'+strong.slice(0,6).map(planCardHTML).join('')+'</div>'
-      : '<div style="padding:12px;background:rgba(255,214,0,.08);border:1px solid rgba(255,214,0,.25);border-radius:12px;color:'+C.yellow+';font-size:11px;line-height:1.5;margin-bottom:10px;">Belum ada STRONG BUY valid. Import CSV flow dengan TradeDate hari ini untuk mengaktifkan rekomendasi buy.</div>')
+      : '<div style="padding:12px;background:rgba(255,214,0,.08);border:1px solid rgba(255,214,0,.25);border-radius:12px;color:'+C.yellow+';font-size:11px;line-height:1.5;margin-bottom:10px;">Auto scan aktif. Belum ada STRONG BUY valid berdasarkan data harga, volume, momentum, likuiditas, dan risk filter saat ini.</div>')
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">'
     +'<div style="background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.18);border-radius:12px;padding:10px;"><div style="font-size:10px;font-weight:800;color:'+C.cyan+';">BELI PAGI</div><div class="mono" style="font-size:18px;font-weight:900;color:'+C.cyan+';">'+morning.length+'</div><div style="font-size:9px;color:'+C.ter+';">09:00-10:30, entry awal saat flow kuat.</div></div>'
     +'<div style="background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.18);border-radius:12px;padding:10px;"><div style="font-size:10px;font-weight:800;color:'+C.purple+';">BELI SORE</div><div class="mono" style="font-size:18px;font-weight:900;color:'+C.purple+';">'+afternoon.length+'</div><div style="font-size:9px;color:'+C.ter+';">14:30-15:50, tunggu konfirmasi close.</div></div>'
     +'</div>'
-    +(watch.length?'<div style="font-size:10px;color:'+C.ter+';line-height:1.45;">Pantauan price-only: '+watch.map(function(s){return s.symbol+' '+pctStr(s.pctChg);}).join(', ')+'. Ini bukan sinyal BUY karena flow belum tersedia.</div>':'')
+    +(watch.length?'<div style="font-size:10px;color:'+C.ter+';line-height:1.45;">Pantauan auto scan: '+watch.map(function(s){return s.symbol+' '+pctStr(s.pctChg);}).join(', ')+'. CSV optional hanya untuk broker flow tambahan.</div>':'')
     +'</div>';
 }
 
@@ -1261,7 +1360,7 @@ function renderSettings() {
     // AUTO WEB SYNC section
     +'<div class="card" style="padding:14px 16px;margin-bottom:12px;">'
     +'<div style="font-size:12px;font-weight:700;color:'+C.cyan+';margin-bottom:12px;letter-spacing:.04em;">AUTO WEB SYNC</div>'
-    +[['Endpoint',    '/api/idx-quotes',              C.cyan],
+    +[['Endpoint',    '/api/scan',                    C.cyan],
       ['Freshness',   STATE.freshness,                freshnessColor(STATE.freshness)],
       ['Provider',    STATE.provider,                 C.sec],
       ['Last Sync',   STATE.lastSync?fmtTime(STATE.lastSync):'', C.sec],
@@ -1315,14 +1414,14 @@ function clearCache(){clearLocalCache();addLog('Cache lokal dihapus.');renderSet
 // ----
 function renderUpload() {
   document.getElementById('page-upload').innerHTML=''
-    +'<div style="font-size:18px;font-weight:800;margin-bottom:6px;">Import Darurat</div>'
-    +'<div style="font-size:12px;color:'+C.ter+';margin-bottom:6px;">Fallback offline - bukan sync utama</div>'
-    +'<div style="padding:10px 14px;background:rgba(255,214,0,.08);border:1px solid rgba(255,214,0,.3);border-radius:12px;margin-bottom:20px;font-size:11px;color:'+C.yellow+';">Catatan: fitur ini hanya untuk kondisi darurat saat backend tidak tersedia. Data live otomatis diambil dari <span class="mono">/api/idx-quotes</span>.</div>'
+    +'<div style="font-size:18px;font-weight:800;margin-bottom:6px;">CSV Optional</div>'
+    +'<div style="font-size:12px;color:'+C.ter+';margin-bottom:6px;">CSV optional untuk broker flow tambahan.</div>'
+    +'<div style="padding:10px 14px;background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.3);border-radius:12px;margin-bottom:20px;font-size:11px;color:'+C.cyan+';">Auto scan utama berjalan dari <span class="mono">/api/scan</span>. Upload CSV tidak diperlukan untuk rekomendasi harga-volume.</div>'
     +'<div onclick="document.getElementById(\'fileInput\').click()" style="border:2px dashed rgba(0,212,255,.5);border-radius:20px;padding:28px 20px;text-align:center;margin-bottom:16px;cursor:pointer;background:rgba(0,212,255,.04);">'
     +'<input id="fileInput" type="file" accept=".csv" style="display:none;" onchange="handleUpload(this)">'
     +'<div style="font-size:18px;font-weight:900;color:'+C.cyan+';margin-bottom:10px;">CSV</div>'
-    +'<div style="font-size:14px;font-weight:700;margin-bottom:6px;">Upload CSV Broker Summary</div>'
-    +'<div style="font-size:11px;color:'+C.ter+';margin-bottom:14px;">Hanya kolom flow data (broker, foreign, freq)</div>'
+    +'<div style="font-size:14px;font-weight:700;margin-bottom:6px;">CSV optional untuk broker flow tambahan</div>'
+    +'<div style="font-size:11px;color:'+C.ter+';margin-bottom:14px;">Kolom flow melengkapi auto scan, bukan syarat rekomendasi</div>'
     +'<span style="background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.5);border-radius:999px;padding:8px 24px;color:'+C.cyan+';font-size:13px;font-weight:700;">Pilih File CSV</span>'
     +'</div>'
     +'<div id="uploadLog"></div>'
@@ -1476,8 +1575,15 @@ function renderCurrent(){
 // INIT
 // ----
 loadPrefs();
+var bootCache = loadFromLocalCache();
+if (bootCache && bootCache.payload) {
+  STATE.cacheStatus = 'localStorage';
+  applyPayload(bootCache.payload);
+  STATE.lastSync = bootCache.savedAt || null;
+  setSyncUI('stale');
+}
 renderDashboard();
-setTimeout(fetchLive, 1500);
+setTimeout(runAutoScan, 350);
 startSyncTimer();
 
 </script>

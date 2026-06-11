@@ -6,6 +6,6 @@
     "node": ">=18"
   },
   "scripts": {
-    "check": "node --check api/idx-quotes.js && node --check api/flow-upload.js && node --check api/health.js"
+    "check": "node --check api/idx-quotes.js && node --check api/flow-upload.js && node --check api/health.js && node --check api/scan.js"
   }
 }
