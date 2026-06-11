@@ -939,7 +939,7 @@ function recommendationPanelHTML(enriched) {
     .sort(function(a,b){return num(b.pctChg)-num(a.pctChg);}).slice(0,3);
   var scan = STATE.scanResult;
   var scanInfo = scan && scan.summary
-    ? 'Scan '+scan.summary.scanned+' saham | valid '+scan.summary.valid+' | gagal '+((scan.diagnostics && scan.diagnostics.failedSymbols) ? scan.diagnostics.failedSymbols.length : 0)+' | '+(STATE.cacheStatus==='localStorage'?'Menggunakan cache terakhir':'Auto scan aktif')
+    ? 'Scan '+scan.summary.scanned+' saham | valid '+scan.summary.valid+' | no data '+((scan.diagnostics && scan.diagnostics.failedSymbols) ? scan.diagnostics.failedSymbols.length : 0)+' | '+(STATE.cacheStatus==='localStorage'?'Menggunakan cache terakhir':'Auto scan aktif')
     : 'Auto scan aktif';
   return '<div class="card" style="padding:14px 16px;margin-bottom:14px;border-color:rgba(0,255,156,.22);background:radial-gradient(ellipse at 20% 0%,rgba(0,255,156,.10),rgba(255,255,255,.04) 62%);">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;">'
@@ -998,7 +998,8 @@ function renderDashboard() {
       ['NAIK',enriched.filter(function(s){return s.pctChg>0;}).length,C.green]]
      .map(function(m){return '<div style="text-align:center;"><div class="mono" style="font-size:17px;font-weight:800;color:'+m[2]+';">'+m[1]+'</div><div style="font-size:8px;color:'+C.ter+';">'+m[0]+'</div></div>';}).join('')+'</div></div>'
     +recommendationPanelHTML(enriched)
-    +'<div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-size:11px;font-weight:700;color:'+C.green+';letter-spacing:.06em;">TOP BUY SIGNALS</span><button onclick="showPage(\'signals\')" style="color:'+C.cyan+';font-size:11px;">Semua &gt;</button></div><div class="hscroll">'+buys.slice(0,8).map(miniCardHTML).join('')+'</div></div>'
+    +'<div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-size:11px;font-weight:700;color:'+C.green+';letter-spacing:.06em;">TOP BUY SIGNALS</span><button onclick="showPage(\'signals\')" style="color:'+C.cyan+';font-size:11px;">Semua &gt;</button></div>'
+    +(buys.length?'<div class="hscroll">'+buys.slice(0,8).map(miniCardHTML).join('')+'</div>':'<div style="padding:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:'+C.ter+';font-size:11px;line-height:1.45;">Belum ada BUY valid dari auto scan saat ini. Kandidat yang naik tetap tampil di Top Gainers dan proxy akumulasi/distribusi.</div>')+'</div>'
     +'<div style="margin-bottom:12px;"><div style="font-size:11px;font-weight:700;color:'+C.sec+';letter-spacing:.06em;margin-bottom:8px;">TOP GAINERS</div><div class="hscroll">'+gainers.map(miniCardHTML).join('')+'</div></div>'
     +'<div class="tab-row" style="margin-bottom:12px;">'+tabs.map(function(t){return '<button class="tab-btn" onclick="setDashTab(\''+t.id+'\')" style="background:'+(STATE.dashTab===t.id?t.color+'18':'rgba(255,255,255,.04)')+';border:1px solid '+(STATE.dashTab===t.id?t.color+'50':'rgba(255,255,255,.08)')+';color:'+(STATE.dashTab===t.id?t.color:'rgba(255,255,255,.38)')+';">'+t.label+' <span style="background:'+t.color+'22;border-radius:999px;padding:1px 5px;font-size:8px;">'+t.count+'</span></button>';}).join('')+'</div>'
     +(tabList.length===0?'<div style="text-align:center;padding:32px;color:'+C.ter+';font-size:13px;">Tidak ada saham pada filter ini</div>':tabList.map(stockCardHTML).join(''));

@@ -30,6 +30,14 @@ function pushRec(recs, sig) {
   if (sig.action === 'HOLD' || sig.action === 'WATCH') recs.hold.push(sig);
   if (sig.action === 'SELL' || sig.action === 'AVOID') recs.sell.push(sig);
 }
+function avgDailyVolume(candles) {
+  const volumes = (candles || [])
+    .map((c) => Number(c.volume))
+    .filter((v) => Number.isFinite(v) && v > 0)
+    .slice(-20);
+  if (!volumes.length) return null;
+  return volumes.reduce((sum, v) => sum + v, 0) / volumes.length;
+}
 async function mapLimit(items, limit, worker) {
   const out = [];
   let cursor = 0;
@@ -100,6 +108,8 @@ module.exports = async function handler(req, res) {
       daily:daily.status === 'fulfilled' ? daily.value : [],
       intraday:intraday.status === 'fulfilled' ? intraday.value : [],
     };
+    const derivedAvgVolume = avgDailyVolume(historyBySymbol[q.symbol].daily);
+    if (derivedAvgVolume && !q.avgVolume20) q.avgVolume20 = derivedAvgVolume;
   });
 
   for (const symbol of symbols) {
