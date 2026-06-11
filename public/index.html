@@ -842,8 +842,15 @@ function enrich(sym, liveQ) {
   });
 }
 
-function getEnriched() {
-  return SYMBOLS.map(function(sym){ return enrich(sym, STATE.liveQuotes[sym]||null); });
+function getRenderableSymbols() {
+  var set = new Set(DEFAULT_QUOTE_SYMBOLS.slice(0, 160));
+  Object.keys(STATE.liveQuotes || {}).forEach(function(sym){ if (STOCK_META[sym]) set.add(sym); });
+  (STATE.watchlist || []).forEach(function(sym){ if (STOCK_META[sym]) set.add(sym); });
+  return Array.from(set);
+}
+function getEnriched(symbolList) {
+  var list = Array.isArray(symbolList) ? symbolList : getRenderableSymbols();
+  return list.map(function(sym){ return enrich(sym, STATE.liveQuotes[sym]||null); });
 }
 
 // ----
@@ -1026,7 +1033,7 @@ function recommendationPanelHTML(enriched) {
 // PAGE: DASHBOARD
 // ----
 function renderDashboard() {
-  var enriched = getEnriched().filter(function(s){ return DEFAULT_QUOTE_SET.has(s.symbol) || STATE.watchlist.includes(s.symbol); });
+  var enriched = getEnriched().filter(function(s){ return DEFAULT_QUOTE_SET.has(s.symbol) || STATE.watchlist.includes(s.symbol) || STATE.liveQuotes[s.symbol]; });
   var ihsg = STATE.liveIHSG || {price:7089,chg:87,pctChg:1.24,high:7112,low:7042,marketState:'CLOSED'};
   var buys    = enriched.filter(function(s){return s.trading.action==='BUY';}).sort(function(a,b){return b.trading.conf-a.trading.conf;});
   var gainers = enriched.slice().sort(function(a,b){return b.pctChg-a.pctChg;}).slice(0,8);
@@ -1076,9 +1083,9 @@ function setDashTab(t){STATE.dashTab=t;renderDashboard();}
 // PAGE: SCANNER
 // ----
 function renderScanner() {
-  var enriched=getEnriched();
   var q=STATE.scanSearch.toUpperCase();
-  if(STATE.scanSearch) enriched=enriched.filter(function(s){return s.symbol.includes(q)||s.name.toLowerCase().includes(STATE.scanSearch.toLowerCase())||s.sector.toLowerCase().includes(STATE.scanSearch.toLowerCase());});
+  var baseSymbols = STATE.scanSearch ? searchUniverseMatches(STATE.scanSearch, 80) : getRenderableSymbols();
+  var enriched=getEnriched(baseSymbols);
   if(STATE.scanFilter==='buy')         enriched=enriched.filter(function(s){return s.trading.action==='BUY';});
   else if(STATE.scanFilter==='sell')   enriched=enriched.filter(function(s){return s.trading.action==='SELL';});
   else if(STATE.scanFilter==='hold')   enriched=enriched.filter(function(s){return s.trading.action==='HOLD';});
@@ -1162,7 +1169,7 @@ function setSigTab(t){STATE.sigTab=t;renderSignals();}
 // PAGE: DETAIL
 // ----
 function renderDetail() {
-  var enriched=getEnriched();
+  var enriched=getEnriched(STATE.selectedSym ? [STATE.selectedSym] : []);
   var s=enriched.find(function(e){return e.symbol===STATE.selectedSym;});
   if(!s){document.getElementById('page-detail').innerHTML='<p style="color:'+C.ter+';padding:32px;">Pilih saham dari scanner.</p>';return;}
   var tr=s.trading;
