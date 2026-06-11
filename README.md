@@ -1,14 +1,164 @@
 # IDX Scanner 1.0
 
-Production-ready Vercel MVP for IDX Flow Scanner.
+Production-ready Vercel app for IDX quote-driven scanning and recommendation filtering.
+
+Production:
+
+- https://idx-scanner-1-0.vercel.app
+
+Repository:
+
+- https://github.com/ryofficeics-pixel/IDX-scanner-1.0
 
 ## Routes
 
 - `/` serves `public/index.html`
-- `/api/scan` returns auto-generated quote-driven recommendations without requiring CSV
-- `/api/idx-quotes` remains available for legacy Yahoo Finance price-only quotes plus optional Supabase flow data
-- `/api/flow-upload` upserts validated flow rows to Supabase when env vars are configured
-- `/api/health` returns deployment health and Supabase configuration status
+- `/api/scan` returns quote-driven recommendations without requiring CSV
+- `/api/health` returns service, provider, session, scan, and cache status
+- `/api/idx-quotes` remains available as a legacy quote endpoint
+- `/api/flow-upload` optionally persists CSV broker flow rows to Supabase
+
+CSV upload is optional and is only for broker-flow enrichment. The core scanner must work without CSV.
+
+## Provider Limitations
+
+Primary provider:
+
+- Yahoo Finance quote endpoint.
+
+Fallback provider:
+
+- Yahoo Finance chart endpoint per symbol.
+
+Known behavior:
+
+- Yahoo quote batches may return `HTTP 401` or rate-limit.
+- The scanner falls back to chart data with concurrency limiting.
+- If chart data also fails, the API returns structured `NO_DATA`.
+- No fake prices, fake scores, random recommendations, or hardcoded recommendation output are used.
+
+## Cache Behavior
+
+Server cache:
+
+- `/api/scan` caches scan results briefly in memory.
+- Provider responses are cached briefly to reduce rate-limit pressure.
+- API diagnostics include `cacheHit` and `cacheAgeMs`.
+
+Client cache:
+
+- The frontend stores the last successful scan in localStorage.
+- Cache payload includes timestamp, marketDate, provider, and diagnostics.
+- Corrupt localStorage is ignored safely.
+- Old cache is never silently presented as live data.
+- Previous-market-date cache is rendered as `Last saved snapshot`, not active recommendations.
+
+## Stale Data Interpretation
+
+The UI shows:
+
+- `lastUpdated`
+- `dataAgeMinutes`
+- provider
+- scan mode: `live`, `cache`, `stale`, `snapshot`, or `no-data`
+- scanned/valid/noData/failed counts
+
+If data age is greater than 15 minutes while the payload session is an IDX market-hours state, the UI shows:
+
+```text
+STALE DATA — DO NOT TRADE
+```
+
+## Debug Test Params
+
+Debug fault injection only works when `debug=1`.
+
+Supported `/api/scan` query params:
+
+- `forceProviderFail=1`
+- `forceQuoteFail=1`
+- `forceChartFail=1`
+- `mockTime=ISO_DATETIME`
+- `mockProviderDelayMs=NUMBER`
+- `corruptOneSymbol=1`
+
+Examples:
+
+```bash
+/api/scan?symbols=BBCA,BBRI&debug=1
+/api/scan?symbols=BBCA&debug=1&forceProviderFail=1
+/api/scan?limit=120&debug=1&forceQuoteFail=1
+/api/scan?symbols=BBCA&debug=1&mockTime=2026-06-11T02:30:00.000Z
+```
+
+## Diagnostics
+
+`/api/scan` includes:
+
+- `diagnostics.providerPrimaryStatus`
+- `diagnostics.providerFallbackStatus`
+- `diagnostics.providerLatencyMs`
+- `diagnostics.cacheHit`
+- `diagnostics.cacheAgeMs`
+- `diagnostics.scanStartedAt`
+- `diagnostics.scanFinishedAt`
+- `diagnostics.dataFreshness`
+- `diagnostics.failedSymbols`
+- `diagnostics.validRatio`
+- `diagnostics.noDataRatio`
+
+`/api/health` includes:
+
+- service/version/commit
+- server time
+- IDX session state
+- last successful scan timestamp
+- last scan valid count
+- last scan failed count
+- provider status summary
+- cache status
+
+## Tests
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run syntax checks:
+
+```bash
+npm run check
+```
+
+Run API and signal sanity tests:
+
+```bash
+npm run test:api
+```
+
+Run Playwright E2E:
+
+```bash
+npm run test:e2e
+```
+
+Run stress tests:
+
+```bash
+npm run test:stress
+```
+
+Stress endpoints:
+
+- `/api/health`
+- `/api/scan?symbols=BBCA,BBRI,BMRI&debug=1`
+- `/api/scan?limit=120&debug=1`
+
+Acceptance threshold:
+
+- Stress test must complete without more than 2% non-200 responses.
 
 ## Vercel Environment Variables
 
@@ -43,11 +193,19 @@ CREATE TABLE IF NOT EXISTS idx_flow_data (
 );
 ```
 
-## Verification Checklist
+## Terminology
 
-- `npm run check`
-- `vercel dev`, then open `/api/health`
-- Open `/api/scan?symbols=BBCA,BBRI&debug=1`
-- Confirm the response includes `summary`, `recommendations`, and `diagnostics`
-- Confirm recommendations are generated from quote, volume, momentum, liquidity, and risk filters without CSV upload
-- CSV upload is optional for future broker-flow enrichment only
+Price-volume signals are labeled as proxy signals.
+
+- Use `Accumulation Proxy`.
+- Use `Distribution Proxy`.
+- Do not call price-volume proxy "broker accumulation".
+- If broker flow is missing, the UI shows `Broker flow unavailable`.
+
+## Known Limitations
+
+- Yahoo Finance is not an official IDX market-data SLA provider.
+- Provider rate limits or endpoint changes can affect availability.
+- Server memory cache is per runtime instance and may reset between deployments or cold starts.
+- Browser localStorage cache is device-specific.
+- Broker flow requires optional CSV/Supabase data and is not required for core recommendations.

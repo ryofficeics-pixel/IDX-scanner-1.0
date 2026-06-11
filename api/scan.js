@@ -6,6 +6,7 @@ const { sessionContext } = require('../lib/market/idxSession');
 const yahoo = require('../lib/providers/yahooProvider');
 const fallback = require('../lib/providers/fallbackProvider');
 const { generateSignal } = require('../lib/engine/signalEngine');
+const { updateScanState } = require('../lib/runtime/scanState');
 
 function send(res, status, body) {
   res.status(status).json(body);
@@ -58,29 +59,73 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'GET') return send(res, 405, { ok:false, error:'METHOD_NOT_ALLOWED' });
 
+  const scanStartedAt = new Date().toISOString();
+  const providerStart = Date.now();
   const limit = Math.max(1, Math.min(Number(req.query?.limit) || 120, 180));
   const debug = req.query?.debug === '1';
+  const mockTime = debug && req.query?.mockTime ? new Date(String(req.query.mockTime)) : null;
+  const now = mockTime && Number.isFinite(mockTime.getTime()) ? mockTime : new Date();
+  const forceProviderFail = debug && req.query?.forceProviderFail === '1';
+  const forceQuoteFail = debug && req.query?.forceQuoteFail === '1';
+  const forceChartFail = debug && req.query?.forceChartFail === '1';
+  const corruptOneSymbol = debug && req.query?.corruptOneSymbol === '1';
+  const mockProviderDelayMs = debug ? Math.max(0, Math.min(Number(req.query?.mockProviderDelayMs) || 0, 10000)) : 0;
   const universe = getUniverse({ symbols:req.query?.symbols, limit });
   const symbols = universe.map((row) => row.symbol);
-  const cacheKey = `scan:${symbols.join(',')}:${debug ? 'debug' : 'normal'}`;
+  const cacheKey = `scan:${symbols.join(',')}:${debug ? JSON.stringify(req.query) : 'normal'}`;
   const cached = cache.get(cacheKey, 60 * 1000);
   if (cached && !cached.stale) {
     const payload = JSON.parse(JSON.stringify(cached.value));
     payload.diagnostics.cacheHit = true;
     payload.diagnostics.cacheAgeMs = cached.cacheAgeMs;
+    payload.diagnostics.dataFreshness = cached.cacheAgeMs > 15 * 60 * 1000 ? 'stale' : 'cache';
+    updateScanState({
+      lastCacheStatus:'hit',
+      lastSuccessfulScanAt:payload.generatedAt,
+      lastScanValidCount:payload.summary?.valid || 0,
+      lastScanFailedCount:payload.diagnostics?.failedSymbols?.length || 0,
+      lastProviderStatus:payload.diagnostics?.providerFallbackStatus || payload.diagnostics?.providerPrimaryStatus || 'cache',
+    });
     return send(res, 200, payload);
   }
 
-  const generatedAt = new Date().toISOString();
-  const session = sessionContext();
-  const diagnostics = { provider:'yahoo-finance', cacheHit:false, cacheAgeMs:0, failedSymbols:[], warnings:[], errors:[] };
+  const generatedAt = now.toISOString();
+  const marketDate = now.toLocaleDateString('en-CA', { timeZone:'Asia/Jakarta' });
+  const session = sessionContext(now);
+  const diagnostics = {
+    provider:'yahoo-finance',
+    providerPrimaryStatus:'not_attempted',
+    providerFallbackStatus:'not_attempted',
+    providerLatencyMs:0,
+    cacheHit:false,
+    cacheAgeMs:0,
+    scanStartedAt,
+    scanFinishedAt:null,
+    dataFreshness:'live',
+    failedSymbols:[],
+    validRatio:0,
+    noDataRatio:0,
+    warnings:[],
+    errors:[],
+  };
   let provider;
   try {
-    provider = await yahoo.getBatchQuotes(symbols);
+    if (forceProviderFail) throw new Error('FORCED_PROVIDER_FAIL');
+    provider = await yahoo.getBatchQuotes(symbols, {
+      forceQuoteFail,
+      forceChartFail,
+      delayMs:mockProviderDelayMs,
+      bypassCache:debug,
+    });
   } catch (error) {
     diagnostics.errors.push(`Primary provider failed: ${error.message}`);
     provider = fallback.structuredFailure(symbols, error.message);
+    provider.providerPrimaryStatus = 'error';
+    provider.providerFallbackStatus = 'error';
   }
+  diagnostics.providerLatencyMs = Date.now() - providerStart;
+  diagnostics.providerPrimaryStatus = provider.providerPrimaryStatus || 'unknown';
+  diagnostics.providerFallbackStatus = provider.providerFallbackStatus || 'unknown';
   diagnostics.failedSymbols = provider.failedSymbols || [];
   diagnostics.warnings = provider.warnings || [];
   const ihsg = provider.ihsg || provider.quotes?.['^JKSE'] || null;
@@ -114,8 +159,14 @@ module.exports = async function handler(req, res) {
 
   for (const symbol of symbols) {
     const q = provider.quotes?.[symbol] || { symbol, yahooSymbol:`${symbol}.JK`, lastPrice:null, previousClose:null, timestamp:generatedAt, source:'none' };
+    if (corruptOneSymbol && symbol === symbols[0]) {
+      q.lastPrice = -1;
+      q.previousClose = 0;
+      q.dayHigh = 1;
+      q.dayLow = 2;
+    }
     const row = meta.get(symbol) || {};
-    const sig = generateSignal({ ...q, name:q.name || row.name || symbol }, market, session, historyBySymbol[symbol] || {});
+    const sig = generateSignal({ ...q, name:q.name || row.name || symbol }, market, session, { ...(historyBySymbol[symbol] || {}), now });
     signals.push(sig);
     pushRec(recs, sig);
   }
@@ -126,9 +177,15 @@ module.exports = async function handler(req, res) {
   const valid = signals.filter((s) => s.dataQuality >= 40).length;
   const noData = signals.filter((s) => s.action === 'NO_DATA').length;
   const errorCount = diagnostics.failedSymbols.length + diagnostics.errors.length;
+  diagnostics.validRatio = symbols.length ? valid / symbols.length : 0;
+  diagnostics.noDataRatio = symbols.length ? noData / symbols.length : 0;
+  diagnostics.scanFinishedAt = new Date().toISOString();
+  if (!valid) diagnostics.dataFreshness = 'no-data';
   const payload = {
     ok:true,
     generatedAt,
+    lastUpdated:generatedAt,
+    marketDate,
     timezone:'Asia/Jakarta',
     session:{ status:session.status, sessionProgress:session.sessionProgress, expectedVolumeProgress:session.expectedVolumeProgress },
     market,
@@ -149,5 +206,12 @@ module.exports = async function handler(req, res) {
     diagnostics,
   };
   cache.set(cacheKey, payload);
+  updateScanState({
+    lastCacheStatus:'miss',
+    lastSuccessfulScanAt:valid ? generatedAt : null,
+    lastScanValidCount:valid,
+    lastScanFailedCount:diagnostics.failedSymbols.length,
+    lastProviderStatus:`primary:${diagnostics.providerPrimaryStatus},fallback:${diagnostics.providerFallbackStatus}`,
+  });
   return send(res, 200, payload);
 };

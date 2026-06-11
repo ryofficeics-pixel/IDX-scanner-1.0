@@ -196,6 +196,10 @@ function fmtTime(ts) {
   if (!ts) return '-';
   return new Date(ts).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 }
+function fmtDateTime(ts) {
+  if (!ts) return '-';
+  return new Date(ts).toLocaleString('id-ID',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
 function pctColor(v) { return num(v) >= 0 ? C.green : C.pink; }
 function pctStr(v, dec) {
   dec = dec || 2;
@@ -275,7 +279,8 @@ var STATE = {
   watchlist:['BBCA','TLKM','BYAN','GOTO','ADRO'],
   // Live data from backend
   liveQuotes:{}, liveIHSG:null,
-  scanResult:null, cacheStatus:'none',
+  scanResult:null, cacheStatus:'none', scanMode:'no-data',
+  dataAgeMinutes:null, marketDate:null, snapshotOnly:false,
   freshness:'LOCAL_SAMPLE',
   provider:'-',
   dataSource:'-',
@@ -297,14 +302,27 @@ var STATE = {
 // ----
 var LS_KEY = 'idx_flow_cache_v2';
 var PREF_KEY = 'idx_flow_preferences_v2';
+function safeJsonParse(raw, fallback) {
+  try { return JSON.parse(raw); } catch(e) { return fallback; }
+}
+function cacheEnvelope(payload) {
+  var diagnostics = payload && payload.diagnostics ? payload.diagnostics : {};
+  return {
+    payload:payload,
+    savedAt:Date.now(),
+    marketDate:payload && payload.marketDate ? payload.marketDate : todayWIB(),
+    provider:(diagnostics.provider || (payload && payload.market && payload.market.source) || STATE.provider || '-'),
+    diagnostics:diagnostics
+  };
+}
 function saveToLocalCache(payload) {
-  try { localStorage.setItem(LS_KEY, JSON.stringify({payload:payload,savedAt:Date.now()})); } catch(e){}
+  try { localStorage.setItem(LS_KEY, JSON.stringify(cacheEnvelope(payload))); } catch(e){}
 }
 function loadFromLocalCache() {
   try {
     var raw = localStorage.getItem(LS_KEY);
     if (!raw) return null;
-    var obj = JSON.parse(raw);
+    var obj = safeJsonParse(raw, null);
     return obj && obj.payload ? obj : null;
   } catch(e) { return null; }
 }
@@ -324,7 +342,8 @@ function loadPrefs() {
   try {
     var raw = localStorage.getItem(PREF_KEY);
     if (!raw) return;
-    var p = JSON.parse(raw);
+    var p = safeJsonParse(raw, null);
+    if (!p) return;
     if (Array.isArray(p.watchlist)) STATE.watchlist = p.watchlist.filter(function(s){ return SYMBOLS.includes(s); });
     if (Number(p.syncInterval) >= 15) STATE.syncInterval = Number(p.syncInterval);
     if (p.uploadedFlow && typeof p.uploadedFlow === 'object') STATE.uploadedFlow = p.uploadedFlow;
@@ -368,10 +387,26 @@ function quoteFromSignal(sig) {
     backendSignal:sig
   };
 }
+function isMarketHours(status) {
+  return ['MORNING','LUNCH_BREAK','AFTERNOON','PRE_CLOSE'].includes(status);
+}
+function updateFreshnessState(payload, sourceMode, cacheMeta) {
+  var lastUpdated = payload && (payload.lastUpdated || payload.generatedAt);
+  var ageMs = lastUpdated ? Date.now() - new Date(lastUpdated).getTime() : null;
+  STATE.dataAgeMinutes = Number.isFinite(ageMs) ? Math.max(0, ageMs / 60000) : null;
+  STATE.marketDate = (cacheMeta && cacheMeta.marketDate) || (payload && payload.marketDate) || todayWIB();
+  STATE.snapshotOnly = Boolean(sourceMode === 'cache' && STATE.marketDate && STATE.marketDate !== todayWIB());
+  if (payload && payload.diagnostics && payload.diagnostics.dataFreshness === 'no-data') STATE.scanMode = 'no-data';
+  else if (STATE.snapshotOnly) STATE.scanMode = 'snapshot';
+  else if (STATE.dataAgeMinutes != null && STATE.dataAgeMinutes > 15 && isMarketHours(payload && payload.session && payload.session.status)) STATE.scanMode = 'stale';
+  else if (sourceMode === 'cache') STATE.scanMode = 'cache';
+  else STATE.scanMode = 'live';
+}
 
 function applyPayload(p) {
   if (!p) return;
   if (p.ok && p.recommendations) {
+    updateFreshnessState(p, STATE.cacheStatus === 'localStorage' ? 'cache' : 'live');
     STATE.scanResult = p;
     STATE.freshness = p.diagnostics && p.diagnostics.cacheHit ? 'STALE_PRICE' : 'LIVE_PRICE';
     STATE.provider = (p.diagnostics && p.diagnostics.provider) || (p.market && p.market.source) || 'scan';
@@ -397,7 +432,9 @@ function applyPayload(p) {
         STOCK_META[sig.symbol] = {name:sig.name || sig.symbol, sector:'IDX'};
         SYMBOLS.push(sig.symbol);
       }
-      STATE.liveQuotes[sig.symbol] = quoteFromSignal(sig);
+      var quote = quoteFromSignal(sig);
+      if (STATE.snapshotOnly) quote.backendSignal = null;
+      STATE.liveQuotes[sig.symbol] = quote;
     });
     addLog((p.summary ? p.summary.scanned : flattenScanRecommendations(p).length) + ' saham discan. Sumber: ' + STATE.provider);
     return;
@@ -504,6 +541,7 @@ async function fetchLive(force) {
       addLog('Memakai cache lokal terakhir (STALE).');
       STATE.cacheStatus = 'localStorage';
       cached.payload.freshness = 'STALE';
+      cached.payload.marketDate = cached.marketDate || cached.payload.marketDate;
       applyPayload(cached.payload);
       STATE.lastSync = cached.savedAt || null;
       setSyncUI('stale');
@@ -787,12 +825,14 @@ function enrich(sym, liveQ) {
   var signal    = s.backendSignal
     ? {label:s.backendSignal.category === 'ACCUMULATION_PROXY' ? 'AKUMULASI PROXY' : s.backendSignal.category === 'DISTRIBUTION_PROXY' ? 'DISTRIBUSI PROXY' : s.backendSignal.action, short:s.backendSignal.action === 'STRONG_BUY' ? 'SB' : s.backendSignal.action, color:s.backendSignal.action === 'STRONG_BUY' || s.backendSignal.action === 'BUY' ? C.green : s.backendSignal.action === 'SELL' || s.backendSignal.action === 'AVOID' || s.backendSignal.riskLevel === 'HIGH' ? C.pink : C.yellow, bg:'rgba(255,255,255,.08)'}
     : classifySig(score);
-  var brokerAvg = (num(s.brokerBuy)+num(s.brokerSell))/2 || num(s.price);
+  var hasBrokerFlow = s.brokerBuy != null && s.brokerSell != null;
+  var brokerAvg = hasBrokerFlow ? (num(s.brokerBuy)+num(s.brokerSell))/2 : null;
   return Object.assign(s, {
     score,
     signal,
     brokerAvg,
-    pbDist:     validPrice(brokerAvg) ? safeDiv(num(s.price)-brokerAvg, brokerAvg)*100 : 0,
+    hasBrokerFlow: hasBrokerFlow,
+    pbDist:     validPrice(brokerAvg) ? safeDiv(num(s.price)-brokerAvg, brokerAvg)*100 : null,
     foreignNet: num(s.foreignBuy) - num(s.foreignSell),
     foreignPct: (function(){ var f=calcForeign(s); return f!==null?f-50:null; })(),
     riskFlags:  s.backendSignal && s.backendSignal.riskLevel === 'HIGH' ? [{label:'Risk tinggi', color:C.pink}].concat((s.backendSignal.warnings || []).slice(0,2).map(function(w){ return {label:w, color:C.orange}; })) : calcRiskFlags(s),
@@ -890,7 +930,7 @@ function stockCardHTML(s, compact) {
       ? '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;">'
         +[['Net Buy', s.netBuy!=null?(s.netBuy>=0?'+':'')+fmtB(s.netBuy):'N/A', s.netBuy!=null?(s.netBuy>=0?C.green:C.pink):C.ter],
            ['Foreign', s.foreignPct!=null?(s.foreignPct>=0?'+':'')+s.foreignPct.toFixed(1)+'%':'N/A', s.foreignPct!=null?(s.foreignPct>=0?C.green:C.pink):C.ter],
-           ['vs Broker',(s.pbDist>=0?'+':'')+s.pbDist.toFixed(1)+'%',s.pbDist>=0?C.green:C.pink]]
+           ['vs Broker',s.pbDist!=null?(s.pbDist>=0?'+':'')+s.pbDist.toFixed(1)+'%':'N/A',s.pbDist!=null?(s.pbDist>=0?C.green:C.pink):C.ter]]
           .map(function(m){return '<div><div style="font-size:9px;color:'+C.ter+';margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em;">'+m[0]+'</div><div class="mono" style="font-size:11px;font-weight:700;color:'+m[2]+';">'+m[1]+'</div></div>';}).join('')+'</div>'
         +scoreBarHTML(s.score)
         +'<div style="display:flex;align-items:center;gap:7px;margin-top:7px;"><span style="font-size:9px;color:'+C.ter+';">Signal</span><div style="flex:1;height:3px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;"><div style="width:'+tr.conf+'%;height:100%;background:'+tr.ac+';border-radius:99px;"></div></div><span class="mono" style="font-size:9px;color:'+tr.ac+';">'+tr.conf+'%</span><span style="font-size:9px;color:'+tr.scolor+';font-weight:700;">'+tr.slabel+'</span></div>'
@@ -931,6 +971,31 @@ function planCardHTML(s) {
     +'<div style="font-size:9px;color:'+C.ter+';margin-top:8px;line-height:1.35;">'+plan.note+'</div>'
     +'</div>';
 }
+function freshnessPanelHTML() {
+  var scan = STATE.scanResult || {};
+  var summary = scan.summary || {};
+  var diagnostics = scan.diagnostics || {};
+  var age = STATE.dataAgeMinutes;
+  var ageText = age == null ? '-' : age.toFixed(1) + 'm';
+  var mode = STATE.scanMode || 'no-data';
+  var modeColor = mode === 'live' ? C.green : mode === 'stale' || mode === 'snapshot' ? C.orange : mode === 'cache' ? C.yellow : C.pink;
+  var staleTrade = mode === 'stale';
+  return ''
+    +(staleTrade?'<div style="padding:11px 13px;background:rgba(255,61,127,.12);border:1px solid rgba(255,61,127,.45);border-radius:12px;color:'+C.pink+';font-size:12px;font-weight:900;letter-spacing:.04em;margin-bottom:10px;">STALE DATA — DO NOT TRADE</div>':'')
+    +(STATE.snapshotOnly?'<div style="padding:11px 13px;background:rgba(255,140,66,.10);border:1px solid rgba(255,140,66,.35);border-radius:12px;color:'+C.orange+';font-size:11px;font-weight:800;margin-bottom:10px;">Last saved snapshot. Data market date '+(STATE.marketDate||'-')+' tidak dirender sebagai rekomendasi aktif.</div>':'')
+    +'<div class="card" style="padding:11px 12px;margin-bottom:12px;">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'
+    +[['Last updated',fmtDateTime(scan.lastUpdated || scan.generatedAt || STATE.lastAsOf),C.sec],
+      ['Data age',ageText,age != null && age > 15 ? C.orange : C.sec],
+      ['Provider',diagnostics.provider || STATE.provider || '-',C.sec],
+      ['Mode',mode.toUpperCase(),modeColor],
+      ['Scanned',summary.scanned != null ? summary.scanned : '-',C.cyan],
+      ['Valid / No data',(summary.valid != null ? summary.valid : '-')+' / '+(summary.noData != null ? summary.noData : '-'),C.sec],
+      ['Failed',(diagnostics.failedSymbols ? diagnostics.failedSymbols.length : 0),diagnostics.failedSymbols && diagnostics.failedSymbols.length ? C.orange : C.green],
+      ['Cache age',diagnostics.cacheAgeMs != null ? Math.round(diagnostics.cacheAgeMs/1000)+'s' : '0s',C.sec]]
+      .map(function(m){return '<div><div style="font-size:8px;color:'+C.ter+';text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">'+m[0]+'</div><div class="mono" style="font-size:10px;color:'+m[2]+';font-weight:700;word-break:break-all;">'+m[1]+'</div></div>';}).join('')
+    +'</div></div>';
+}
 function recommendationPanelHTML(enriched) {
   var strong = enriched.filter(isStrongBuyCandidate).sort(function(a,b){return b.trading.conf-a.trading.conf;});
   var morning = enriched.filter(function(s){return s.backendSignal ? s.backendSignal.category==='BELI_PAGI' : sessionPlan(s).label==='PAGI' && isStrongBuyCandidate(s);});
@@ -942,6 +1007,7 @@ function recommendationPanelHTML(enriched) {
     ? 'Scan '+scan.summary.scanned+' saham | valid '+scan.summary.valid+' | no data '+((scan.diagnostics && scan.diagnostics.failedSymbols) ? scan.diagnostics.failedSymbols.length : 0)+' | '+(STATE.cacheStatus==='localStorage'?'Menggunakan cache terakhir':'Auto scan aktif')
     : 'Auto scan aktif';
   return '<div class="card" style="padding:14px 16px;margin-bottom:14px;border-color:rgba(0,255,156,.22);background:radial-gradient(ellipse at 20% 0%,rgba(0,255,156,.10),rgba(255,255,255,.04) 62%);">'
+    +freshnessPanelHTML()
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;">'
     +'<div><div style="font-size:12px;font-weight:900;color:'+C.green+';letter-spacing:.06em;">SIGNAL REKOMENDASI</div><div style="font-size:10px;color:'+C.ter+';margin-top:3px;">'+scanInfo+'</div></div>'
     +'<div class="mono" style="font-size:18px;font-weight:900;color:'+C.green+';">'+strong.length+'</div></div>'
@@ -1149,8 +1215,8 @@ function renderDetail() {
       ['Vol Ratio',     s.volRatio!=null?s.volRatio.toFixed(2)+'x':'N/A', s.volRatio!=null&&s.volRatio>2?C.green:C.sec],
       ['Net Buy',       s.netBuy!=null?(s.netBuy>=0?'+':'')+fmtB(s.netBuy):'N/A', s.netBuy!=null?(s.netBuy>=0?C.green:C.pink):C.ter],
       ['Foreign Net',   s.foreignBuy!=null?(s.foreignNet>=0?'+':'')+fmtB(s.foreignNet):'N/A', s.foreignNet>0?C.green:C.pink],
-      ['Broker Avg',    validPrice(s.brokerAvg)?fmtPrice(Math.round(s.brokerAvg)):'N/A', C.cyan],
-      ['vs Broker',     (s.pbDist>=0?'+':'')+s.pbDist.toFixed(2)+'%', s.pbDist>=0?C.green:C.pink],
+      ['Broker Avg',    validPrice(s.brokerAvg)?fmtPrice(Math.round(s.brokerAvg)):'Broker flow unavailable', validPrice(s.brokerAvg)?C.cyan:C.ter],
+      ['vs Broker',     s.pbDist!=null?(s.pbDist>=0?'+':'')+s.pbDist.toFixed(2)+'%':'N/A', s.pbDist!=null?(s.pbDist>=0?C.green:C.pink):C.ter],
       ['Freq Buy',      s.freqBuy!=null?fmtK(s.freqBuy):'N/A', s.freqBuy!=null?C.green:C.ter],
       ['Freq Sell',     s.freqSell!=null?fmtK(s.freqSell):'N/A', s.freqSell!=null?C.pink:C.ter]]
      .map(function(m){
