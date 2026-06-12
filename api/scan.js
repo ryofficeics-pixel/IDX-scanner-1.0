@@ -39,6 +39,13 @@ function avgDailyVolume(candles) {
   if (!volumes.length) return null;
   return volumes.reduce((sum, v) => sum + v, 0) / volumes.length;
 }
+function latestTimestamp(items, fallback) {
+  const times = (items || [])
+    .map((item) => item?.timestamp ? new Date(item.timestamp).getTime() : NaN)
+    .filter((time) => Number.isFinite(time));
+  if (!times.length) return fallback;
+  return new Date(Math.max(...times)).toISOString();
+}
 async function mapLimit(items, limit, worker) {
   const out = [];
   let cursor = 0;
@@ -181,11 +188,12 @@ module.exports = async function handler(req, res) {
   diagnostics.validRatio = symbols.length ? valid / symbols.length : 0;
   diagnostics.noDataRatio = symbols.length ? noData / symbols.length : 0;
   diagnostics.scanFinishedAt = new Date().toISOString();
+  diagnostics.providerDataTimestamp = latestTimestamp(Object.values(provider.quotes || {}), generatedAt);
   if (!valid) diagnostics.dataFreshness = 'no-data';
   const payload = {
     ok:true,
     generatedAt,
-    lastUpdated:generatedAt,
+    lastUpdated:diagnostics.providerDataTimestamp,
     marketDate,
     timezone:'Asia/Jakarta',
     session:{ status:session.status, sessionProgress:session.sessionProgress, expectedVolumeProgress:session.expectedVolumeProgress },
