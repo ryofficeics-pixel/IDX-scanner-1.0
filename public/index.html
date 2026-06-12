@@ -287,7 +287,8 @@ if (window.IDX_STOCK_META) {
 var SYMBOLS = Object.keys(STOCK_META);
 var DEFAULT_QUOTE_SYMBOLS = (window.IDX_DEFAULT_SYMBOLS || SYMBOLS.slice(0,120)).filter(function(sym){ return STOCK_META[sym]; });
 var DEFAULT_QUOTE_SET = new Set(DEFAULT_QUOTE_SYMBOLS);
-var FULL_SCAN_CHUNK_SIZE = 150;
+var FULL_SCAN_CHUNK_SIZE = 300;
+var FULL_SCAN_CONCURRENCY = 4;
 
 // ----
 // INITIAL SPARKLINES
@@ -581,11 +582,37 @@ async function fetchScanPayload(params) {
   var res = await fetch('/api/scan?' + params.toString(), {
     method: 'GET',
     headers: { 'Accept': 'application/json' },
-    signal: AbortSignal.timeout(45000)
+    signal: AbortSignal.timeout(70000)
   });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   var payload = await res.json();
   validatePayload(payload);
+  return payload;
+}
+
+async function fetchFullUniversePayload(total) {
+  var chunks = [];
+  for (var offset=0; offset<total; offset+=FULL_SCAN_CHUNK_SIZE) {
+    chunks.push({ offset:offset, limit:Math.min(FULL_SCAN_CHUNK_SIZE, total - offset) });
+  }
+  var payload = null;
+  var next = 0;
+  var done = 0;
+  async function worker() {
+    while (next < chunks.length) {
+      var chunkSpec = chunks[next++];
+      var chunkParams = new URLSearchParams();
+      chunkParams.set('limit', String(chunkSpec.limit));
+      chunkParams.set('offset', String(chunkSpec.offset));
+      var chunk = await fetchScanPayload(chunkParams);
+      payload = mergeScanPayload(payload, chunk);
+      done += chunkSpec.limit;
+      STATE.scanProgress = { done:Math.min(done, total), total:total };
+      addLog('Scan universe '+STATE.scanProgress.done+' / '+total);
+      renderCurrent();
+    }
+  }
+  await Promise.all(Array.from({ length:Math.min(FULL_SCAN_CONCURRENCY, chunks.length) }, worker));
   return payload;
 }
 
@@ -605,17 +632,7 @@ async function fetchLive(force) {
       payload = await fetchScanPayload(params);
     } else {
       var total = autoScanTargetCount();
-      for (var offset=0; offset<total; offset+=FULL_SCAN_CHUNK_SIZE) {
-        var chunkParams = new URLSearchParams();
-        var chunkLimit = Math.min(FULL_SCAN_CHUNK_SIZE, total - offset);
-        chunkParams.set('limit', String(chunkLimit));
-        chunkParams.set('offset', String(offset));
-        var chunk = await fetchScanPayload(chunkParams);
-        payload = mergeScanPayload(payload, chunk);
-        STATE.scanProgress = { done:Math.min(offset + chunkLimit, total), total:total };
-        addLog('Scan universe '+STATE.scanProgress.done+' / '+total);
-        renderCurrent();
-      }
+      payload = await fetchFullUniversePayload(total);
     }
     STATE.cacheStatus = 'fresh';
     STATE.scanProgress = null;

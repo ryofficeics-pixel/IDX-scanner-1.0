@@ -152,7 +152,7 @@ module.exports = async function handler(req, res) {
     .sort((a, b) => ((b.volume || 0) * (b.lastPrice || 0)) - ((a.volume || 0) * (a.lastPrice || 0)))
     .slice(0, debug ? symbols.length : 35);
   const historyBySymbol = {};
-  await mapLimit(candidates, 5, async (q) => {
+  await mapLimit(candidates, 8, async (q) => {
     const [daily, intraday] = await Promise.allSettled([
       yahoo.getDailyHistory(q.symbol, '1mo', '1d'),
       yahoo.getIntradayHistory(q.symbol, '1d', '5m'),
