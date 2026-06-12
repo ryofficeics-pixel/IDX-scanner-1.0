@@ -330,3 +330,26 @@ Result: passed.
 ```
 
 Result: passed. Non-2xx ratio stayed below the 2% threshold for every endpoint.
+
+### Deployment Verification
+
+Latest deployed commit:
+
+- `73a0c53` - `Remove vulnerable stress dependency`
+
+Production deployment:
+
+- `https://idx-scanner-1-0-39pnei3rv-estora-v1.vercel.app`
+- Production alias: `https://idx-scanner-1-0.vercel.app`
+
+Live `/api/health` verification:
+
+```json
+{"ok":true,"version":"73a0c53","cache":"empty"}
+```
+
+Live `/api/scan?symbols=BBCA,BBRI,BMRI&debug=1` verification:
+
+```json
+{"ok":true,"scanned":3,"valid":3,"noData":0,"failedSymbols":0,"providerPrimaryStatus":"error","providerFallbackStatus":"ok","fakePrices":0}
+```
