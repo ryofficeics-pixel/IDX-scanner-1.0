@@ -437,23 +437,17 @@ Result: passed.
 
 Result: passed. Non-2xx ratio stayed below the 2% threshold for every endpoint.
 
-### Deployment Verification
+### Production Verification
 
-Latest deployed commit:
+Production alias:
 
-- `f70c818` - `Harden signal scoring factors`
-
-Production deployment:
-
-- `https://idx-scanner-1-0-hwmbyuuc0-estora-v1.vercel.app`
-- Production alias: `https://idx-scanner-1-0.vercel.app`
+- `https://idx-scanner-1-0.vercel.app`
 
 Live `/api/health` verification:
 
 ```json
 {
   "ok": true,
-  "version": "f70c818",
   "cache": "empty"
 }
 ```
@@ -470,7 +464,7 @@ Live `/api/scan?symbols=BAIK,BBCA,BBRI&debug=1` verification:
   "providerPrimaryStatus": "error",
   "providerFallbackStatus": "ok",
   "fake": 0,
-  "lastUpdated": "2026-06-12T07:51:37.000Z"
+  "lastUpdated": "2026-06-12T07:53:50.000Z"
 }
 ```
 
@@ -485,7 +479,8 @@ Live `/api/scan?limit=1000&debug=1` verification:
   "failed": 0,
   "providerPrimaryStatus": "error",
   "providerFallbackStatus": "ok",
+  "freshness": "live",
   "fake": 0,
-  "elapsedMs": 41842
+  "elapsedMs": 32161
 }
 ```
