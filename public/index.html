@@ -449,7 +449,7 @@ function applyPayload(p) {
     STATE.lastAsOf = p.generatedAt || null;
     STATE.syncErrors = p.diagnostics && Array.isArray(p.diagnostics.errors) ? p.diagnostics.errors : [];
     STATE.syncWarnings = p.diagnostics && Array.isArray(p.diagnostics.warnings) ? p.diagnostics.warnings : [];
-    if (p.market) {
+    if (p.market && validPrice(p.market.ihsgPrice)) {
       STATE.liveIHSG = {
         price:p.market.ihsgPrice,
         prevClose:null,
@@ -542,6 +542,13 @@ function symbolsForSync() {
 function mergeScanPayload(base, next) {
   if (!base) return next;
   var merged = JSON.parse(JSON.stringify(base));
+  if ((!merged.market || !validPrice(merged.market.ihsgPrice)) && next.market && validPrice(next.market.ihsgPrice)) {
+    merged.market = next.market;
+  } else if (merged.market && next.market && validPrice(merged.market.ihsgPrice) && validPrice(next.market.ihsgPrice)) {
+    var mergedTs = new Date(merged.market.timestamp || merged.generatedAt || 0).getTime();
+    var nextTs = new Date(next.market.timestamp || next.generatedAt || 0).getTime();
+    if (Number.isFinite(nextTs) && (!Number.isFinite(mergedTs) || nextTs > mergedTs)) merged.market = next.market;
+  }
   var nextSummary = next.summary || {};
   var summary = merged.summary || {};
   summary.scanned = num(summary.scanned) + num(nextSummary.scanned);
@@ -1156,7 +1163,7 @@ function recommendationPanelHTML(enriched) {
 // ----
 function renderDashboard() {
   var enriched = getEnriched().filter(function(s){ return DEFAULT_QUOTE_SET.has(s.symbol) || STATE.watchlist.includes(s.symbol) || STATE.liveQuotes[s.symbol]; });
-  var ihsg = STATE.liveIHSG || {price:7089,chg:87,pctChg:1.24,high:7112,low:7042,marketState:'CLOSED'};
+  var ihsg = STATE.liveIHSG && validPrice(STATE.liveIHSG.price) ? STATE.liveIHSG : {price:null,chg:null,pctChg:null,high:null,low:null,marketState:'UNKNOWN'};
   var buys    = enriched.filter(function(s){return s.trading.action==='BUY';}).sort(function(a,b){return b.trading.conf-a.trading.conf;});
   var gainers = enriched.slice().sort(function(a,b){return b.pctChg-a.pctChg;}).slice(0,8);
   var chgColor= num(ihsg.chg)>=0?C.green:C.pink;
@@ -1179,13 +1186,13 @@ function renderDashboard() {
     '<div class="card card-cyan" style="padding:16px 18px;margin-bottom:12px;">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;">'
     +'<div><div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;"><span style="font-size:11px;color:'+C.ter+';font-weight:700;letter-spacing:.08em;">IHSG</span>'+mktBadge+fcBadge+'</div>'
-    +'<div class="mono" style="font-size:30px;font-weight:800;line-height:1;">'+fmtPrice(num(ihsg.price).toFixed(2))+'</div>'
-    +'<div style="display:flex;gap:10px;margin-top:6px;align-items:center;"><span class="mono" style="font-size:13px;font-weight:700;color:'+chgColor+';">'+(num(ihsg.chg)>=0?'+':'')+num(ihsg.chg).toFixed(2)+'</span>'+pctHTML(ihsg.pctChg,13)
+    +'<div class="mono" style="font-size:30px;font-weight:800;line-height:1;">'+(validPrice(ihsg.price)?fmtPrice(num(ihsg.price).toFixed(2)):'-')+'</div>'
+    +'<div style="display:flex;gap:10px;margin-top:6px;align-items:center;"><span class="mono" style="font-size:13px;font-weight:700;color:'+chgColor+';">'+(ihsg.chg==null?'-':(num(ihsg.chg)>=0?'+':'')+num(ihsg.chg).toFixed(2))+'</span>'+(ihsg.pctChg==null?'<span class="mono" style="font-size:13px;font-weight:700;color:'+C.ter+';">-</span>':pctHTML(ihsg.pctChg,13))
     +(STATE.lastSync?'<span style="font-size:9px;color:'+C.ter+';">'+fmtTime(STATE.lastSync)+'</span>':'')+'</div>'
     +(STATE.provider && STATE.provider !== '-'?'<div style="font-size:9px;color:'+C.ter+';margin-top:4px;">Sumber: '+STATE.provider+'</div>':'')+'</div>'
     +'<div style="text-align:right;">'+sparkSVG(IHSG_SPARK,88,36,C.cyan,true)
-    +'<div style="display:flex;gap:10px;margin-top:5px;justify-content:flex-end;"><div><div style="font-size:8px;color:'+C.ter+';">HIGH</div><div class="mono" style="font-size:10px;color:'+C.green+';">'+fmtPrice(Math.round(num(ihsg.high,7112)))+'</div></div>'
-    +'<div><div style="font-size:8px;color:'+C.ter+';">LOW</div><div class="mono" style="font-size:10px;color:'+C.pink+';">'+fmtPrice(Math.round(num(ihsg.low,7042)))+'</div></div></div></div></div>'
+    +'<div style="display:flex;gap:10px;margin-top:5px;justify-content:flex-end;"><div><div style="font-size:8px;color:'+C.ter+';">HIGH</div><div class="mono" style="font-size:10px;color:'+C.green+';">'+(validPrice(ihsg.high)?fmtPrice(Math.round(num(ihsg.high))):'-')+'</div></div>'
+    +'<div><div style="font-size:8px;color:'+C.ter+';">LOW</div><div class="mono" style="font-size:10px;color:'+C.pink+';">'+(validPrice(ihsg.low)?fmtPrice(Math.round(num(ihsg.low))):'-')+'</div></div></div></div></div>'
     +'<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.07);display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;">'
     +[['BUY',enriched.filter(function(s){return s.trading.action==='BUY';}).length,C.green],
       ['HOLD',enriched.filter(function(s){return s.trading.action==='HOLD';}).length,C.yellow],
