@@ -22,7 +22,7 @@ CSV upload is optional and is only for broker-flow enrichment. The core scanner 
 
 ## Universe Coverage
 
-The IDX universe is loaded from `data/idx-symbols.json` and currently contains 900+ symbols. The frontend scans the full universe in chunks of 150 symbols so all issuers can be covered without rendering 900 cards at once or blocking tab navigation.
+The IDX universe is loaded from `data/idx-symbols.json` and currently contains 900+ symbols. The frontend scans the full universe in chunks of 300 symbols with limited concurrency so all issuers can be evaluated without rendering 900 cards at once or blocking tab navigation.
 
 The UI renders a lighter active subset by default:
 
@@ -130,6 +130,28 @@ Examples:
 - last scan failed count
 - provider status summary
 - cache status
+
+## Signal Calculation Factors
+
+Signals are calculated from live provider data and optional chart history. The engine does not use fake data or hardcoded recommendations.
+
+Core scoring factors:
+
+- price change versus previous close
+- current volume versus average volume
+- projected session volume adjusted by IDX session progress
+- intraday trend from recent candles
+- daily trend from SMA5 versus SMA20
+- price position inside the daily high-low range
+- VWAP distance when intraday volume candles are available
+- 5-day and 20-day breakout proximity
+- traded-value liquidity score
+- provider data freshness
+- gap-control score for excessive daily moves
+- intraday volatility-control score
+- IHSG market context
+
+BUY and STRONG_BUY are gated by risk controls. A high raw score is not enough if the stock is illiquid, stale, far below VWAP, fading from the high, too volatile, or if market context is weak.
 
 ## Tests
 

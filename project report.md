@@ -27,7 +27,7 @@ Added safety behavior:
 - If cache marketDate is not today, cached data is rendered as `Last saved snapshot`, not active recommendation.
 - Cache mode is explicit and never silently shown as live.
 
-Full IDX universe scanning is done in 150-symbol chunks, while the UI renders a lighter active subset to keep tab switching responsive.
+Full IDX universe scanning is done in 300-symbol chunks with limited concurrency, while the UI renders a lighter active subset to keep tab switching responsive.
 
 ### API Diagnostics
 
@@ -352,4 +352,46 @@ Live `/api/scan?symbols=BBCA,BBRI,BMRI&debug=1` verification:
 
 ```json
 {"ok":true,"scanned":3,"valid":3,"noData":0,"failedSymbols":0,"providerPrimaryStatus":"error","providerFallbackStatus":"ok","fakePrices":0}
+```
+
+## Signal Accuracy Hardening - 2026-06-12
+
+### Reason
+
+Re-reviewed the recommendation engine after full-universe scanning was enabled. The goal was to make BUY and STRONG_BUY stricter and more explainable, especially when provider timestamps differ from other apps or when a stock spikes on weak liquidity.
+
+### Added Calculation Factors
+
+- provider data age in minutes
+- VWAP and VWAP distance
+- SMA5/SMA20 daily trend score
+- intraday day-range percentage
+- freshness score
+- gap-control score
+- volatility-control score
+
+### Safety Gates
+
+- BUY and STRONG_BUY now require fresh enough data, sufficient liquidity, supported volume, price near the upper daily range, no severe late fade, acceptable volatility, and non-weak IHSG context.
+- STRONG_BUY additionally requires stronger volume projection, positive/neutral VWAP position, supportive daily trend, better freshness, and tighter gap/volatility control.
+- Beli Pagi and Beli Sore direct labels reuse the BUY gate, so stale or risky data cannot get direct entry labels.
+
+### Smoke Test
+
+Full universe smoke test through local `/api/scan?limit=1000&debug=1`:
+
+```json
+{
+  "statusCode": 200,
+  "ok": true,
+  "scanned": 908,
+  "valid": 908,
+  "noData": 0,
+  "failed": 0,
+  "freshness": "live",
+  "providerPrimaryStatus": "error",
+  "providerFallbackStatus": "ok",
+  "fake": 0,
+  "elapsedMs": 44586
+}
 ```
