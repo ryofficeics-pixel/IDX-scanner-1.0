@@ -283,6 +283,7 @@ var SYMBOLS = Object.keys(STOCK_META);
 var DEFAULT_QUOTE_SYMBOLS = (window.IDX_DEFAULT_SYMBOLS || SYMBOLS.slice(0,120)).filter(function(sym){ return STOCK_META[sym]; });
 var DEFAULT_QUOTE_SET = new Set(DEFAULT_QUOTE_SYMBOLS);
 var FULL_SCAN_CHUNK_SIZE = 150;
+var MIN_AUTO_SCAN_SYMBOLS = 600;
 
 // ----
 // INITIAL SPARKLINES
@@ -316,6 +317,7 @@ var STATE = {
   syncErrors:[], syncWarnings:[],
   // UI state
   syncState:'idle', fetching:false,
+  scanProgress:null,
   syncTimer:null, searchTimer:null, syncInterval:60,
   syncLog:[],
   // Flow data override (from CSV upload)
@@ -566,6 +568,11 @@ function mergeScanPayload(base, next) {
   return merged;
 }
 
+function autoScanTargetCount() {
+  var universeCount = SYMBOLS.length || (window.IDX_UNIVERSE_COUNT || 900);
+  return Math.min(universeCount, Math.max(MIN_AUTO_SCAN_SYMBOLS, DEFAULT_QUOTE_SYMBOLS.length));
+}
+
 async function fetchScanPayload(params) {
   var res = await fetch('/api/scan?' + params.toString(), {
     method: 'GET',
@@ -581,6 +588,7 @@ async function fetchScanPayload(params) {
 async function fetchLive(force) {
   if (STATE.fetching) return;
   STATE.fetching = true;
+  STATE.scanProgress = null;
   setSyncUI('fetching');
   addLog('Mengambil data dari backend web sync');
 
@@ -592,24 +600,21 @@ async function fetchLive(force) {
       params.set('limit', '120');
       payload = await fetchScanPayload(params);
     } else {
-      var total = SYMBOLS.length || (window.IDX_UNIVERSE_COUNT || 900);
+      var total = autoScanTargetCount();
       for (var offset=0; offset<total; offset+=FULL_SCAN_CHUNK_SIZE) {
         var chunkParams = new URLSearchParams();
-        chunkParams.set('limit', String(FULL_SCAN_CHUNK_SIZE));
+        var chunkLimit = Math.min(FULL_SCAN_CHUNK_SIZE, total - offset);
+        chunkParams.set('limit', String(chunkLimit));
         chunkParams.set('offset', String(offset));
         var chunk = await fetchScanPayload(chunkParams);
         payload = mergeScanPayload(payload, chunk);
-        addLog('Scan universe '+Math.min(offset+FULL_SCAN_CHUNK_SIZE,total)+' / '+total);
-        if (offset === 0) {
-          STATE.cacheStatus = 'fresh';
-          applyPayload(payload);
-          STATE.lastSync = Date.now();
-          setSyncUI('live');
-          renderCurrent();
-        }
+        STATE.scanProgress = { done:Math.min(offset + chunkLimit, total), total:total };
+        addLog('Scan universe '+STATE.scanProgress.done+' / '+total);
+        renderCurrent();
       }
     }
     STATE.cacheStatus = 'fresh';
+    STATE.scanProgress = null;
     applyPayload(payload);
     saveToLocalCache(payload);
     STATE.lastSync = Date.now();
@@ -621,6 +626,7 @@ async function fetchLive(force) {
     renderCurrent();
     focusScannerSearch();
   } catch(err) {
+    STATE.scanProgress = null;
     var msg = err && err.message ? err.message : String(err);
     addLog('Sync gagal: ' + msg);
     // Try local cache
@@ -1070,11 +1076,15 @@ function freshnessPanelHTML() {
   var scan = STATE.scanResult || {};
   var summary = scan.summary || {};
   var diagnostics = scan.diagnostics || {};
+  var progress = STATE.scanProgress;
   var age = STATE.dataAgeMinutes;
   var ageText = age == null ? '-' : age.toFixed(1) + 'm';
   var mode = STATE.scanMode || 'no-data';
+  if (progress) mode = 'scanning';
   var modeColor = mode === 'live' ? C.green : mode === 'stale' || mode === 'snapshot' ? C.orange : mode === 'cache' ? C.yellow : C.pink;
+  if (mode === 'scanning') modeColor = C.yellow;
   var staleTrade = mode === 'stale';
+  var scannedText = progress ? (progress.done + ' / ' + progress.total) : (summary.scanned != null ? summary.scanned : '-');
   return ''
     +(staleTrade?'<div style="padding:11px 13px;background:rgba(218,41,28,.12);border:1px solid rgba(218,41,28,.45);border-radius:12px;color:'+C.pink+';font-size:12px;font-weight:900;letter-spacing:.04em;margin-bottom:10px;">STALE DATA — DO NOT TRADE</div>':'')
     +(STATE.snapshotOnly?'<div style="padding:11px 13px;background:rgba(255,140,66,.10);border:1px solid rgba(255,140,66,.35);border-radius:12px;color:'+C.orange+';font-size:11px;font-weight:800;margin-bottom:10px;">Last saved snapshot. Data market date '+(STATE.marketDate||'-')+' tidak dirender sebagai rekomendasi aktif.</div>':'')
@@ -1084,7 +1094,7 @@ function freshnessPanelHTML() {
       ['Data age',ageText,age != null && age > 15 ? C.orange : C.sec],
       ['Provider',diagnostics.provider || STATE.provider || '-',C.sec],
       ['Mode',mode.toUpperCase(),modeColor],
-      ['Scanned',summary.scanned != null ? summary.scanned : '-',C.cyan],
+      ['Scanned',scannedText,C.cyan],
       ['Valid / No data',(summary.valid != null ? summary.valid : '-')+' / '+(summary.noData != null ? summary.noData : '-'),C.sec],
       ['Failed',(diagnostics.failedSymbols ? diagnostics.failedSymbols.length : 0),diagnostics.failedSymbols && diagnostics.failedSymbols.length ? C.orange : C.green],
       ['Cache age',diagnostics.cacheAgeMs != null ? Math.round(diagnostics.cacheAgeMs/1000)+'s' : '0s',C.sec]]
@@ -1098,7 +1108,10 @@ function recommendationPanelHTML(enriched) {
   var watch = enriched.filter(function(s){return s.dataMode==='PRICE_ONLY' && validPrice(s.price);})
     .sort(function(a,b){return num(b.pctChg)-num(a.pctChg);}).slice(0,3);
   var scan = STATE.scanResult;
-  var scanInfo = scan && scan.summary
+  var progress = STATE.scanProgress;
+  var scanInfo = progress
+    ? 'Scanning '+progress.done+' / '+progress.total+' saham | target minimal '+MIN_AUTO_SCAN_SYMBOLS+' emiten'
+    : scan && scan.summary
     ? 'Scan '+scan.summary.scanned+' saham | valid '+scan.summary.valid+' | no data '+((scan.diagnostics && scan.diagnostics.failedSymbols) ? scan.diagnostics.failedSymbols.length : 0)+' | '+(STATE.cacheStatus==='localStorage'?'Menggunakan cache terakhir':'Auto scan aktif')
     : 'Auto scan aktif';
   return '<div class="card" style="padding:14px 16px;margin-bottom:14px;border-color:rgba(0,255,156,.22);background:radial-gradient(ellipse at 20% 0%,rgba(0,255,156,.10),rgba(255,255,255,.04) 62%);">'
