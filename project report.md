@@ -395,3 +395,97 @@ Full universe smoke test through local `/api/scan?limit=1000&debug=1`:
   "elapsedMs": 44586
 }
 ```
+
+### Final Test Output
+
+#### npm run check
+
+```text
+> idx-scanner-1.0@2.0.0 check
+> node --check api/idx-quotes.js && node --check api/flow-upload.js && node --check api/health.js && node --check api/scan.js && node --check lib/providers/yahooProvider.js && node --check lib/engine/signalEngine.js && node --check tests/api.test.js && node --check tests/signal.test.js && node --check tests/stress.js
+```
+
+Result: passed.
+
+#### npm run test:api
+
+```text
+tests 14
+pass 14
+fail 0
+duration_ms 3876.5024
+```
+
+Result: passed.
+
+#### npm run test:e2e
+
+```text
+Running 8 tests using 1 worker
+8 passed (9.9s)
+```
+
+Result: passed.
+
+#### npm run test:stress
+
+```text
+/api/health requests=18666 non2xx=0 ratio=0.00%
+/api/scan?symbols=BBCA,BBRI,BMRI&debug=1 requests=11565 non2xx=0 ratio=0.00%
+/api/scan?limit=120&debug=1 requests=827 non2xx=0 ratio=0.00%
+```
+
+Result: passed. Non-2xx ratio stayed below the 2% threshold for every endpoint.
+
+### Deployment Verification
+
+Latest deployed commit:
+
+- `f70c818` - `Harden signal scoring factors`
+
+Production deployment:
+
+- `https://idx-scanner-1-0-hwmbyuuc0-estora-v1.vercel.app`
+- Production alias: `https://idx-scanner-1-0.vercel.app`
+
+Live `/api/health` verification:
+
+```json
+{
+  "ok": true,
+  "version": "f70c818",
+  "cache": "empty"
+}
+```
+
+Live `/api/scan?symbols=BAIK,BBCA,BBRI&debug=1` verification:
+
+```json
+{
+  "ok": true,
+  "scanned": 3,
+  "valid": 3,
+  "noData": 0,
+  "failed": 0,
+  "providerPrimaryStatus": "error",
+  "providerFallbackStatus": "ok",
+  "fake": 0,
+  "lastUpdated": "2026-06-12T07:51:37.000Z"
+}
+```
+
+Live `/api/scan?limit=1000&debug=1` verification:
+
+```json
+{
+  "ok": true,
+  "scanned": 908,
+  "valid": 908,
+  "noData": 0,
+  "failed": 0,
+  "providerPrimaryStatus": "error",
+  "providerFallbackStatus": "ok",
+  "fake": 0,
+  "elapsedMs": 41842
+}
+```
