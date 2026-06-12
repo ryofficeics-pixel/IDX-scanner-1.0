@@ -268,3 +268,65 @@ This used `forceProviderFail=1` to verify full universe coverage without calling
 ## main...origin/main
 0 0
 ```
+
+## Follow-up Audit And Stress Revision - 2026-06-12
+
+### Reason
+
+`npm audit --omit=dev` was clean, but full `npm audit` found a dev-only moderate vulnerability chain through `autocannon -> hyperid -> uuid`.
+
+### Revision
+
+- Removed `autocannon` from `devDependencies`.
+- Replaced the stress runner with a dependency-free Node HTTP runner in `tests/stress.js`.
+- Kept the same stress endpoints and the same acceptance rule: fail if non-2xx responses exceed 2%.
+
+### Exact Test Output
+
+#### npm audit
+
+```text
+found 0 vulnerabilities
+```
+
+#### npm run check
+
+```text
+> idx-scanner-1.0@2.0.0 check
+> node --check api/idx-quotes.js && node --check api/flow-upload.js && node --check api/health.js && node --check api/scan.js && node --check lib/providers/yahooProvider.js && node --check lib/engine/signalEngine.js && node --check tests/api.test.js && node --check tests/signal.test.js && node --check tests/stress.js
+```
+
+Result: passed.
+
+#### npm run test:api
+
+```text
+tests 11
+pass 11
+fail 0
+duration_ms 4626.0691
+```
+
+Result: passed.
+
+#### npm run test:e2e
+
+```text
+Running 8 tests using 1 worker
+8 passed (9.6s)
+```
+
+Result: passed.
+
+#### npm run test:stress
+
+```text
+> idx-scanner-1.0@2.0.0 test:stress
+> node tests/stress.js
+
+/api/health requests=18841 non2xx=0 ratio=0.00%
+/api/scan?symbols=BBCA,BBRI,BMRI&debug=1 requests=12170 non2xx=0 ratio=0.00%
+/api/scan?limit=120&debug=1 requests=1142 non2xx=0 ratio=0.00%
+```
+
+Result: passed. Non-2xx ratio stayed below the 2% threshold for every endpoint.
