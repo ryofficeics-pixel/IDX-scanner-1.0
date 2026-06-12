@@ -288,7 +288,6 @@ var SYMBOLS = Object.keys(STOCK_META);
 var DEFAULT_QUOTE_SYMBOLS = (window.IDX_DEFAULT_SYMBOLS || SYMBOLS.slice(0,120)).filter(function(sym){ return STOCK_META[sym]; });
 var DEFAULT_QUOTE_SET = new Set(DEFAULT_QUOTE_SYMBOLS);
 var FULL_SCAN_CHUNK_SIZE = 150;
-var MIN_AUTO_SCAN_SYMBOLS = 600;
 
 // ----
 // INITIAL SPARKLINES
@@ -575,7 +574,7 @@ function mergeScanPayload(base, next) {
 
 function autoScanTargetCount() {
   var universeCount = SYMBOLS.length || (window.IDX_UNIVERSE_COUNT || 900);
-  return Math.min(universeCount, Math.max(MIN_AUTO_SCAN_SYMBOLS, DEFAULT_QUOTE_SYMBOLS.length));
+  return universeCount;
 }
 
 async function fetchScanPayload(params) {
@@ -1115,7 +1114,7 @@ function recommendationPanelHTML(enriched) {
   var scan = STATE.scanResult;
   var progress = STATE.scanProgress;
   var scanInfo = progress
-    ? 'Scanning '+progress.done+' / '+progress.total+' saham | target minimal '+MIN_AUTO_SCAN_SYMBOLS+' emiten'
+    ? 'Scanning '+progress.done+' / '+progress.total+' saham | semua emiten IDX'
     : scan && scan.summary
     ? 'Scan '+scan.summary.scanned+' saham | valid '+scan.summary.valid+' | no data '+((scan.diagnostics && scan.diagnostics.failedSymbols) ? scan.diagnostics.failedSymbols.length : 0)+' | '+(STATE.cacheStatus==='localStorage'?'Menggunakan cache terakhir':'Auto scan aktif')
     : 'Auto scan aktif';
