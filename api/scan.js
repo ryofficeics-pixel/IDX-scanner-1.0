@@ -6,6 +6,7 @@ const { sessionContext } = require('../lib/market/idxSession');
 const yahoo = require('../lib/providers/yahooProvider');
 const fallback = require('../lib/providers/fallbackProvider');
 const { generateSignal } = require('../lib/engine/signalEngine');
+const { generateBowSignal } = require('../lib/engine/bowEngine');
 const { updateScanState } = require('../lib/runtime/scanState');
 
 function send(res, status, body) {
@@ -17,7 +18,7 @@ function setCors(res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
 }
 function emptyRecs() {
-  return { strongBuy:[], beliPagi:[], beliSore:[], topBuy:[], topGainers:[], accumulationProxy:[], distributionProxy:[], risk:[], hold:[], sell:[] };
+  return { strongBuy:[], beliPagi:[], beliSore:[], buyOnWeakness:[], topBuy:[], topGainers:[], accumulationProxy:[], distributionProxy:[], risk:[], hold:[], sell:[] };
 }
 function pushRec(recs, sig) {
   if (sig.action === 'STRONG_BUY') recs.strongBuy.push(sig);
@@ -30,6 +31,18 @@ function pushRec(recs, sig) {
   if (sig.riskLevel === 'HIGH' || sig.category === 'RISK') recs.risk.push(sig);
   if (sig.action === 'HOLD' || sig.action === 'WATCH') recs.hold.push(sig);
   if (sig.action === 'SELL' || sig.action === 'AVOID') recs.sell.push(sig);
+}
+function pushBowRec(recs, bow) {
+  if (!bow) return;
+  if (bow.action === 'BOW_BUY' || bow.score >= 70) recs.buyOnWeakness.push(bow);
+  else if (bow.category === 'Falling Knife' || bow.volume === 'Distribution') recs.risk.push({
+    ...bow,
+    action:'AVOID',
+    category:'RISK',
+    riskLevel:'HIGH',
+    dataQuality:70,
+    confidence:bow.score,
+  });
 }
 function avgDailyVolume(candles) {
   const volumes = (candles || [])
@@ -152,9 +165,19 @@ module.exports = async function handler(req, res) {
     .sort((a, b) => ((b.volume || 0) * (b.lastPrice || 0)) - ((a.volume || 0) * (a.lastPrice || 0)))
     .slice(0, debug ? symbols.length : 35);
   const historyBySymbol = {};
+  let ihsgDaily = [];
+  try {
+    ihsgDaily = await yahoo.getDailyHistory('^JKSE', '3mo', '1d');
+  } catch (_) {
+    ihsgDaily = [];
+  }
+  const ihsgCloses = ihsgDaily.map((c) => Number(c.close)).filter(Number.isFinite);
+  const ihsgReturn3M = ihsgCloses.length > 63 && ihsgCloses[0] > 0
+    ? ((ihsgCloses[ihsgCloses.length - 1] - ihsgCloses[0]) / ihsgCloses[0]) * 100
+    : null;
   await mapLimit(candidates, 8, async (q) => {
     const [daily, intraday] = await Promise.allSettled([
-      yahoo.getDailyHistory(q.symbol, '1mo', '1d'),
+      yahoo.getDailyHistory(q.symbol, '1y', '1d'),
       yahoo.getIntradayHistory(q.symbol, '1d', '5m'),
     ]);
     historyBySymbol[q.symbol] = {
@@ -174,9 +197,16 @@ module.exports = async function handler(req, res) {
       q.dayLow = 2;
     }
     const row = meta.get(symbol) || {};
-    const sig = generateSignal({ ...q, name:q.name || row.name || symbol }, market, session, { ...(historyBySymbol[symbol] || {}), now });
+    const stock = { ...q, name:q.name || row.name || symbol };
+    const histories = { ...(historyBySymbol[symbol] || {}), now };
+    const sig = generateSignal(stock, market, session, histories);
     signals.push(sig);
     pushRec(recs, sig);
+    if (histories.daily && histories.daily.length) {
+      const bow = generateBowSignal(stock, { ...market, ihsgReturn3M }, histories);
+      sig.buyOnWeakness = bow;
+      pushBowRec(recs, bow);
+    }
   }
   Object.keys(recs).forEach((key) => {
     recs[key].sort((a, b) => (b.score - a.score) || ((b.changePct || 0) - (a.changePct || 0)));
@@ -203,6 +233,7 @@ module.exports = async function handler(req, res) {
       valid,
       noData,
       strongBuyCount:recs.strongBuy.length,
+      buyOnWeaknessCount:recs.buyOnWeakness.length,
       buyCount:signals.filter((s) => s.action === 'BUY' || s.action === 'STRONG_BUY').length,
       holdCount:signals.filter((s) => s.action === 'HOLD' || s.action === 'WATCH').length,
       sellCount:signals.filter((s) => s.action === 'SELL' || s.action === 'AVOID').length,

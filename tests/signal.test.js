@@ -3,6 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { generateSignal } = require('../lib/engine/signalEngine');
+const { generateBowSignal } = require('../lib/engine/bowEngine');
 const { sessionContext } = require('../lib/market/idxSession');
 
 function stock(overrides = {}) {
@@ -114,4 +115,63 @@ test('wide intraday range raises risk and blocks strong buy', () => {
   });
   assert.ok(sig.warnings.includes('Range intraday terlalu lebar'));
   assert.notEqual(sig.action, 'STRONG_BUY');
+});
+
+function bowDaily({ pullback = 0.1, volumeDistribution = false } = {}) {
+  const rows = [];
+  for (let i = 0; i < 220; i += 1) {
+    const base = 1000 + i * 3;
+    rows.push({ open:base - 2, high:base + 8, low:base - 8, close:base, volume:12000000 });
+  }
+  const high = rows[rows.length - 16].close;
+  const healthyPath = [0.99, 0.985, 0.995, 0.98, 0.975, 0.982, 0.968, 0.96, 0.967, 0.952, 0.945, 0.955, 0.94, 0.948, 1 - pullback];
+  for (let i = rows.length - 15; i < rows.length; i += 1) {
+    const step = i - (rows.length - 15);
+    const progress = (step + 1) / 15;
+    const close = high * (volumeDistribution ? (1 - pullback * progress) : healthyPath[step]);
+    rows[i] = {
+      open:close * (step % 2 ? 1.006 : 0.994),
+      high:close * 1.015,
+      low:close * 0.985,
+      close,
+      volume:volumeDistribution ? 24000000 : 8000000,
+    };
+  }
+  rows[rows.length - 1].open = rows[rows.length - 1].close * 0.99;
+  return rows;
+}
+
+test('buy on weakness accepts healthy pullback in long uptrend', () => {
+  const daily = bowDaily();
+  const last = daily[daily.length - 1].close;
+  const bow = generateBowSignal(stock({
+    lastPrice:last,
+    previousClose:daily[daily.length - 2].close,
+    volume:9000000,
+    avgVolume20:10000000,
+    dayHigh:last * 1.01,
+    dayLow:last * 0.98,
+    marketCap:5e12,
+    trailingPE:12,
+    priceToBook:1.7,
+    epsTrailingTwelveMonths:80,
+  }), { ihsgReturn3M:3 }, { daily });
+  assert.ok(bow.score >= 70);
+  assert.equal(bow.action, 'BOW_BUY');
+  assert.equal(bow.trend, 'Uptrend');
+});
+
+test('buy on weakness rejects falling knife', () => {
+  const daily = bowDaily({ pullback:0.38, volumeDistribution:true });
+  const last = daily[daily.length - 1].close;
+  const bow = generateBowSignal(stock({
+    lastPrice:last,
+    previousClose:daily[daily.length - 2].close,
+    volume:24000000,
+    avgVolume20:15000000,
+    marketCap:5e12,
+  }), { ihsgReturn3M:3 }, { daily });
+  assert.equal(bow.category, 'Falling Knife');
+  assert.equal(bow.verdict, 'Avoid');
+  assert.notEqual(bow.action, 'BOW_BUY');
 });

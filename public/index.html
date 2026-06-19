@@ -400,7 +400,12 @@ function flattenScanRecommendations(scan) {
   Object.keys(recs).forEach(function(key){
     (recs[key] || []).forEach(function(sig){
       if (!sig || !sig.symbol) return;
-      if (!out[sig.symbol] || num(sig.score) > num(out[sig.symbol].score)) out[sig.symbol] = sig;
+      if (key === 'buyOnWeakness' || sig.action === 'BOW_BUY' || sig.verdict) {
+        if (!out[sig.symbol]) out[sig.symbol] = sig;
+        else out[sig.symbol].buyOnWeakness = sig;
+        return;
+      }
+      if (!out[sig.symbol] || out[sig.symbol].action === 'BOW_BUY' || num(sig.score) > num(out[sig.symbol].score)) out[sig.symbol] = sig;
     });
   });
   return Object.keys(out).map(function(k){ return out[k]; });
@@ -419,7 +424,8 @@ function quoteFromSignal(sig) {
     asOf:sig.timestamp,
     source:sig.source || 'scan',
     dataMode:sig.action === 'NO_DATA' ? 'NO_DATA' : 'PRICE_ONLY',
-    backendSignal:sig
+    backendSignal:sig,
+    buyOnWeakness:sig.buyOnWeakness || (sig.action === 'BOW_BUY' || sig.verdict ? sig : null)
   };
 }
 function isMarketHours(status) {
@@ -555,11 +561,11 @@ function mergeScanPayload(base, next) {
   summary.valid = num(summary.valid) + num(nextSummary.valid);
   summary.noData = num(summary.noData) + num(nextSummary.noData);
   summary.errorCount = num(summary.errorCount) + num(nextSummary.errorCount);
-  ['strongBuyCount','buyCount','holdCount','sellCount','topGainerCount','accumulationProxyCount','distributionProxyCount'].forEach(function(k){
+  ['strongBuyCount','buyOnWeaknessCount','buyCount','holdCount','sellCount','topGainerCount','accumulationProxyCount','distributionProxyCount'].forEach(function(k){
     summary[k] = num(summary[k]) + num(nextSummary[k]);
   });
   merged.summary = summary;
-  var buckets = ['strongBuy','beliPagi','beliSore','topBuy','topGainers','accumulationProxy','distributionProxy','risk','hold','sell'];
+  var buckets = ['strongBuy','beliPagi','beliSore','buyOnWeakness','topBuy','topGainers','accumulationProxy','distributionProxy','risk','hold','sell'];
   buckets.forEach(function(bucket){
     var bySymbol = {};
     (merged.recommendations[bucket] || []).concat((next.recommendations && next.recommendations[bucket]) || []).forEach(function(sig){
@@ -784,6 +790,7 @@ function calcRiskFlags(s) {
 }
 
 function calcScore(s) {
+  if (s.buyOnWeakness && s.buyOnWeakness.action === 'BOW_BUY' && Number.isFinite(Number(s.buyOnWeakness.score))) return Number(s.buyOnWeakness.score);
   if (s.backendSignal && Number.isFinite(Number(s.backendSignal.score))) return Number(s.backendSignal.score);
   var mode = dataMode(s);
   if (mode === 'PRICE_ONLY' || mode === 'LOCAL_SAMPLE' || mode === 'NO_DATA' || mode === 'FLOW_STALE') return null;
@@ -823,6 +830,28 @@ function classifySig(score) {
 }
 
 function calcTrading(s) {
+  if (s.buyOnWeakness && (s.buyOnWeakness.action === 'BOW_BUY' || s.buyOnWeakness.category === 'Falling Knife')) {
+    var bow = s.buyOnWeakness;
+    var bowBuy = bow.action === 'BOW_BUY';
+    var bowAction = bowBuy ? 'BUY' : 'SELL';
+    var bowColor = bowBuy ? C.green : C.pink;
+    var e = bow.entry || {};
+    var bowReasons = (bow.reasons || []).map(function(t){ return {t:t, p:true}; })
+      .concat((bow.risks || bow.warnings || []).map(function(t){ return {t:t, p:false}; }));
+    return {
+      action:bowAction, ac:bowColor, ab:bowBuy?'rgba(0,255,156,.14)':'rgba(123,66,188,.14)', ag:bowColor,
+      conf:Math.round(clamp(bow.score || 0,0,100)),
+      slabel:bow.verdict || bow.category || (bowBuy ? 'BUY ON WEAKNESS' : 'AVOID'),
+      scolor:bowBuy ? C.green : C.pink,
+      eL:e.aggressiveEntry || null,
+      eH:e.conservativeEntry || null,
+      t1:e.target1 || null,
+      t2:e.target2 || null,
+      sl:e.stopLoss || null,
+      rr:e.riskReward || '-',
+      reasons:bowReasons
+    };
+  }
   if (s.backendSignal) {
     var sig = s.backendSignal;
     var action = sig.action === 'STRONG_BUY' ? 'BUY'
@@ -939,12 +968,15 @@ function enrich(sym, liveQ) {
     asOf:     liveQ ? (liveQ.asOf||null) : null,
     source:   liveQ ? (liveQ.source||'-') : 'base-data',
     backendSignal: liveQ ? liveQ.backendSignal : null,
+    buyOnWeakness: liveQ ? liveQ.buyOnWeakness : null,
   };
   // Override dataMode based on actual available fields
   s.dataMode = dataMode(s);
 
   var score     = calcScore(s);
-  var signal    = s.backendSignal
+  var signal    = s.buyOnWeakness && s.buyOnWeakness.action === 'BOW_BUY'
+    ? {label:'BUY ON WEAKNESS', short:'BOW', color:C.green, bg:'rgba(0,255,156,.12)'}
+    : s.backendSignal
     ? {label:s.backendSignal.category === 'ACCUMULATION_PROXY' ? 'AKUMULASI PROXY' : s.backendSignal.category === 'DISTRIBUTION_PROXY' ? 'DISTRIBUSI PROXY' : s.backendSignal.action, short:s.backendSignal.action === 'STRONG_BUY' ? 'SB' : s.backendSignal.action, color:s.backendSignal.action === 'STRONG_BUY' || s.backendSignal.action === 'BUY' ? C.green : s.backendSignal.action === 'SELL' || s.backendSignal.action === 'AVOID' || s.backendSignal.riskLevel === 'HIGH' ? C.pink : C.yellow, bg:'rgba(255,255,255,.08)'}
     : classifySig(score);
   var hasBrokerFlow = s.brokerBuy != null && s.brokerSell != null;
@@ -957,7 +989,7 @@ function enrich(sym, liveQ) {
     pbDist:     validPrice(brokerAvg) ? safeDiv(num(s.price)-brokerAvg, brokerAvg)*100 : null,
     foreignNet: num(s.foreignBuy) - num(s.foreignSell),
     foreignPct: (function(){ var f=calcForeign(s); return f!==null?f-50:null; })(),
-    riskFlags:  s.backendSignal && s.backendSignal.riskLevel === 'HIGH' ? [{label:'Risk tinggi', color:C.pink}].concat((s.backendSignal.warnings || []).slice(0,2).map(function(w){ return {label:w, color:C.orange}; })) : calcRiskFlags(s),
+    riskFlags:  s.buyOnWeakness && s.buyOnWeakness.category === 'Falling Knife' ? [{label:'Falling Knife', color:C.pink}].concat((s.buyOnWeakness.warnings || []).slice(0,2).map(function(w){ return {label:w, color:C.orange}; })) : s.backendSignal && s.backendSignal.riskLevel === 'HIGH' ? [{label:'Risk tinggi', color:C.pink}].concat((s.backendSignal.warnings || []).slice(0,2).map(function(w){ return {label:w, color:C.orange}; })) : calcRiskFlags(s),
     volRatio:   (function(){ var a=maybeNum(s.volumeAvg5d); return a&&a>0?safeDiv(s.volume,a):null; })(),
     freqRatio:  (function(){ var b=maybeNum(s.freqBuy),c=maybeNum(s.freqSell); return b!==null&&c!==null?safeDiv(b,b+c)*100:null; })(),
     trading:    calcTrading(s),
@@ -1049,6 +1081,7 @@ function freshnessColor(f) {
 // ----
 function stockCardHTML(s, compact) {
   var tr=s.trading, spark=SPARKS[s.symbol], col=s.pctChg>=0?C.green:C.pink;
+  var bow=s.buyOnWeakness;
   return '<div onclick="openDetail(\''+s.symbol+'\')" style="background:radial-gradient(ellipse at 15% 0%,'+s.signal.color+'12 0%,rgba(255,255,255,.04) 60%);border:1px solid '+s.signal.color+'28;border-radius:20px;padding:'+(compact?'11px 13px':'14px 16px')+';margin-bottom:8px;cursor:pointer;transition:transform .16s ease;" onmousedown="this.style.transform=\'scale(.984)\'" onmouseup="this.style.transform=\'\'" ontouchstart="this.style.transform=\'scale(.984)\'" ontouchend="this.style.transform=\'\'">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:'+(compact?5:8)+'px;">'
     +'<div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;"><span style="font-size:'+(compact?13:15)+'px;font-weight:800;letter-spacing:.03em;">'+s.symbol+'</span>'+badgeHTML(s.signal.short,s.signal.color,s.signal.bg,9,true)+actionBadgeHTML(tr.action)+'</div>'
@@ -1062,9 +1095,24 @@ function stockCardHTML(s, compact) {
            ['vs Broker',s.pbDist!=null?(s.pbDist>=0?'+':'')+s.pbDist.toFixed(1)+'%':'N/A',s.pbDist!=null?(s.pbDist>=0?C.green:C.pink):C.ter]]
           .map(function(m){return '<div><div style="font-size:9px;color:'+C.ter+';margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em;">'+m[0]+'</div><div class="mono" style="font-size:11px;font-weight:700;color:'+m[2]+';">'+m[1]+'</div></div>';}).join('')+'</div>'
         +scoreBarHTML(s.score)
+        +(bow?'<div style="margin-top:7px;padding:8px 9px;background:'+(bow.action==='BOW_BUY'?'rgba(0,255,156,.07)':'rgba(255,140,66,.07)')+';border:1px solid '+(bow.action==='BOW_BUY'?C.green:C.orange)+'28;border-radius:10px;"><div style="display:flex;justify-content:space-between;gap:8px;"><span style="font-size:9px;font-weight:900;color:'+(bow.action==='BOW_BUY'?C.green:C.orange)+';">BOW '+(bow.verdict||bow.category)+'</span><span class="mono" style="font-size:9px;color:'+C.sec+';">'+scoreText(bow.score)+'</span></div><div style="font-size:9px;color:'+C.ter+';margin-top:3px;">Pullback '+(bow.pullbackPct!=null?bow.pullbackPct.toFixed(1)+'%':'N/A')+' | RSI '+(bow.rsiDaily!=null?bow.rsiDaily.toFixed(0):'N/A')+'</div></div>':'')
         +'<div style="display:flex;align-items:center;gap:7px;margin-top:7px;"><span style="font-size:9px;color:'+C.ter+';">Signal</span><div style="flex:1;height:3px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;"><div style="width:'+tr.conf+'%;height:100%;background:'+tr.ac+';border-radius:99px;"></div></div><span class="mono" style="font-size:9px;color:'+tr.ac+';">'+tr.conf+'%</span><span style="font-size:9px;color:'+tr.scolor+';font-weight:700;">'+tr.slabel+'</span></div>'
         +(s.riskFlags.length?'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:7px;">'+s.riskFlags.slice(0,2).map(function(f){return badgeHTML(f.label,f.color,f.color+'15',9);}).join('')+'</div>':'')
       : scoreBarHTML(s.score,3))
+    +'</div>';
+}
+
+function isBowCandidate(s) {
+  return s && s.buyOnWeakness && s.buyOnWeakness.action === 'BOW_BUY';
+}
+
+function bowMiniCardHTML(s) {
+  var bow = s.buyOnWeakness || {};
+  var e = bow.entry || {};
+  return '<div onclick="openDetail(\''+s.symbol+'\')" style="min-width:188px;background:rgba(0,255,156,.055);border:1px solid rgba(0,255,156,.24);border-radius:16px;padding:12px 13px;cursor:pointer;flex-shrink:0;">'
+    +'<div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:7px;"><div><div style="font-size:14px;font-weight:900;">'+s.symbol+'</div><div style="font-size:9px;color:'+C.ter+';margin-top:2px;">'+s.name+'</div></div><div class="mono" style="font-size:18px;font-weight:900;color:'+C.green+';">'+scoreText(bow.score)+'</div></div>'
+    +'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;">'+badgeHTML('BOW',C.green,'rgba(0,255,156,.12)',9)+badgeHTML(bow.verdict||bow.category||'Watchlist',C.cyan,'rgba(123,66,188,.12)',9)+'</div>'
+    +'<div class="mono" style="font-size:10px;color:'+C.sec+';line-height:1.7;">Pullback '+(bow.pullbackPct!=null?bow.pullbackPct.toFixed(1)+'%':'N/A')+' | RSI '+(bow.rsiDaily!=null?bow.rsiDaily.toFixed(0):'N/A')+'<br>Entry '+(e.aggressiveEntry?fmtPrice(e.aggressiveEntry):'N/A')+' / '+(e.conservativeEntry?fmtPrice(e.conservativeEntry):'N/A')+'<br>SL '+(e.stopLoss?fmtPrice(e.stopLoss):'N/A')+' | TP1 '+(e.target1?fmtPrice(e.target1):'N/A')+'</div>'
     +'</div>';
 }
 
@@ -1131,6 +1179,7 @@ function freshnessPanelHTML() {
 }
 function recommendationPanelHTML(enriched) {
   var strong = enriched.filter(isStrongBuyCandidate).sort(function(a,b){return b.trading.conf-a.trading.conf;});
+  var bow = enriched.filter(isBowCandidate).sort(function(a,b){return num(b.buyOnWeakness.score)-num(a.buyOnWeakness.score);});
   var morning = enriched.filter(function(s){return s.backendSignal ? s.backendSignal.category==='BELI_PAGI' : sessionPlan(s).label==='PAGI' && isStrongBuyCandidate(s);});
   var afternoon = enriched.filter(function(s){return s.backendSignal ? s.backendSignal.category==='BELI_SORE' : sessionPlan(s).label==='SORE' && isStrongBuyCandidate(s);});
   var watch = enriched.filter(function(s){return s.dataMode==='PRICE_ONLY' && validPrice(s.price);})
@@ -1150,6 +1199,9 @@ function recommendationPanelHTML(enriched) {
     +(strong.length
       ? '<div class="hscroll" style="margin-bottom:10px;">'+strong.slice(0,6).map(planCardHTML).join('')+'</div>'
       : '<div style="padding:12px;background:rgba(255,207,37,.08);border:1px solid rgba(255,207,37,.25);border-radius:12px;color:'+C.yellow+';font-size:11px;line-height:1.5;margin-bottom:10px;">Auto scan aktif. Belum ada STRONG BUY valid berdasarkan data harga, volume, momentum, likuiditas, dan risk filter saat ini.</div>')
+    +(bow.length
+      ? '<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;"><span style="font-size:10px;font-weight:900;color:'+C.green+';letter-spacing:.06em;">BUY ON WEAKNESS</span><button onclick="STATE.scanFilter=\'bow\';showPage(\'scanner\')" style="color:'+C.cyan+';font-size:10px;">Lihat</button></div><div class="hscroll">'+bow.slice(0,6).map(bowMiniCardHTML).join('')+'</div></div>'
+      : '<div style="padding:10px 12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:'+C.ter+';font-size:10px;line-height:1.45;margin-bottom:10px;">Belum ada kandidat Buy on Weakness. Modul tetap menolak saham yang gagal MA200, koreksi ekstrem, distribusi berat, atau likuiditas rendah.</div>')
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">'
     +'<div style="background:rgba(123,66,188,.07);border:1px solid rgba(123,66,188,.18);border-radius:12px;padding:10px;"><div style="font-size:10px;font-weight:800;color:'+C.cyan+';">BELI PAGI</div><div class="mono" style="font-size:18px;font-weight:900;color:'+C.cyan+';">'+morning.length+'</div><div style="font-size:9px;color:'+C.ter+';">09:00-10:30, entry awal saat flow kuat.</div></div>'
     +'<div style="background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.18);border-radius:12px;padding:10px;"><div style="font-size:10px;font-weight:800;color:'+C.purple+';">BELI SORE</div><div class="mono" style="font-size:18px;font-weight:900;color:'+C.purple+';">'+afternoon.length+'</div><div style="font-size:9px;color:'+C.ter+';">14:30-15:50, tunggu konfirmasi close.</div></div>'
@@ -1170,13 +1222,15 @@ function renderDashboard() {
   var fcBadge = badgeHTML(STATE.freshness, freshnessColor(STATE.freshness), freshnessColor(STATE.freshness)+'18', 9, true);
   var mktBadge= ihsg.marketState==='REGULAR'?badgeHTML('BUKA',C.green,'rgba(0,255,156,.12)',9,true):badgeHTML('TUTUP',C.ter,'rgba(255,255,255,.06)',9,true);
 
-  var tabs=[{id:'buy',label:'BUY',count:enriched.filter(function(s){return s.trading.action==='BUY';}).length,color:C.green},
+  var tabs=[{id:'bow',label:'BOW',count:enriched.filter(isBowCandidate).length,color:C.green},
+            {id:'buy',label:'BUY',count:enriched.filter(function(s){return s.trading.action==='BUY';}).length,color:C.green},
             {id:'akumulasi',label:'Akumulasi',count:enriched.filter(function(s){return scoreValue(s)>=70;}).length,color:C.cyan},
             {id:'sell',label:'SELL',count:enriched.filter(function(s){return s.trading.action==='SELL';}).length,color:C.pink},
             {id:'distribusi',label:'Distribusi',count:enriched.filter(function(s){return scoreValue(s)>=0 && scoreValue(s)<40;}).length,color:C.orange},
             {id:'risk',label:'Risk',count:enriched.filter(function(s){return s.riskFlags.length>0;}).length,color:C.yellow}];
   var tabList;
-  if(STATE.dashTab==='buy')        tabList=enriched.filter(function(s){return s.trading.action==='BUY';}).sort(function(a,b){return b.trading.conf-a.trading.conf;});
+  if(STATE.dashTab==='bow')        tabList=enriched.filter(isBowCandidate).sort(function(a,b){return num(b.buyOnWeakness.score)-num(a.buyOnWeakness.score);});
+  else if(STATE.dashTab==='buy')   tabList=enriched.filter(function(s){return s.trading.action==='BUY';}).sort(function(a,b){return b.trading.conf-a.trading.conf;});
   else if(STATE.dashTab==='akumulasi')tabList=enriched.filter(function(s){return scoreValue(s)>=70;}).sort(function(a,b){return scoreValue(b)-scoreValue(a);});
   else if(STATE.dashTab==='sell')  tabList=enriched.filter(function(s){return s.trading.action==='SELL';}).sort(function(a,b){return b.trading.conf-a.trading.conf;});
   else if(STATE.dashTab==='distribusi')tabList=enriched.filter(function(s){return scoreValue(s)>=0 && scoreValue(s)<40;}).sort(function(a,b){return scoreValue(a)-scoreValue(b);});
@@ -1216,6 +1270,7 @@ function renderScanner() {
   var baseSymbols = STATE.scanSearch ? searchUniverseMatches(STATE.scanSearch, 80) : getRenderableSymbols();
   var enriched=getEnriched(baseSymbols);
   if(STATE.scanFilter==='buy')         enriched=enriched.filter(function(s){return s.trading.action==='BUY';});
+  else if(STATE.scanFilter==='bow')    enriched=enriched.filter(isBowCandidate);
   else if(STATE.scanFilter==='sell')   enriched=enriched.filter(function(s){return s.trading.action==='SELL';});
   else if(STATE.scanFilter==='hold')   enriched=enriched.filter(function(s){return s.trading.action==='HOLD';});
   else if(STATE.scanFilter==='akumulasi')enriched=enriched.filter(function(s){return scoreValue(s)>=70;});
@@ -1224,16 +1279,17 @@ function renderScanner() {
   else if(STATE.scanFilter==='priceonly')enriched=enriched.filter(function(s){return s.dataMode==='PRICE_ONLY';});
   else if(STATE.scanFilter==='fullflow')enriched=enriched.filter(function(s){return s.dataMode==='FULL_FLOW';});
   if(STATE.scanSort==='score')   enriched.sort(function(a,b){return scoreValue(b)-scoreValue(a);});
+  else if(STATE.scanSort==='bow') enriched.sort(function(a,b){return num(b.buyOnWeakness&&b.buyOnWeakness.score)-num(a.buyOnWeakness&&a.buyOnWeakness.score);});
   else if(STATE.scanSort==='conf')enriched.sort(function(a,b){return b.trading.conf-a.trading.conf;});
   else if(STATE.scanSort==='chg') enriched.sort(function(a,b){return b.pctChg-a.pctChg;});
   else if(STATE.scanSort==='nb')  enriched.sort(function(a,b){return num(b.netBuy)-num(a.netBuy);});
   else if(STATE.scanSort==='vol') enriched.sort(function(a,b){return num(b.volume)-num(a.volume);});
-  var filters=[['all','SEMUA',C.sec],['buy','BUY',C.green],['sell','SELL',C.pink],['hold','HOLD',C.yellow],['akumulasi','AKUMULASI',C.cyan],['distribusi','DISTRIBUSI',C.orange],['risk','RISK',C.pink],['fullflow','FULL FLOW',C.green],['priceonly','PRICE ONLY',C.yellow]];
-  var sorts=[['score','Score'],['conf','Conf'],['chg','%Chg'],['nb','Net Buy'],['vol','Volume']];
+  var filters=[['all','SEMUA',C.sec],['bow','BOW',C.green],['buy','BUY',C.green],['sell','SELL',C.pink],['hold','HOLD',C.yellow],['akumulasi','AKUMULASI',C.cyan],['distribusi','DISTRIBUSI',C.orange],['risk','RISK',C.pink],['fullflow','FULL FLOW',C.green],['priceonly','PRICE ONLY',C.yellow]];
+  var sorts=[['score','Score'],['bow','BOW'],['conf','Conf'],['chg','%Chg'],['nb','Net Buy'],['vol','Volume']];
   var listHTML='';
   if(STATE.scanView==='table'){
-    listHTML='<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th style="text-align:left;">Symbol</th><th style="text-align:right;">Harga</th><th style="text-align:right;">Chg%</th><th style="text-align:right;">Net Buy</th><th style="text-align:right;">Score</th><th>Mode</th><th>Action</th></tr></thead><tbody>'
-    +enriched.map(function(s){return '<tr onclick="openDetail(\''+s.symbol+'\')"><td class="mono" style="font-weight:800;">'+s.symbol+'</td><td class="mono" style="text-align:right;">'+fmtPrice(s.price)+'</td><td class="mono" style="text-align:right;color:'+(s.pctChg>=0?C.green:C.pink)+';">'+pctStr(s.pctChg)+'</td><td class="mono" style="text-align:right;color:'+(num(s.netBuy)>=0?C.green:C.ter)+';">'+(s.netBuy!=null?fmtB(s.netBuy):'N/A')+'</td><td class="mono" style="text-align:right;">'+scoreText(s.score)+'</td><td>'+dataModeBadge(s.dataMode)+'</td><td>'+actionBadgeHTML(s.trading.action)+'</td></tr>';}).join('')
+    listHTML='<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th style="text-align:left;">Symbol</th><th style="text-align:right;">Harga</th><th style="text-align:right;">Chg%</th><th style="text-align:right;">BOW</th><th style="text-align:right;">Score</th><th>Mode</th><th>Action</th></tr></thead><tbody>'
+    +enriched.map(function(s){var bow=s.buyOnWeakness;return '<tr onclick="openDetail(\''+s.symbol+'\')"><td class="mono" style="font-weight:800;">'+s.symbol+'</td><td class="mono" style="text-align:right;">'+fmtPrice(s.price)+'</td><td class="mono" style="text-align:right;color:'+(s.pctChg>=0?C.green:C.pink)+';">'+pctStr(s.pctChg)+'</td><td class="mono" style="text-align:right;color:'+(bow&&bow.action==='BOW_BUY'?C.green:C.ter)+';">'+(bow?scoreText(bow.score):'N/A')+'</td><td class="mono" style="text-align:right;">'+scoreText(s.score)+'</td><td>'+dataModeBadge(s.dataMode)+'</td><td>'+actionBadgeHTML(s.trading.action)+'</td></tr>';}).join('')
     +'</tbody></table></div>';
   } else {
     listHTML=enriched.map(function(s){return stockCardHTML(s,STATE.scanView==='compact');}).join('');
@@ -1342,6 +1398,22 @@ function renderDetail() {
             +'<span style="font-size:11px;color:'+(r.p?C.sec:C.orange)+';line-height:1.4;">'+r.t+'</span>'
             +'</div>';
         }).join('')+'</div>'
+      : '')
+    +(s.buyOnWeakness
+      ? '<div class="card" style="padding:14px 16px;margin-top:10px;border-color:'+(s.buyOnWeakness.action==='BOW_BUY'?C.green:C.orange)+'30;background:'+(s.buyOnWeakness.action==='BOW_BUY'?'rgba(0,255,156,.045)':'rgba(255,140,66,.045)')+';">'
+        +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;"><div><div style="font-size:11px;font-weight:900;color:'+(s.buyOnWeakness.action==='BOW_BUY'?C.green:C.orange)+';letter-spacing:.06em;">BUY ON WEAKNESS</div><div style="font-size:10px;color:'+C.ter+';margin-top:3px;">'+(s.buyOnWeakness.verdict||s.buyOnWeakness.category)+'</div></div><div class="mono" style="font-size:24px;font-weight:900;color:'+(s.buyOnWeakness.action==='BOW_BUY'?C.green:C.orange)+';">'+scoreText(s.buyOnWeakness.score)+'</div></div>'
+        +'<div class="levels-grid" style="margin-bottom:10px;">'
+        +[['Pullback',s.buyOnWeakness.pullbackPct!=null?s.buyOnWeakness.pullbackPct.toFixed(1)+'%':'N/A',C.cyan],
+          ['RSI',s.buyOnWeakness.rsiDaily!=null?s.buyOnWeakness.rsiDaily.toFixed(0):'N/A',C.yellow],
+          ['Trend',s.buyOnWeakness.trend||'N/A',s.buyOnWeakness.trend==='Uptrend'?C.green:C.pink],
+          ['Volume',s.buyOnWeakness.volume||'N/A',s.buyOnWeakness.volume==='Distribution'?C.pink:C.green],
+          ['Entry',s.buyOnWeakness.entry&&s.buyOnWeakness.entry.aggressiveEntry?fmtPrice(s.buyOnWeakness.entry.aggressiveEntry):'N/A',C.cyan],
+          ['Stop Loss',s.buyOnWeakness.entry&&s.buyOnWeakness.entry.stopLoss?fmtPrice(s.buyOnWeakness.entry.stopLoss):'N/A',C.pink]]
+          .map(function(m){return '<div class="level-cell"><div style="font-size:8px;color:'+C.ter+';text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;">'+m[0]+'</div><div class="mono" style="font-size:12px;font-weight:700;color:'+m[2]+';line-height:1.3;">'+m[1]+'</div></div>';}).join('')+'</div>'
+        +'<div style="font-size:10px;color:'+C.ter+';line-height:1.55;">'
+        +(s.buyOnWeakness.reasons||[]).slice(0,4).map(function(r){return '<div style="color:'+C.sec+';">+ '+r+'</div>';}).join('')
+        +(s.buyOnWeakness.warnings||[]).slice(0,4).map(function(r){return '<div style="color:'+C.orange+';">- '+r+'</div>';}).join('')
+        +'</div></div>'
       : '');
 
   // OVERVIEW TAB
