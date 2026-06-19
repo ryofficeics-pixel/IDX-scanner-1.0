@@ -4,6 +4,7 @@ const cache = require('../lib/cache/memoryCache');
 const { getUniverse } = require('../lib/market/idxUniverse');
 const { sessionContext } = require('../lib/market/idxSession');
 const yahoo = require('../lib/providers/yahooProvider');
+const idx = require('../lib/providers/idxProvider');
 const fallback = require('../lib/providers/fallbackProvider');
 const { generateSignal } = require('../lib/engine/signalEngine');
 const { generateBowSignal } = require('../lib/engine/bowEngine');
@@ -72,6 +73,25 @@ async function mapLimit(items, limit, worker) {
   await Promise.all(Array.from({ length:Math.min(limit, items.length) }, run));
   return out;
 }
+async function withTimeout(label, ms, task) {
+  // Bound provider calls so one slow upstream cannot stall the whole scan request.
+  return Promise.race([
+    task(),
+    new Promise((_, reject) => setTimeout(() => reject(new Error(`${label}_TIMEOUT`)), ms)),
+  ]);
+}
+
+async function getMarketQuote({ debug, forceQuoteFail }) {
+  // Prefer IDX for IHSG only; stock quotes remain on Yahoo and fallback preserves the old market fields.
+  try {
+    return await withTimeout('IDX_IHSG', 6000, () => idx.getIHSGQuote({ bypassCache:debug, timeoutMs:5000 }));
+  } catch (idxError) {
+    const fallbackBatch = await withTimeout('YAHOO_IHSG', 9000, () => yahoo.getBatchQuotes(['^JKSE'], { forceQuoteFail, bypassCache:debug }));
+    const quote = fallbackBatch.quotes?.['^JKSE'] || fallbackBatch.ihsg || null;
+    if (quote) return { ...quote, source:quote.source || 'yahoo-finance' };
+    throw idxError;
+  }
+}
 
 module.exports = async function handler(req, res) {
   setCors(res);
@@ -132,12 +152,12 @@ module.exports = async function handler(req, res) {
   let provider;
   try {
     if (forceProviderFail) throw new Error('FORCED_PROVIDER_FAIL');
-    provider = await yahoo.getBatchQuotes(symbols, {
+    provider = await withTimeout('YAHOO_BATCH_QUOTES', 30000, () => yahoo.getBatchQuotes(symbols, {
       forceQuoteFail,
       forceChartFail,
       delayMs:mockProviderDelayMs,
       bypassCache:debug,
-    });
+    }));
   } catch (error) {
     diagnostics.errors.push(`Primary provider failed: ${error.message}`);
     provider = fallback.structuredFailure(symbols, error.message);
@@ -149,7 +169,12 @@ module.exports = async function handler(req, res) {
   diagnostics.providerFallbackStatus = provider.providerFallbackStatus || 'unknown';
   diagnostics.failedSymbols = provider.failedSymbols || [];
   diagnostics.warnings = provider.warnings || [];
-  const ihsg = provider.ihsg || provider.quotes?.['^JKSE'] || null;
+  let ihsg = null;
+  try {
+    ihsg = await getMarketQuote({ debug, forceQuoteFail });
+  } catch (error) {
+    diagnostics.warnings.push(`IHSG provider failed: ${error.message}`);
+  }
   const market = {
     ihsgPrice: ihsg?.lastPrice ?? null,
     ihsgChangePct: ihsg?.previousClose > 0 && ihsg?.lastPrice > 0 ? ((ihsg.lastPrice - ihsg.previousClose) / ihsg.previousClose) * 100 : ihsg?.changePct ?? null,
@@ -163,11 +188,12 @@ module.exports = async function handler(req, res) {
   const candidates = Object.values(provider.quotes || {})
     .filter((q) => q.symbol !== '^JKSE' && q.lastPrice != null)
     .sort((a, b) => ((b.volume || 0) * (b.lastPrice || 0)) - ((a.volume || 0) * (a.lastPrice || 0)))
-    .slice(0, debug ? symbols.length : 35);
+    // Request history only for the top 20 liquid symbols; lower-ranked symbols keep quote-only recommendations.
+    .slice(0, Math.min(symbols.length, 20));
   const historyBySymbol = {};
   let ihsgDaily = [];
   try {
-    ihsgDaily = await yahoo.getDailyHistory('^JKSE', '3mo', '1d');
+    ihsgDaily = await withTimeout('YAHOO_IHSG_DAILY', 10000, () => yahoo.getDailyHistory('^JKSE', '3mo', '1d'));
   } catch (_) {
     ihsgDaily = [];
   }
@@ -175,11 +201,14 @@ module.exports = async function handler(req, res) {
   const ihsgReturn3M = ihsgCloses.length > 63 && ihsgCloses[0] > 0
     ? ((ihsgCloses[ihsgCloses.length - 1] - ihsgCloses[0]) / ihsgCloses[0]) * 100
     : null;
-  await mapLimit(candidates, 8, async (q) => {
+  const historyFailures = new Set();
+  await mapLimit(candidates, 10, async (q) => {
     const [daily, intraday] = await Promise.allSettled([
-      yahoo.getDailyHistory(q.symbol, '1y', '1d'),
-      yahoo.getIntradayHistory(q.symbol, '1d', '5m'),
+      withTimeout(`DAILY_${q.symbol}`, 12000, () => yahoo.getDailyHistory(q.symbol, '1y', '1d')),
+      withTimeout(`INTRADAY_${q.symbol}`, 8000, () => yahoo.getIntradayHistory(q.symbol, '1d', '5m')),
     ]);
+    // Preserve partial result mode: history failures mark diagnostics but never abort the scan.
+    if (daily.status !== 'fulfilled' || intraday.status !== 'fulfilled') historyFailures.add(q.symbol);
     historyBySymbol[q.symbol] = {
       daily:daily.status === 'fulfilled' ? daily.value : [],
       intraday:intraday.status === 'fulfilled' ? intraday.value : [],
@@ -187,6 +216,10 @@ module.exports = async function handler(req, res) {
     const derivedAvgVolume = avgDailyVolume(historyBySymbol[q.symbol].daily);
     if (derivedAvgVolume && !q.avgVolume20) q.avgVolume20 = derivedAvgVolume;
   });
+  if (historyFailures.size) {
+    diagnostics.failedSymbols = [...new Set([...(diagnostics.failedSymbols || []), ...historyFailures])];
+    diagnostics.warnings.push(`Partial history unavailable for ${historyFailures.size} symbol(s)`);
+  }
 
   for (const symbol of symbols) {
     const q = provider.quotes?.[symbol] || { symbol, yahooSymbol:`${symbol}.JK`, lastPrice:null, previousClose:null, timestamp:generatedAt, source:'none' };
