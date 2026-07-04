@@ -10,14 +10,8 @@ const { generateSignal } = require('../lib/engine/signalEngine');
 const { generateBowSignal } = require('../lib/engine/bowEngine');
 const { updateScanState } = require('../lib/runtime/scanState');
 
-function send(res, status, body) {
-  res.status(status).json(body);
-}
-function setCors(res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
-}
+const { setCors } = require('../lib/utils/http');
+function send(res, status, body) { res.status(status).json(body); }
 function emptyRecs() {
   return { strongBuy:[], beliPagi:[], beliSore:[], buyOnWeakness:[], topBuy:[], topGainers:[], accumulationProxy:[], distributionProxy:[], risk:[], hold:[], sell:[] };
 }
@@ -46,10 +40,15 @@ function pushBowRec(recs, bow) {
   });
 }
 function avgDailyVolume(candles) {
-  const volumes = (candles || [])
+  // FIX: previously included the most recent bar (today, possibly still in-progress, possibly
+  // the breakout day itself) inside its own baseline average -- which dilutes the very spike
+  // ratio (today's volume / average) that downstream scoring depends on. The baseline should
+  // reflect the days *before* today, not include today.
+  const all = (candles || [])
     .map((c) => Number(c.volume))
-    .filter((v) => Number.isFinite(v) && v > 0)
-    .slice(-20);
+    .filter((v) => Number.isFinite(v) && v > 0);
+  const priorDays = all.length > 1 ? all.slice(0, -1) : all;
+  const volumes = priorDays.slice(-20);
   if (!volumes.length) return null;
   return volumes.reduce((sum, v) => sum + v, 0) / volumes.length;
 }
@@ -185,11 +184,27 @@ module.exports = async function handler(req, res) {
   const recs = emptyRecs();
   const signals = [];
   const meta = new Map(universe.map((row) => [row.symbol, row]));
-  const candidates = Object.values(provider.quotes || {})
-    .filter((q) => q.symbol !== '^JKSE' && q.lastPrice != null)
+  // FIX: previously only fetched history for the top-20 by dollar-liquidity. Small/mid-cap names
+  // that produce 20-30%+ single-day moves never got BOW/history treatment unless they were also
+  // among the most liquid names that day. Now we take the union of top-20 by liquidity AND top-20
+  // by today's |%change|, so the day's biggest movers always get full history treatment.
+  const HISTORY_BY_LIQUIDITY = 20;
+  const HISTORY_BY_MOMENTUM  = 20;
+  const allQuotes = Object.values(provider.quotes || {})
+    .filter((q) => q.symbol !== '^JKSE' && q.lastPrice != null);
+  const byLiquidity = [...allQuotes]
     .sort((a, b) => ((b.volume || 0) * (b.lastPrice || 0)) - ((a.volume || 0) * (a.lastPrice || 0)))
-    // Request history only for the top 20 liquid symbols; lower-ranked symbols keep quote-only recommendations.
-    .slice(0, Math.min(symbols.length, 20));
+    .slice(0, Math.min(allQuotes.length, HISTORY_BY_LIQUIDITY));
+  const byMomentum = [...allQuotes]
+    .sort((a, b) => {
+      const aPct = a.previousClose > 0 ? Math.abs((a.lastPrice - a.previousClose) / a.previousClose) : 0;
+      const bPct = b.previousClose > 0 ? Math.abs((b.lastPrice - b.previousClose) / b.previousClose) : 0;
+      return bPct - aPct;
+    })
+    .slice(0, Math.min(allQuotes.length, HISTORY_BY_MOMENTUM));
+  const candidateMap = new Map();
+  for (const q of [...byLiquidity, ...byMomentum]) candidateMap.set(q.symbol, q);
+  const candidates = Array.from(candidateMap.values());
   const historyBySymbol = {};
   let ihsgDaily = [];
   try {
@@ -202,7 +217,10 @@ module.exports = async function handler(req, res) {
     ? ((ihsgCloses[ihsgCloses.length - 1] - ihsgCloses[0]) / ihsgCloses[0]) * 100
     : null;
   const historyFailures = new Set();
-  await mapLimit(candidates, 10, async (q) => {
+  // FIX: candidate count can now be up to ~2x (liquidity ∪ momentum union above), so concurrency
+  // is raised to keep wall-clock latency roughly where it was. If you're on a tight serverless
+  // function timeout (e.g. Vercel Hobby's 10s), tune this down and/or lower HISTORY_BY_MOMENTUM.
+  await mapLimit(candidates, 16, async (q) => {
     const [daily, intraday] = await Promise.allSettled([
       withTimeout(`DAILY_${q.symbol}`, 12000, () => yahoo.getDailyHistory(q.symbol, '1y', '1d')),
       withTimeout(`INTRADAY_${q.symbol}`, 8000, () => yahoo.getIntradayHistory(q.symbol, '1d', '5m')),

@@ -17,14 +17,9 @@ function sampleQuotes(symbols) {
   }]));
 }
 
-function nowISO() { return new Date().toISOString(); }
+const { setCors } = require('../lib/utils/http');
 function num(v) { const n = Number(v); return Number.isFinite(n) ? n : null; }
 function send(res, status, body) { res.status(status).json(body); }
-function setCors(res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
-}
 function symbolsFromQuery(req) {
   const raw = req.query && req.query.symbols ? String(req.query.symbols) : '';
   const symbols = raw

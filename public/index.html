@@ -586,11 +586,6 @@ function mergeScanPayload(base, next) {
   return merged;
 }
 
-function autoScanTargetCount() {
-  var universeCount = SYMBOLS.length || (window.IDX_UNIVERSE_COUNT || 900);
-  return universeCount;
-}
-
 async function fetchScanPayload(params) {
   var res = await fetch('/api/scan?' + params.toString(), {
     method: 'GET',
@@ -644,7 +639,7 @@ async function fetchLive(force) {
       params.set('limit', '120');
       payload = await fetchScanPayload(params);
     } else {
-      var total = autoScanTargetCount();
+      var total = SYMBOLS.length || (window.IDX_UNIVERSE_COUNT || 900);
       payload = await fetchFullUniversePayload(total);
     }
     STATE.cacheStatus = 'fresh';
@@ -688,7 +683,6 @@ async function fetchLive(force) {
 }
 
 function forceSync() { fetchLive(true); }
-function runAutoScan() { fetchLive(true); }
 
 function startSyncTimer() {
   if (STATE.syncTimer) clearInterval(STATE.syncTimer);
@@ -762,9 +756,17 @@ function calcVolSpike(s) {
 function calcRiskFlags(s) {
   var flags = [];
   var price = num(s.price), prev = num(s.prevClose);
+  // FIX: "bullish-backed" = real flow data confirms buyers are actually behind the move,
+  // not just price/volume noise. Used to tell a genuine breakout apart from a fake pump.
+  var nb0 = maybeNum(s.netBuy);
+  var fb0 = maybeNum(s.foreignBuy), fs0 = maybeNum(s.foreignSell);
+  var foreignBuyPct0 = (fb0 !== null && fs0 !== null && (fb0+fs0) > 0) ? safeDiv(fb0, fb0+fs0)*100 : null;
+  var bullishBacked = (nb0 !== null && nb0 > 0) || (foreignBuyPct0 !== null && foreignBuyPct0 >= 55);
   if (prev > 0 && price > 0) {
     var pChg = safeDiv(price-prev, prev);
-    if (pChg > .20) flags.push({label:'Risiko ARA', color:C.pink});
+    // FIX: only flag a big up-move as risk when it ISN'T backed by real buy flow.
+    // A move backed by net buy / foreign buy is a breakout, not a red flag.
+    if (pChg > .20 && !bullishBacked) flags.push({label:'Risiko ARA', color:C.pink});
   }
   var bb = maybeNum(s.brokerBuy), bs = maybeNum(s.brokerSell);
   if (bb !== null && bs !== null && price > 0) {
@@ -772,18 +774,21 @@ function calcRiskFlags(s) {
     if (bAvg > 0 && Math.abs(safeDiv(price-bAvg, bAvg)) > .10)
       flags.push({label:'Jauh Broker Avg', color:C.yellow});
   }
-  var fb = maybeNum(s.foreignBuy), fs = maybeNum(s.foreignSell);
+  var fb = fb0, fs = fs0;
   if (fb !== null && fs !== null) {
     var fRatio = safeDiv(fs, fb+fs+1);
     if (fRatio > .65) flags.push({label:'Foreign Sell', color:C.yellow});
   }
   var vol = maybeNum(s.volume), avg5 = maybeNum(s.volumeAvg5d);
-  if (vol !== null && avg5 !== null && avg5 > 0 && safeDiv(vol,avg5) > 4.5)
-    flags.push({label:'Volume Spike Ekstrem', color:C.pink});
+  if (vol !== null && avg5 !== null && avg5 > 0 && safeDiv(vol,avg5) > 4.5) {
+    // FIX: a volume spike backed by buy flow is an early-breakout signal, not a risk.
+    // Only flag it when there's no confirming buy flow (pump/dump pattern).
+    if (!bullishBacked) flags.push({label:'Volume Spike Ekstrem', color:C.pink});
+  }
   var frqB = maybeNum(s.freqBuy), frqS = maybeNum(s.freqSell);
   if (frqB !== null && frqS !== null && safeDiv(frqB,frqB+frqS+1) < .35)
     flags.push({label:'Frequency Lemah', color:C.ter});
-  var nb = maybeNum(s.netBuy);
+  var nb = nb0;
   if (nb !== null && nb < 0 && fb !== null && fs !== null && safeDiv(fs,fb+fs+1) > .55)
     flags.push({label:'Distribusi Terselubung', color:C.pink});
   return flags;
@@ -869,8 +874,11 @@ function calcTrading(s) {
       scolor:(sig.confidence||0)>=80?C.green:(sig.confidence||0)>=60?C.cyan:(sig.confidence||0)>=40?C.yellow:C.orange,
       eL:validPrice(s.price)?Math.round(s.price*.99/10)*10:null,
       eH:validPrice(s.price)?Math.round(s.price*1.01/10)*10:null,
-      t1:validPrice(s.price)?Math.round(s.price*1.025/10)*10:null,
-      t2:validPrice(s.price)?Math.round(s.price*1.05/10)*10:null,
+      // FIX: was a flat +2.5%/+5% target regardless of confidence -- tighter than the client-side
+      // cap this was supposed to be more sophisticated than. Now scales with backend confidence,
+      // same curve as the fallback engine below, so high-conviction STRONG_BUY signals get room to run.
+      t1:validPrice(s.price)?Math.round(s.price*(1+Math.pow(clamp(sig.confidence||0,0,100)/100,1.5)*.30*.5)/10)*10:null,
+      t2:validPrice(s.price)?Math.round(s.price*(1+Math.pow(clamp(sig.confidence||0,0,100)/100,1.5)*.30)/10)*10:null,
       sl:validPrice(s.price)?Math.round(s.price*.96/10)*10:null,
       rr:'-',
       reasons:reasons
@@ -908,7 +916,10 @@ function calcTrading(s) {
   var bs    = num(s.brokerSell, price);
   var bAvg  = (bb+bs)/2 || price;
   var rnd   = function(v){ return Math.round(num(v)/10)*10; };
-  var up    = (score/100)*.08;
+  // FIX: was a hard 8% cap regardless of conviction (`(score/100)*.08`), which meant even a
+  // max-score signal told the user to exit at 8% and walk away from a 30% move. Now scales
+  // non-linearly up to 30% at score=100 while staying conservative at low scores.
+  var up    = Math.pow(score/100, 1.5) * .30;
   var slP   = risk.length>=2 ? .03 : .05;
   var eL    = validPrice(price) ? rnd(Math.min(price,bAvg)*.995) : null;
   var eH    = validPrice(price) ? rnd(Math.max(price,bAvg)*1.005) : null;
@@ -959,7 +970,9 @@ function enrich(sym, liveQ) {
     netBuy:      liveQ && liveQ.netBuy      != null ? maybeNum(liveQ.netBuy)      : maybeNum(flow.netBuy),
     freqBuy:     liveQ && liveQ.freqBuy     != null ? maybeNum(liveQ.freqBuy)     : maybeNum(flow.freqBuy),
     freqSell:    liveQ && liveQ.freqSell    != null ? maybeNum(liveQ.freqSell)    : maybeNum(flow.freqSell),
-    volumeAvg5d: maybeNum(flow.volumeAvg5d),
+    // FIX: prefer live-provided volumeAvg5d (backend avgVolume20) over CSV upload,
+    // which was almost always empty and silently disabled volume-spike scoring.
+    volumeAvg5d: (liveQ && maybeNum(liveQ.volumeAvg5d) !== null) ? maybeNum(liveQ.volumeAvg5d) : maybeNum(flow.volumeAvg5d),
     flowTradeDate: flow.tradeDate || null,
     flowSource: flow.source || (flow.tradeDate ? 'local-csv' : null),
     flowUpdatedAt: flow.updatedAt || null,
@@ -1858,7 +1871,7 @@ if (bootCache && bootCache.payload) {
   setSyncUI('stale');
 }
 renderDashboard();
-setTimeout(runAutoScan, 350);
+setTimeout(function(){ fetchLive(true); }, 350);
 startSyncTimer();
 
 </script>
