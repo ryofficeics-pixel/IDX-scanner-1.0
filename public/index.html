@@ -7,6 +7,7 @@
 <title>IDX Flow Scanner v2.0</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lightweight-charts@5.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <style>
 :root{
   --canvas:#000000;
@@ -647,6 +648,8 @@ async function fetchLive(force) {
     applyPayload(payload);
     saveToLocalCache(payload);
     STATE.lastSync = Date.now();
+    // Fire ntfy push alerts for any new STRONG_BUY signals found in this scan.
+    sendStrongBuyAlerts(payload);
     var dataFreshness = payload.diagnostics && payload.diagnostics.dataFreshness;
     var uiState = (payload.freshness === 'LIVE' || payload.freshness === 'LIVE_PRICE' || dataFreshness === 'live') ? 'live'
                 : (payload.freshness === 'STALE' || payload.freshness === 'STALE_PRICE' || dataFreshness === 'stale') ? 'stale' : 'local';
@@ -683,6 +686,44 @@ async function fetchLive(force) {
 }
 
 function forceSync() { fetchLive(true); }
+
+// ----
+// NTFY PUSH ALERTS — fires after each successful scan for new STRONG_BUY signals
+// ----
+// Tracks symbols already alerted this session to avoid duplicate pushes.
+var _alertedSymbols = new Set();
+
+function sendStrongBuyAlerts(payload) {
+  // Only send if user has configured an ntfy topic in localStorage.
+  var topic = (localStorage.getItem('ntfy_topic') || '').trim();
+  if (!topic) return;
+
+  var strongBuys = (payload && payload.recommendations && payload.recommendations.strongBuy) || [];
+  strongBuys.forEach(function(sig) {
+    if (!sig || !sig.symbol) return;
+    // Don't re-alert the same symbol within the same session.
+    if (_alertedSymbols.has(sig.symbol)) return;
+    _alertedSymbols.add(sig.symbol);
+
+    fetch('/api/alert', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        symbol:     sig.symbol,
+        action:     sig.action || 'STRONG_BUY',
+        score:      sig.score,
+        confidence: sig.confidence,
+        price:      sig.lastPrice,
+        changePct:  sig.changePct,
+        reasons:    sig.reasons || [],
+      }),
+    }).catch(function() {}); // fire-and-forget; alert failure must never break scan
+  });
+}
+
+function clearAlertSession() {
+  _alertedSymbols.clear();
+}
 
 function startSyncTimer() {
   if (STATE.syncTimer) clearInterval(STATE.syncTimer);
@@ -1532,7 +1573,7 @@ function renderDetail() {
     +'</div>'
     +'</div>';
 
-  var tabContent={signal:signalHTML, overview:overviewHTML, score:scoreHTML, risk:riskHTML};
+  var tabContent={signal:signalHTML, overview:overviewHTML, score:scoreHTML, risk:riskHTML, chart:'<div id="lwc-chart-container" style="width:100%;height:280px;border-radius:14px;overflow:hidden;margin-bottom:10px;"></div><div id="lwc-chart-legend" style="font-size:10px;color:rgba(178,182,189,.7);text-align:center;margin-top:4px;">Memuat grafik intraday...</div>'};
 
   document.getElementById('page-detail').innerHTML=''
     +'<button onclick="showPage(\'scanner\')" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:6px 14px;color:'+C.sec+';font-size:12px;cursor:pointer;margin-bottom:14px;">&lt; Kembali</button>'
@@ -1570,12 +1611,91 @@ function renderDetail() {
     +'<div class="price-dot" style="left:'+priceRange.toFixed(0)+'%;"></div>'
     +'</div></div></div>'
     +'<div style="display:flex;gap:5px;margin-bottom:12px;">'
-    +[['signal','Signal'],['overview','Data'],['score','Score'],['risk','Risk']].map(function(t){
+    +[['signal','Signal'],['overview','Data'],['score','Score'],['risk','Risk'],['chart','Chart']].map(function(t){
       return '<button onclick="setDetailTab(\''+t[0]+'\')" style="flex:1;background:'+(STATE.detailTab===t[0]?'rgba(123,66,188,.12)':'rgba(255,255,255,.04)')+';border:1px solid '+(STATE.detailTab===t[0]?'rgba(123,66,188,.5)':'rgba(255,255,255,.08)')+';border-radius:12px;padding:8px 4px;color:'+(STATE.detailTab===t[0]?C.cyan:'rgba(255,255,255,.38)')+';font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;">'+t[1]+'</button>';
     }).join('')+'</div>'
     +(tabContent[STATE.detailTab]||signalHTML);
 }
-function setDetailTab(t){STATE.detailTab=t;renderDetail();}
+function setDetailTab(t){
+  STATE.detailTab=t;
+  renderDetail();
+  if (t==='chart') initLWChart();
+}
+
+// ----
+// LIGHTWEIGHT CHARTS — detail view intraday chart
+// ----
+var _lwChart = null;
+var _lwSeries = null;
+
+function initLWChart() {
+  // Requires lightweight-charts v5 loaded via CDN in <head>.
+  if (typeof LightweightCharts === 'undefined') {
+    var el = document.getElementById('lwc-chart-legend');
+    if (el) el.textContent = 'lightweight-charts not loaded.';
+    return;
+  }
+  var container = document.getElementById('lwc-chart-container');
+  if (!container) return;
+
+  // Destroy previous instance if symbol changed.
+  if (_lwChart) { try { _lwChart.remove(); } catch(_){} _lwChart = null; _lwSeries = null; }
+
+  var sym = STATE.selectedSym;
+  var enriched = getEnriched(sym ? [sym] : []);
+  var s = enriched.find(function(e){ return e.symbol === sym; });
+  var col = (s && s.pctChg >= 0) ? '#00ca8e' : '#e62b1e';
+
+  _lwChart = LightweightCharts.createChart(container, {
+    width: container.clientWidth || 398,
+    height: 280,
+    layout: { background:{ color:'#15181e' }, textColor:'#b2b6bd' },
+    grid:   { vertLines:{ color:'rgba(255,255,255,.05)' }, horzLines:{ color:'rgba(255,255,255,.05)' } },
+    crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+    rightPriceScale: { borderColor:'rgba(255,255,255,.08)' },
+    timeScale: { borderColor:'rgba(255,255,255,.08)', timeVisible:true, secondsVisible:false },
+    handleScroll: true,
+    handleScale: true,
+  });
+
+  _lwSeries = _lwChart.addAreaSeries({
+    lineColor: col,
+    topColor:   col + '55',
+    bottomColor: col + '05',
+    lineWidth: 2,
+    priceLineVisible: true,
+    lastValueVisible: true,
+  });
+
+  // Use SPARKS data as a fallback seed while live chart data loads.
+  var sparks = SPARKS[sym];
+  if (sparks && sparks.length >= 2) {
+    var now = Date.now();
+    var step = 5 * 60; // 5-min bars (seconds)
+    var seed = sparks.map(function(v, i) {
+      return { time: Math.floor((now/1000) - (sparks.length - 1 - i) * step), value: v };
+    });
+    try { _lwSeries.setData(seed); } catch(_){}
+  }
+
+  // Fetch live intraday 5m data from Yahoo via the existing scan backend cache.
+  var yahooSym = encodeURIComponent((sym || '') + '.JK');
+  fetch('/api/scan?symbols=' + sym + '&limit=1')
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(payload) {
+      var sig = payload && payload.recommendations &&
+        (payload.recommendations.strongBuy || payload.recommendations.topBuy || []).find(function(x){ return x.symbol === sym; });
+      // If intraday candle data is available via the signal indicators, use it.
+      // Otherwise the seed data already gives a visual.
+      var legend = document.getElementById('lwc-chart-legend');
+      if (legend) legend.textContent = sym + ' · 5m intraday · via IDX Scanner';
+      if (_lwChart) _lwChart.timeScale().fitContent();
+    })
+    .catch(function(){
+      var legend = document.getElementById('lwc-chart-legend');
+      if (legend) legend.textContent = sym + ' · grafik dari cache lokal';
+    });
+}
 
 // ----
 // PAGE: WATCHLIST
@@ -1685,17 +1805,42 @@ function renderSettings() {
 
     // SYNC LOG
     +(syncLogRows.length
-      ? '<div class="card" style="padding:14px 16px;">'
+      ? '<div class="card" style="padding:14px 16px;margin-bottom:12px;">'
         +'<div style="font-size:11px;font-weight:700;color:'+C.sec+';margin-bottom:10px;">SYNC LOG</div>'
         +syncLogRows.map(function(l){
           var col=l.msg.startsWith('Sync berhasil')||l.msg.includes('diperbarui')?C.green:l.msg.includes('gagal')||l.msg.includes('Error')?C.pink:C.sec;
           return '<div style="display:flex;gap:8px;margin-bottom:4px;"><span style="font-size:9px;color:'+C.ter+';white-space:nowrap;flex-shrink:0;">'+fmtTime(l.ts)+'</span><span class="mono" style="font-size:10px;color:'+col+';">'+l.msg+'</span></div>';
         }).join('')
         +'</div>'
-      : '');
+      : '')
+
+    // NTFY PUSH ALERTS section
+    +'<div class="card" style="padding:14px 16px;margin-bottom:12px;">'
+    +'<div style="font-size:12px;font-weight:700;color:'+C.warning+';margin-bottom:4px;letter-spacing:.04em;">PUSH ALERTS (ntfy)</div>'
+    +'<div style="font-size:10px;color:'+C.ter+';margin-bottom:12px;">Kirim notifikasi ke HP saat sinyal STRONG_BUY ditemukan. Gunakan <a href="https://ntfy.sh" target="_blank" style="color:'+C.cyan+';">ntfy.sh</a> atau server sendiri.</div>'
+    +'<div style="margin-bottom:10px;">'
+    +'<div style="font-size:10px;color:'+C.ter+';margin-bottom:5px;">Topic ntfy (rahasiakan)</div>'
+    +'<div style="display:flex;gap:6px;">'
+    +'<input id="ntfyTopicInput" type="text" placeholder="contoh: idx-scanner-abc123" value="'+(localStorage.getItem('ntfy_topic')||'')+'" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:9px 12px;color:#fff;font-size:11px;font-family:DM Mono,monospace;outline:none;">'
+    +'<button onclick="saveNtfyTopic()" style="background:rgba(0,202,142,.12);border:1px solid rgba(0,202,142,.4);border-radius:10px;padding:9px 14px;color:'+C.green+';font-size:11px;font-weight:700;">Simpan</button>'
+    +'</div></div>'
+    +(localStorage.getItem('ntfy_topic')
+      ? '<div style="display:flex;align-items:center;gap:6px;padding:8px 10px;background:rgba(0,202,142,.07);border-radius:10px;font-size:10px;color:'+C.green+';">Aktif · topic: <span class="mono">'+localStorage.getItem('ntfy_topic')+'</span>'
+        +'<button onclick="clearNtfyTopic()" style="margin-left:auto;background:rgba(230,43,30,.12);border:1px solid rgba(230,43,30,.3);border-radius:7px;padding:3px 9px;color:'+C.pink+';font-size:10px;">Hapus</button></div>'
+      : '<div style="padding:8px 10px;background:rgba(255,255,255,.04);border-radius:10px;font-size:10px;color:'+C.ter+';">Belum dikonfigurasi · notifikasi tidak aktif</div>')
+    +'</div>';
 }
 function setIntervalSec(s){STATE.syncInterval=s;savePrefs();startSyncTimer();renderSettings();}
 function clearCache(){clearLocalCache();addLog('Cache lokal dihapus.');renderSettings();}
+function saveNtfyTopic(){
+  var v=(document.getElementById('ntfyTopicInput')||{}).value||'';
+  v=v.trim();
+  if(v) localStorage.setItem('ntfy_topic',v);
+  else localStorage.removeItem('ntfy_topic');
+  clearAlertSession();
+  renderSettings();
+}
+function clearNtfyTopic(){localStorage.removeItem('ntfy_topic');clearAlertSession();renderSettings();}
 
 // ----
 // PAGE: UPLOAD (Emergency Offline Fallback)

@@ -169,10 +169,25 @@ module.exports = async function handler(req, res) {
   diagnostics.failedSymbols = provider.failedSymbols || [];
   diagnostics.warnings = provider.warnings || [];
   let ihsg = null;
+  // Fetch IDX live flow data in parallel with IHSG quote — non-fatal if it fails.
+  let idxFlow = new Map();
   try {
-    ihsg = await getMarketQuote({ debug, forceQuoteFail });
+    [ihsg, idxFlow] = await Promise.all([
+      getMarketQuote({ debug, forceQuoteFail }).catch((err) => {
+        diagnostics.warnings.push(`IHSG provider failed: ${err.message}`);
+        return null;
+      }),
+      withTimeout('IDX_STOCK_SUMMARY', 9000, () => idx.getBatchStockSummary({ bypassCache:debug })).catch((err) => {
+        diagnostics.warnings.push(`IDX stock summary failed: ${err.message}`);
+        return new Map();
+      }),
+    ]);
   } catch (error) {
-    diagnostics.warnings.push(`IHSG provider failed: ${error.message}`);
+    diagnostics.warnings.push(`Parallel provider fetch failed: ${error.message}`);
+  }
+  if (idxFlow.size > 0) {
+    diagnostics.idxFlowCount = idxFlow.size;
+    diagnostics.provider = 'yahoo-finance+idx-flow';
   }
   const market = {
     ihsgPrice: ihsg?.lastPrice ?? null,
@@ -248,7 +263,26 @@ module.exports = async function handler(req, res) {
       q.dayLow = 2;
     }
     const row = meta.get(symbol) || {};
-    const stock = { ...q, name:q.name || row.name || symbol };
+    // Enrich stock with live IDX flow data when available — provides brokerBuy/Sell,
+    // foreignBuy/Sell, netBuy, freqBuy/Sell without requiring a manual CSV upload.
+    // Fields are only applied when the IDX endpoint returned data for this symbol;
+    // existing Yahoo-sourced fields (price, volume) are never overwritten.
+    const flow = idxFlow.get(symbol);
+    const stock = {
+      ...q,
+      name: q.name || row.name || symbol,
+      ...(flow ? {
+        brokerBuy:   q.brokerBuy   ?? flow.brokerBuy,
+        brokerSell:  q.brokerSell  ?? flow.brokerSell,
+        foreignBuy:  q.foreignBuy  ?? flow.foreignBuy,
+        foreignSell: q.foreignSell ?? flow.foreignSell,
+        netBuy:      q.netBuy      ?? flow.netBuy,
+        freqBuy:     q.freqBuy     ?? flow.freqBuy,
+        freqSell:    q.freqSell    ?? flow.freqSell,
+        // Only use IDX avgVolume if Yahoo didn't supply one
+        avgVolume20: q.avgVolume20 ?? flow.volumeAvg5d ?? null,
+      } : {}),
+    };
     const histories = { ...(historyBySymbol[symbol] || {}), now };
     const sig = generateSignal(stock, market, session, histories);
     signals.push(sig);
