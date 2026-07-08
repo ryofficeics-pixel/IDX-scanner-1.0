@@ -1031,7 +1031,17 @@ function enrich(sym, liveQ) {
   var signal    = s.buyOnWeakness && s.buyOnWeakness.action === 'BOW_BUY'
     ? {label:'BUY ON WEAKNESS', short:'BOW', color:C.green, bg:'rgba(0,255,156,.12)'}
     : s.backendSignal
-    ? {label:s.backendSignal.category === 'ACCUMULATION_PROXY' ? 'AKUMULASI PROXY' : s.backendSignal.category === 'DISTRIBUTION_PROXY' ? 'DISTRIBUSI PROXY' : s.backendSignal.action, short:s.backendSignal.action === 'STRONG_BUY' ? 'SB' : s.backendSignal.action, color:s.backendSignal.action === 'STRONG_BUY' || s.backendSignal.action === 'BUY' ? C.green : s.backendSignal.action === 'SELL' || s.backendSignal.action === 'AVOID' || s.backendSignal.riskLevel === 'HIGH' ? C.pink : C.yellow, bg:'rgba(255,255,255,.08)'}
+    ? (function(){
+        var cat = s.backendSignal.category;
+        var act = s.backendSignal.action;
+        if (cat === 'MORNING_WATCH') return {label:'MORNING WATCH', short:'MW', color:C.purple, bg:'rgba(20,198,203,.13)'};
+        if (cat === 'ARA_CANDIDATE') return {label:'ARA CANDIDATE', short:'ARA', color:C.green, bg:'rgba(0,255,156,.13)'};
+        if (cat === 'EARLY_MOMENTUM') return {label:'EARLY MOMENTUM', short:'EM', color:C.cyan, bg:'rgba(123,66,188,.13)'};
+        if (cat === 'ACCUMULATION_PROXY') return {label:'AKUMULASI PROXY', short:'AP', color:C.green, bg:'rgba(0,255,156,.13)'};
+        if (cat === 'DISTRIBUTION_PROXY') return {label:'DISTRIBUSI PROXY', short:'DP', color:C.orange, bg:'rgba(255,140,66,.13)'};
+        if (act === 'MORNING_BUY') return {label:'MORNING BUY', short:'MB', color:C.green, bg:'rgba(0,255,156,.13)'};
+        return {label:act, short:act === 'STRONG_BUY' ? 'SB' : act, color:act === 'STRONG_BUY' || act === 'BUY' ? C.green : act === 'SELL' || act === 'AVOID' || s.backendSignal.riskLevel === 'HIGH' ? C.pink : C.yellow, bg:'rgba(255,255,255,.08)'};
+      })()
     : classifySig(score);
   var hasBrokerFlow = s.brokerBuy != null && s.brokerSell != null;
   var brokerAvg = hasBrokerFlow ? (num(s.brokerBuy)+num(s.brokerSell))/2 : null;
@@ -1179,6 +1189,15 @@ function miniCardHTML(s) {
     +'</div>';
 }
 
+function morningWatchCardHTML(s) {
+  var m = s.backendSignal && s.backendSignal.indicators ? s.backendSignal.indicators : {};
+  return '<div onclick="openDetail(\''+s.symbol+'\')" style="min-width:188px;background:rgba(20,198,203,.055);border:1px solid rgba(20,198,203,.24);border-radius:16px;padding:12px 13px;cursor:pointer;flex-shrink:0;">'
+    +'<div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:7px;"><div><div style="font-size:14px;font-weight:900;">'+s.symbol+'</div><div style="font-size:9px;color:'+C.ter+';margin-top:2px;">'+s.name+'</div></div><div class="mono" style="font-size:18px;font-weight:900;color:'+C.purple+';">'+scoreText(s.score)+'</div></div>'
+    +'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;">'+badgeHTML('MORNING WATCH',C.purple,'rgba(20,198,203,.12)',9)+badgeHTML('Setup '+(m.morningSetupScore!=null?Math.round(m.morningSetupScore):'?'),C.cyan,'rgba(123,66,188,.12)',9)+'</div>'
+    +'<div class="mono" style="font-size:10px;color:'+C.sec+';line-height:1.7;">'+(m.changePct!=null?'Naik '+m.changePct.toFixed(1)+'%':'')+' | Vol '+(m.volumeRatio!=null?m.volumeRatio.toFixed(1)+'x':'N/A')+'<br>Range '+(m.rangePosition!=null?(m.rangePosition*100).toFixed(0)+'%':'N/A')+' | Trend '+(m.dailyTrendScore!=null?Math.round(m.dailyTrendScore):'N/A')+'<br>Breakout '+(m.breakoutScore!=null?Math.round(m.breakoutScore):'N/A')+'</div>'
+    +'</div>';
+}
+
 function isStrongBuyCandidate(s) {
   if (s.backendSignal) return s.backendSignal.action === 'STRONG_BUY';
   return s.dataMode === 'FULL_FLOW' && s.trading.action === 'BUY' && s.trading.conf >= 80 && scoreValue(s) >= 80 && s.riskFlags.length <= 1;
@@ -1236,6 +1255,8 @@ function recommendationPanelHTML(enriched) {
   var bow = enriched.filter(isBowCandidate).sort(function(a,b){return num(b.buyOnWeakness.score)-num(a.buyOnWeakness.score);});
   var morning = enriched.filter(function(s){return s.backendSignal ? s.backendSignal.category==='BELI_PAGI' : sessionPlan(s).label==='PAGI' && isStrongBuyCandidate(s);});
   var afternoon = enriched.filter(function(s){return s.backendSignal ? s.backendSignal.category==='BELI_SORE' : sessionPlan(s).label==='SORE' && isStrongBuyCandidate(s);});
+  var morningWatch = enriched.filter(function(s){return s.backendSignal && s.backendSignal.category==='MORNING_WATCH';})
+    .sort(function(a,b){return num(b.morningSetupScore||b.score)-num(a.morningSetupScore||a.score);});
   var watch = enriched.filter(function(s){return s.dataMode==='PRICE_ONLY' && validPrice(s.price);})
     .sort(function(a,b){return num(b.pctChg)-num(a.pctChg);}).slice(0,3);
   var scan = STATE.scanResult;
@@ -1256,6 +1277,9 @@ function recommendationPanelHTML(enriched) {
     +(bow.length
       ? '<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;"><span style="font-size:10px;font-weight:900;color:'+C.green+';letter-spacing:.06em;">BUY ON WEAKNESS</span><button onclick="STATE.scanFilter=\'bow\';showPage(\'scanner\')" style="color:'+C.cyan+';font-size:10px;">Lihat</button></div><div class="hscroll">'+bow.slice(0,6).map(bowMiniCardHTML).join('')+'</div></div>'
       : '<div style="padding:10px 12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:'+C.ter+';font-size:10px;line-height:1.45;margin-bottom:10px;">Belum ada kandidat Buy on Weakness. Modul tetap menolak saham yang gagal MA200, koreksi ekstrem, distribusi berat, atau likuiditas rendah.</div>')
+    +(morningWatch.length
+      ? '<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;"><span style="font-size:10px;font-weight:900;color:'+C.purple+';letter-spacing:.06em;">MORNING WATCH (evening scan)</span><button onclick="STATE.scanFilter=\'morning\';showPage(\'scanner\')" style="color:'+C.cyan+';font-size:10px;">Lihat</button></div><div class="hscroll">'+morningWatch.slice(0,6).map(morningWatchCardHTML).join('')+'</div></div>'
+      : '')
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">'
     +'<div style="background:rgba(123,66,188,.07);border:1px solid rgba(123,66,188,.18);border-radius:12px;padding:10px;"><div style="font-size:10px;font-weight:800;color:'+C.cyan+';">BELI PAGI</div><div class="mono" style="font-size:18px;font-weight:900;color:'+C.cyan+';">'+morning.length+'</div><div style="font-size:9px;color:'+C.ter+';">09:00-10:30, entry awal saat flow kuat.</div></div>'
     +'<div style="background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.18);border-radius:12px;padding:10px;"><div style="font-size:10px;font-weight:800;color:'+C.purple+';">BELI SORE</div><div class="mono" style="font-size:18px;font-weight:900;color:'+C.purple+';">'+afternoon.length+'</div><div style="font-size:9px;color:'+C.ter+';">14:30-15:50, tunggu konfirmasi close.</div></div>'
@@ -1330,6 +1354,9 @@ function renderScanner() {
   else if(STATE.scanFilter==='akumulasi')enriched=enriched.filter(function(s){return scoreValue(s)>=70;});
   else if(STATE.scanFilter==='distribusi')enriched=enriched.filter(function(s){return scoreValue(s)>=0 && scoreValue(s)<40;});
   else if(STATE.scanFilter==='risk')   enriched=enriched.filter(function(s){return s.riskFlags.length>0;});
+  else if(STATE.scanFilter==='morning')enriched=enriched.filter(function(s){return s.backendSignal&&s.backendSignal.category==='MORNING_WATCH';});
+  else if(STATE.scanFilter==='ara')    enriched=enriched.filter(function(s){return s.backendSignal&&s.backendSignal.category==='ARA_CANDIDATE';});
+  else if(STATE.scanFilter==='em')     enriched=enriched.filter(function(s){return s.backendSignal&&s.backendSignal.category==='EARLY_MOMENTUM';});
   else if(STATE.scanFilter==='priceonly')enriched=enriched.filter(function(s){return s.dataMode==='PRICE_ONLY';});
   else if(STATE.scanFilter==='fullflow')enriched=enriched.filter(function(s){return s.dataMode==='FULL_FLOW';});
   if(STATE.scanSort==='score')   enriched.sort(function(a,b){return scoreValue(b)-scoreValue(a);});
@@ -1338,7 +1365,7 @@ function renderScanner() {
   else if(STATE.scanSort==='chg') enriched.sort(function(a,b){return b.pctChg-a.pctChg;});
   else if(STATE.scanSort==='nb')  enriched.sort(function(a,b){return num(b.netBuy)-num(a.netBuy);});
   else if(STATE.scanSort==='vol') enriched.sort(function(a,b){return num(b.volume)-num(a.volume);});
-  var filters=[['all','SEMUA',C.sec],['bow','BOW',C.green],['buy','BUY',C.green],['sell','SELL',C.pink],['hold','HOLD',C.yellow],['akumulasi','AKUMULASI',C.cyan],['distribusi','DISTRIBUSI',C.orange],['risk','RISK',C.pink],['fullflow','FULL FLOW',C.green],['priceonly','PRICE ONLY',C.yellow]];
+  var filters=[['all','SEMUA',C.sec],['bow','BOW',C.green],['buy','BUY',C.green],['sell','SELL',C.pink],['hold','HOLD',C.yellow],['akumulasi','AKUMULASI',C.cyan],['distribusi','DISTRIBUSI',C.orange],['morning','MORNING',C.purple],['ara','ARA',C.green],['em','EARLY MOM',C.cyan],['risk','RISK',C.pink],['fullflow','FULL FLOW',C.green],['priceonly','PRICE ONLY',C.yellow]];
   var sorts=[['score','Score'],['bow','BOW'],['conf','Conf'],['chg','%Chg'],['nb','Net Buy'],['vol','Volume']];
   var listHTML='';
   if(STATE.scanView==='table'){
