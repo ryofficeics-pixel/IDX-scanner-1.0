@@ -13,7 +13,7 @@ const { updateScanState } = require('../lib/runtime/scanState');
 const { setCors } = require('../lib/utils/http');
 function send(res, status, body) { res.status(status).json(body); }
 function emptyRecs() {
-  return { strongBuy:[], beliPagi:[], beliSore:[], buyOnWeakness:[], topBuy:[], topGainers:[], accumulationProxy:[], distributionProxy:[], risk:[], hold:[], sell:[] };
+  return { strongBuy:[], beliPagi:[], beliSore:[], buyOnWeakness:[], topBuy:[], topGainers:[], accumulationProxy:[], distributionProxy:[], araCandidates:[], earlyMomentum:[], morningWatch:[], risk:[], hold:[], sell:[] };
 }
 function pushRec(recs, sig) {
   if (sig.action === 'STRONG_BUY') recs.strongBuy.push(sig);
@@ -23,6 +23,9 @@ function pushRec(recs, sig) {
   if (sig.changePct > 0) recs.topGainers.push(sig);
   if (sig.category === 'ACCUMULATION_PROXY') recs.accumulationProxy.push(sig);
   if (sig.category === 'DISTRIBUTION_PROXY') recs.distributionProxy.push(sig);
+  if (sig.category === 'ARA_CANDIDATE') recs.araCandidates.push(sig);
+  if (sig.category === 'EARLY_MOMENTUM') recs.earlyMomentum.push(sig);
+  if (sig.category === 'MORNING_WATCH') recs.morningWatch.push(sig);
   if (sig.riskLevel === 'HIGH' || sig.category === 'RISK') recs.risk.push(sig);
   if (sig.action === 'HOLD' || sig.action === 'WATCH') recs.hold.push(sig);
   if (sig.action === 'SELL' || sig.action === 'AVOID') recs.sell.push(sig);
@@ -325,6 +328,9 @@ module.exports = async function handler(req, res) {
       topGainerCount:recs.topGainers.length,
       accumulationProxyCount:recs.accumulationProxy.length,
       distributionProxyCount:recs.distributionProxy.length,
+      araCandidateCount:recs.araCandidates.length,
+      earlyMomentumCount:recs.earlyMomentum.length,
+      morningWatchCount:recs.morningWatch.length,
       errorCount,
     },
     recommendations:recs,
