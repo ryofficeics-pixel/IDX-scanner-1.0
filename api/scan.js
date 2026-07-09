@@ -1,10 +1,13 @@
 'use strict';
 
 const cache = require('../lib/cache/memoryCache');
+const redisCache = require('../lib/cache/redisCache');
 const { getUniverse } = require('../lib/market/idxUniverse');
 const { sessionContext } = require('../lib/market/idxSession');
 const yahoo = require('../lib/providers/yahooProvider');
 const idx = require('../lib/providers/idxProvider');
+const idxApi = require('../lib/providers/idxApiProvider');
+const idxData = require('../lib/providers/idxDataProvider');
 const fallback = require('../lib/providers/fallbackProvider');
 const { generateSignal } = require('../lib/engine/signalEngine');
 const { generateBowSignal } = require('../lib/engine/bowEngine');
@@ -13,7 +16,7 @@ const { updateScanState } = require('../lib/runtime/scanState');
 const { setCors } = require('../lib/utils/http');
 function send(res, status, body) { res.status(status).json(body); }
 function emptyRecs() {
-  return { strongBuy:[], beliPagi:[], beliSore:[], buyOnWeakness:[], topBuy:[], topGainers:[], accumulationProxy:[], distributionProxy:[], araCandidates:[], earlyMomentum:[], morningWatch:[], risk:[], hold:[], sell:[] };
+  return { buyOnWeakness:[], strongBuy:[], beliPagi:[], beliSore:[], topBuy:[], topGainers:[], accumulationProxy:[], distributionProxy:[], araCandidates:[], earlyMomentum:[], morningWatch:[], risk:[], hold:[], sell:[] };
 }
 function pushRec(recs, sig) {
   if (sig.action === 'STRONG_BUY') recs.strongBuy.push(sig);
@@ -84,15 +87,19 @@ async function withTimeout(label, ms, task) {
 }
 
 async function getMarketQuote({ debug, forceQuoteFail }) {
-  // Prefer IDX for IHSG only; stock quotes remain on Yahoo and fallback preserves the old market fields.
-  try {
-    return await withTimeout('IDX_IHSG', 6000, () => idx.getIHSGQuote({ bypassCache:debug, timeoutMs:5000 }));
-  } catch (idxError) {
-    const fallbackBatch = await withTimeout('YAHOO_IHSG', 9000, () => yahoo.getBatchQuotes(['^JKSE'], { forceQuoteFail, bypassCache:debug }));
-    const quote = fallbackBatch.quotes?.['^JKSE'] || fallbackBatch.ihsg || null;
-    if (quote) return { ...quote, source:quote.source || 'yahoo-finance' };
-    throw idxError;
+  const errors = [];
+  for (const [name, fetchFn] of [['IDX_API', () => idxApi.getStockQuote('^JKSE', { bypassCache:debug, timeoutMs:5000 })],
+                                   ['IDX_SURFACE', () => idx.getIHSGQuote({ bypassCache:debug, timeoutMs:5000 })],
+                                   ['YAHOO', () => withTimeout('YAHOO_IHSG', 9000, () => yahoo.getBatchQuotes(['^JKSE'], { forceQuoteFail, bypassCache:debug }))]]) {
+    try {
+      const q = await fetchFn();
+      if (q) {
+        const quote = q.quotes?.['^JKSE'] || q.ihsg || q;
+        return { ...(quote.lastPrice ? quote : q), source: `${name.toLowerCase()}` };
+      }
+    } catch (err) { errors.push(`${name}: ${err.message}`); }
   }
+  throw new Error(`Market quote unavailable: ${errors.join('; ')}`);
 }
 
 module.exports = async function handler(req, res) {
@@ -116,7 +123,7 @@ module.exports = async function handler(req, res) {
   const universe = getUniverse({ symbols:req.query?.symbols, limit, offset });
   const symbols = universe.map((row) => row.symbol);
   const cacheKey = `scan:${symbols.join(',')}:${debug ? JSON.stringify(req.query) : 'normal'}`;
-  const cached = cache.get(cacheKey, 60 * 1000);
+  const cached = cache.get(cacheKey, 60 * 1000) || (await redisCache.get(cacheKey, 60 * 1000));
   if (cached && !cached.stale) {
     const payload = JSON.parse(JSON.stringify(cached.value));
     payload.diagnostics.cacheHit = true;
@@ -136,7 +143,7 @@ module.exports = async function handler(req, res) {
   const marketDate = now.toLocaleDateString('en-CA', { timeZone:'Asia/Jakarta' });
   const session = sessionContext(now);
   const diagnostics = {
-    provider:'yahoo-finance',
+    provider:'pending',
     providerPrimaryStatus:'not_attempted',
     providerFallbackStatus:'not_attempted',
     providerLatencyMs:0,
@@ -152,19 +159,66 @@ module.exports = async function handler(req, res) {
     errors:[],
   };
   let provider;
-  try {
-    if (forceProviderFail) throw new Error('FORCED_PROVIDER_FAIL');
-    provider = await withTimeout('YAHOO_BATCH_QUOTES', 30000, () => yahoo.getBatchQuotes(symbols, {
-      forceQuoteFail,
-      forceChartFail,
-      delayMs:mockProviderDelayMs,
-      bypassCache:debug,
-    }));
-  } catch (error) {
-    diagnostics.errors.push(`Primary provider failed: ${error.message}`);
-    provider = fallback.structuredFailure(symbols, error.message);
-    provider.providerPrimaryStatus = 'error';
+  let providerUsed = null;
+  // Primary: IDX surface API (today's close, volume, foreign flow from IDX)
+  // Fallback: Yahoo Finance for symbols IDX didn't cover
+  if (!forceProviderFail) {
+    try {
+      provider = await withTimeout('IDX_BATCH_QUOTES', 30000, () =>
+        idxData.getBatchQuotes(symbols, { bypassCache:debug, timeoutMs:10000 })
+      );
+      if (provider.quotes && Object.keys(provider.quotes).length > 0) {
+        providerUsed = 'IDX_SURFACE';
+        diagnostics.provider = 'idx-surface';
+        diagnostics.providerPrimaryStatus = 'ok';
+        const missing = provider.failedSymbols.filter((s) => !provider.quotes[s]);
+        if (missing.length > 0) {
+          try {
+            const yahooResult = await withTimeout('YAHOO_FALLBACK', 30000, () =>
+              yahoo.getBatchQuotes(missing, { forceQuoteFail, forceChartFail, delayMs:mockProviderDelayMs, bypassCache:debug })
+            );
+            if (yahooResult.quotes) {
+              for (const s of missing) {
+                if (yahooResult.quotes[s] && !provider.quotes[s]) {
+                  yahooResult.quotes[s].source = 'yahoo-finance+fallback';
+                  provider.quotes[s] = yahooResult.quotes[s];
+                }
+              }
+            }
+            diagnostics.provider = 'idx-surface+yahoo-fallback';
+            diagnostics.providerFallbackStatus = 'ok';
+          } catch (err) {
+            diagnostics.warnings.push(`Yahoo fallback for ${missing.length} symbols failed: ${err.message}`);
+            diagnostics.providerFallbackStatus = 'error';
+          }
+        }
+      } else {
+        // IDX returned no data — fall through to Yahoo
+        throw new Error('IDX returned empty quotes');
+      }
+    } catch (error) {
+      if (providerUsed !== 'IDX_SURFACE') diagnostics.errors.push(`IDX surface failed: ${error.message}`);
+      diagnostics.providerPrimaryStatus = 'error';
+      try {
+        provider = await withTimeout('YAHOO_BATCH_QUOTES', 30000, () =>
+          yahoo.getBatchQuotes(symbols, { forceQuoteFail, forceChartFail, delayMs:mockProviderDelayMs, bypassCache:debug })
+        );
+        if (provider.quotes && Object.keys(provider.quotes).length > 0) {
+          providerUsed = 'YAHOO';
+          diagnostics.provider = 'yahoo-finance';
+          diagnostics.providerPrimaryStatus = 'error';
+          diagnostics.providerFallbackStatus = 'ok';
+        }
+      } catch (err2) {
+        diagnostics.errors.push(`Yahoo fallback failed: ${err2.message}`);
+      }
+    }
+  }
+  if (!provider || !provider.quotes || !Object.keys(provider.quotes).length) {
+    if (!provider) provider = fallback.structuredFailure(symbols, 'ALL_PROVIDERS_FAILED');
+    provider.providerPrimaryStatus = providerUsed ? 'ok' : 'error';
     provider.providerFallbackStatus = 'error';
+    diagnostics.errors.push('All providers failed; no quote data available');
   }
   diagnostics.providerLatencyMs = Date.now() - providerStart;
   diagnostics.providerPrimaryStatus = provider.providerPrimaryStatus || 'unknown';
@@ -190,7 +244,9 @@ module.exports = async function handler(req, res) {
   }
   if (idxFlow.size > 0) {
     diagnostics.idxFlowCount = idxFlow.size;
-    diagnostics.provider = 'yahoo-finance+idx-flow';
+    if (!diagnostics.provider || diagnostics.provider === 'yahoo-finance') {
+      diagnostics.provider = 'yahoo-finance+idx-flow';
+    }
   }
   const market = {
     ihsgPrice: ihsg?.lastPrice ?? null,
@@ -226,9 +282,11 @@ module.exports = async function handler(req, res) {
   const historyBySymbol = {};
   let ihsgDaily = [];
   try {
-    ihsgDaily = await withTimeout('YAHOO_IHSG_DAILY', 10000, () => yahoo.getDailyHistory('^JKSE', '3mo', '1d'));
+    ihsgDaily = await withTimeout('IHSG_DAILY', 10000, () => idxApi.getDailyHistory('^JKSE', '3mo', '1d'));
   } catch (_) {
-    ihsgDaily = [];
+    try {
+      ihsgDaily = await withTimeout('YAHOO_IHSG_DAILY', 10000, () => yahoo.getDailyHistory('^JKSE', '3mo', '1d'));
+    } catch (_2) { ihsgDaily = []; }
   }
   const ihsgCloses = ihsgDaily.map((c) => Number(c.close)).filter(Number.isFinite);
   const ihsgReturn3M = ihsgCloses.length > 63 && ihsgCloses[0] > 0
@@ -297,8 +355,17 @@ module.exports = async function handler(req, res) {
     }
   }
   Object.keys(recs).forEach((key) => {
-    recs[key].sort((a, b) => (b.score - a.score) || ((b.changePct || 0) - (a.changePct || 0)));
-    if (!debug) recs[key] = recs[key].slice(0, key === 'hold' ? 40 : 20);
+    if (key === 'buyOnWeakness') {
+      recs[key].sort((a, b) => {
+        const aBoom = a.morningBoom?.score ?? 0;
+        const bBoom = b.morningBoom?.score ?? 0;
+        if (bBoom !== aBoom) return bBoom - aBoom;
+        return (b.score || 0) - (a.score || 0);
+      });
+    } else {
+      recs[key].sort((a, b) => (b.score - a.score) || ((b.changePct || 0) - (a.changePct || 0)));
+    }
+    if (!debug) recs[key] = recs[key].slice(0, key === 'hold' ? 40 : key === 'buyOnWeakness' ? 30 : 20);
   });
   const valid = signals.filter((s) => s.dataQuality >= 40).length;
   const noData = signals.filter((s) => s.action === 'NO_DATA').length;
@@ -320,8 +387,9 @@ module.exports = async function handler(req, res) {
       scanned:symbols.length,
       valid,
       noData,
-      strongBuyCount:recs.strongBuy.length,
       buyOnWeaknessCount:recs.buyOnWeakness.length,
+      morningBoomCount:recs.buyOnWeakness.filter((b) => (b.morningBoom?.score ?? 0) >= 50).length,
+      strongBuyCount:recs.strongBuy.length,
       buyCount:signals.filter((s) => s.action === 'BUY' || s.action === 'STRONG_BUY').length,
       holdCount:signals.filter((s) => s.action === 'HOLD' || s.action === 'WATCH').length,
       sellCount:signals.filter((s) => s.action === 'SELL' || s.action === 'AVOID').length,
@@ -337,6 +405,7 @@ module.exports = async function handler(req, res) {
     diagnostics,
   };
   cache.set(cacheKey, payload);
+  redisCache.set(cacheKey, payload);
   updateScanState({
     lastCacheStatus:'miss',
     lastSuccessfulScanAt:valid ? generatedAt : null,

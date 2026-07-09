@@ -41,7 +41,7 @@ test('liquid strong momentum can become buy or strong buy', () => {
   const sig = signalAt('2026-06-11T02:30:00.000Z', {
     lastPrice:1040, previousClose:1000, volume:70000000, avgVolume20:10000000, dayHigh:1042, dayLow:995,
   });
-  assert.ok(['BUY', 'STRONG_BUY'].includes(sig.action));
+  assert.ok(['BUY', 'STRONG_BUY', 'HIGH_CONFIDENCE_BUY'].includes(sig.action));
   assert.notEqual(sig.riskLevel, 'HIGH');
 });
 

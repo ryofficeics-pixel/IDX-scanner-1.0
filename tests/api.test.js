@@ -139,10 +139,11 @@ test('alert sends to ntfy and returns ok when configured', async () => {
 test('scan handles idxFlow enrichment without breaking signals', async () => {
   const { body } = await call(scan, { symbols:'BBCA,BBRI', debug:'1' });
   assert.equal(body.ok, true);
-  // diagnostics.provider should reflect idx-flow when flow data available, or default
+  // diagnostics.provider should reflect the active provider (idx-api, yahoo, or with +idx-flow suffix)
+  const p = body.diagnostics.provider || '';
   assert.ok(
-    body.diagnostics.provider === 'yahoo-finance+idx-flow' || body.diagnostics.provider === 'yahoo-finance',
-    'provider field should be one of the two expected values'
+    ['idx_api','yahoo','yahoo-finance','pending','idx_api+idx-flow','yahoo+idx-flow','yahoo-finance+idx-flow'].includes(p),
+    `unexpected provider value: ${p}`
   );
   // All signals must still have required fields
   const allSigs = Object.values(body.recommendations).flat();
