@@ -159,56 +159,21 @@ module.exports = async function handler(req, res) {
     errors:[],
   };
   let provider;
-  let providerUsed = null;
-  // Primary: IDX surface API (today's close, volume, foreign flow from IDX)
-  // Fallback: Yahoo Finance for symbols IDX didn't cover
   if (!forceProviderFail) {
     try {
       provider = await withTimeout('IDX_BATCH_QUOTES', 30000, () =>
-        idxData.getBatchQuotes(symbols, { bypassCache:debug, timeoutMs:10000 })
+        idxData.getBatchQuotes(symbols, { bypassCache:debug, timeoutMs:15000 })
       );
-      if (provider.quotes && Object.keys(provider.quotes).length > 0) {
-        providerUsed = 'IDX_SURFACE';
-        diagnostics.provider = 'idx-surface';
-        diagnostics.providerPrimaryStatus = 'ok';
-        const missing = provider.failedSymbols.filter((s) => !provider.quotes[s]);
-        if (missing.length > 0) {
-          try {
-            const yahooResult = await withTimeout('YAHOO_FALLBACK', 30000, () =>
-              yahoo.getBatchQuotes(missing, { forceQuoteFail, forceChartFail, delayMs:mockProviderDelayMs, bypassCache:debug })
-            );
-            if (yahooResult.quotes) {
-              for (const s of missing) {
-                if (yahooResult.quotes[s] && !provider.quotes[s]) {
-                  yahooResult.quotes[s].source = 'yahoo-finance+fallback';
-                  provider.quotes[s] = yahooResult.quotes[s];
-                }
-              }
-            }
-            diagnostics.provider = 'idx-surface+yahoo-fallback';
-            diagnostics.providerFallbackStatus = 'ok';
-          } catch (err) {
-            diagnostics.warnings.push(`Yahoo fallback for ${missing.length} symbols failed: ${err.message}`);
-            diagnostics.providerFallbackStatus = 'error';
-          }
-        }
-      } else {
-        // IDX returned no data — fall through to Yahoo
-        throw new Error('IDX returned empty quotes');
+      if (!provider.quotes || Object.keys(provider.quotes).length === 0) {
+        throw new Error('No quotes from IDX data provider');
       }
     } catch (error) {
-      if (providerUsed !== 'IDX_SURFACE') diagnostics.errors.push(`IDX surface failed: ${error.message}`);
+      diagnostics.errors.push(`IDX data provider failed: ${error.message}`);
       diagnostics.providerPrimaryStatus = 'error';
       try {
         provider = await withTimeout('YAHOO_BATCH_QUOTES', 30000, () =>
           yahoo.getBatchQuotes(symbols, { forceQuoteFail, forceChartFail, delayMs:mockProviderDelayMs, bypassCache:debug })
         );
-        if (provider.quotes && Object.keys(provider.quotes).length > 0) {
-          providerUsed = 'YAHOO';
-          diagnostics.provider = 'yahoo-finance';
-          diagnostics.providerPrimaryStatus = 'error';
-          diagnostics.providerFallbackStatus = 'ok';
-        }
       } catch (err2) {
         diagnostics.errors.push(`Yahoo fallback failed: ${err2.message}`);
       }
@@ -216,15 +181,18 @@ module.exports = async function handler(req, res) {
   }
   if (!provider || !provider.quotes || !Object.keys(provider.quotes).length) {
     if (!provider) provider = fallback.structuredFailure(symbols, 'ALL_PROVIDERS_FAILED');
-    provider.providerPrimaryStatus = providerUsed ? 'ok' : 'error';
+    provider.providerPrimaryStatus = 'error';
     provider.providerFallbackStatus = 'error';
     diagnostics.errors.push('All providers failed; no quote data available');
   }
+  // Determine actual source from the first quote's metadata
+  const firstQuote = Object.values(provider.quotes || {}).find((q) => q.lastPrice != null);
+  diagnostics.provider = firstQuote?.source || 'unknown';
+  diagnostics.providerPrimaryStatus = firstQuote ? 'ok' : 'error';
+  diagnostics.providerFallbackStatus = provider.failedSymbols?.length ? 'partial-fallback' : 'ok';
   diagnostics.providerLatencyMs = Date.now() - providerStart;
-  diagnostics.providerPrimaryStatus = provider.providerPrimaryStatus || 'unknown';
-  diagnostics.providerFallbackStatus = provider.providerFallbackStatus || 'unknown';
   diagnostics.failedSymbols = provider.failedSymbols || [];
-  diagnostics.warnings = provider.warnings || [];
+  diagnostics.warnings = [...(diagnostics.warnings || []), ...(provider.warnings || [])];
   let ihsg = null;
   // Fetch IDX live flow data in parallel with IHSG quote — non-fatal if it fails.
   let idxFlow = new Map();
