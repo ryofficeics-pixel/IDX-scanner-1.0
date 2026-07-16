@@ -12,6 +12,7 @@ const fallback = require('../lib/providers/fallbackProvider');
 const { generateSignal } = require('../lib/engine/signalEngine');
 const { generateBowSignal } = require('../lib/engine/bowEngine');
 const { updateScanState } = require('../lib/runtime/scanState');
+const foreignFlow = require('../lib/store/foreignFlowStore');
 
 const { setCors } = require('../lib/utils/http');
 function send(res, status, body) { res.status(status).json(body); }
@@ -308,15 +309,24 @@ module.exports = async function handler(req, res) {
         netBuy:      q.netBuy      ?? flow.netBuy,
         freqBuy:     q.freqBuy     ?? flow.freqBuy,
         freqSell:    q.freqSell    ?? flow.freqSell,
-        // Only use IDX avgVolume if Yahoo didn't supply one
         avgVolume20: q.avgVolume20 ?? flow.volumeAvg5d ?? null,
       } : {}),
     };
+    // Persist today's IDX flow data for 3-day cumulative computation
+    if (stock.netBuy != null) {
+      setImmediate(() => foreignFlow.record(symbol, stock.netBuy, stock.foreignBuy, stock.foreignSell));
+    }
     const histories = { ...(historyBySymbol[symbol] || {}), now };
     const sig = generateSignal(stock, market, session, histories);
     signals.push(sig);
     pushRec(recs, sig);
     if (histories.daily && histories.daily.length) {
+      // Enrich with 3-day cumulative foreign net buy
+      const cum3d = stock.netBuy != null ? await foreignFlow.getCumulative3d(symbol) : null;
+      if (cum3d) {
+        stock.cumulative3dNetBuy = cum3d.cumulative;
+        stock.cumulative3dDays = cum3d.days;
+      }
       const bow = generateBowSignal(stock, { ...market, ihsgReturn3M }, histories);
       sig.buyOnWeakness = bow;
       pushBowRec(recs, bow);

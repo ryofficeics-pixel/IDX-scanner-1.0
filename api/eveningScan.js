@@ -7,6 +7,7 @@ const { generateBowSignal } = require('../lib/engine/bowEngine');
 const { getUniverse } = require('../lib/market/idxUniverse');
 const { sessionContext } = require('../lib/market/idxSession');
 const { setCors } = require('../lib/utils/http');
+const foreignFlow = require('../lib/store/foreignFlowStore');
 
 function send(res, status, body) { res.status(status).json(body); }
 
@@ -111,6 +112,15 @@ module.exports = async function handler(req, res) {
         source: 'idx-surface',
         timestamp: new Date().toISOString(),
       };
+      // Persist and fetch cumulative foreign flow
+      if (row.netBuy != null) {
+        setImmediate(() => foreignFlow.record(symbol, row.netBuy, row.foreignBuy, row.foreignSell));
+        const cum3d = await foreignFlow.getCumulative3d(symbol);
+        if (cum3d) {
+          stock.cumulative3dNetBuy = cum3d.cumulative;
+          stock.cumulative3dDays = cum3d.days;
+        }
+      }
       const market = {
         ihsgPrice: ihsgQuote?.lastPrice ?? null,
         ihsgChangePct,
