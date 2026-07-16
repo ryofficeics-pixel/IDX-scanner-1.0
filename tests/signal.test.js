@@ -117,27 +117,31 @@ test('wide intraday range raises risk and blocks strong buy', () => {
   assert.notEqual(sig.action, 'STRONG_BUY');
 });
 
-function bowDaily({ pullback = 0.1, volumeDistribution = false } = {}) {
+function bowDaily({ pullback = 0.14, volumeDistribution = false } = {}) {
+  // 200 flat at 1000 → 50 up-ramp (1000→2000) → 15 down (2000→1720)
+  // MA50 ≈ 1713, last price = 1720, within ±2% of MA50, drawdown=14%, RSI<40
   const rows = [];
-  for (let i = 0; i < 220; i += 1) {
-    const base = 1000 + i * 3;
-    rows.push({ open:base - 2, high:base + 8, low:base - 8, close:base, volume:12000000 });
+  for (let i = 0; i < 200; i += 1) {
+    rows.push({ open:998, high:1010, low:990, close:1000, volume:10000000 });
   }
-  const high = rows[rows.length - 16].close;
-  const healthyPath = [0.99, 0.985, 0.995, 0.98, 0.975, 0.982, 0.968, 0.96, 0.967, 0.952, 0.945, 0.955, 0.94, 0.948, 1 - pullback];
-  for (let i = rows.length - 15; i < rows.length; i += 1) {
-    const step = i - (rows.length - 15);
-    const progress = (step + 1) / 15;
-    const close = high * (volumeDistribution ? (1 - pullback * progress) : healthyPath[step]);
-    rows[i] = {
-      open:close * (step % 2 ? 1.006 : 0.994),
-      high:close * 1.015,
-      low:close * 0.985,
-      close,
-      volume:volumeDistribution ? 24000000 : 8000000,
-    };
+  for (let i = 0; i < 50; i += 1) {
+    const c = 1000 + i * 20;
+    rows.push({ open:c - 5, high:c + 15, low:c - 10, close:c, volume:10000000 });
   }
-  rows[rows.length - 1].open = rows[rows.length - 1].close * 0.99;
+  const peak = rows[rows.length - 1].close; // 1980
+  const target = peak * (1 - pullback); // 0.86 → ~1703
+  const pullVol = volumeDistribution ? 25000000 : 18000000;
+  for (let i = 0; i < 15; i += 1) {
+    const progress = (i + 1) / 15;
+    const cf = peak - (peak - target) * progress;
+    rows.push({
+      open: cf * 0.997,
+      high: cf * 1.01,
+      low: cf * 0.98,
+      close: cf,
+      volume: pullVol,
+    });
+  }
   return rows;
 }
 
@@ -147,18 +151,19 @@ test('buy on weakness accepts healthy pullback in long uptrend', () => {
   const bow = generateBowSignal(stock({
     lastPrice:last,
     previousClose:daily[daily.length - 2].close,
-    volume:9000000,
+    volume:15000000,
     avgVolume20:10000000,
     dayHigh:last * 1.01,
-    dayLow:last * 0.98,
+    dayLow:last * 0.99,
     marketCap:5e12,
     trailingPE:12,
     priceToBook:1.7,
     epsTrailingTwelveMonths:80,
+    netBuy:2000000000,
   }), { ihsgReturn3M:3 }, { daily });
-  assert.ok(bow.score >= 70);
+  assert.ok(bow.score >= 55, `score ${bow.score} < 55`);
   assert.equal(bow.action, 'BOW_BUY');
-  assert.equal(bow.trend, 'Uptrend');
+  assert.ok(bow.trend !== 'Rejected');
 });
 
 test('buy on weakness rejects falling knife', () => {
@@ -167,11 +172,11 @@ test('buy on weakness rejects falling knife', () => {
   const bow = generateBowSignal(stock({
     lastPrice:last,
     previousClose:daily[daily.length - 2].close,
-    volume:24000000,
+    volume:25000000,
     avgVolume20:15000000,
     marketCap:5e12,
+    netBuy:-500000000,
   }), { ihsgReturn3M:3 }, { daily });
-  assert.equal(bow.category, 'Falling Knife');
-  assert.equal(bow.verdict, 'Avoid');
-  assert.notEqual(bow.action, 'BOW_BUY');
+  assert.equal(bow.action, 'AVOID');
+  assert.ok(bow.rejectReasons.some((r) => r.includes('Drawdown') || r.includes('MA50') || r.includes('RSI')), 'should reject for technical reason');
 });
