@@ -6,9 +6,10 @@
     "node": ">=18"
   },
   "scripts": {
-    "check": "node --check api/idx-quotes.js && node --check api/flow-upload.js && node --check api/health.js && node --check api/scan.js && node --check api/enrich.js && node --check api/eveningScan.js && node --check lib/providers/yahooProvider.js && node --check lib/providers/idxProvider.js && node --check lib/providers/idxDataProvider.js && node --check lib/providers/telmiProvider.js && node --check lib/providers/stockbitGatewayProvider.js && node --check lib/engine/signalEngine.js && node --check lib/engine/bowEngine.js && node --check tests/api.test.js && node --check tests/enrich.test.js && node --check tests/frontend.test.js && node --check tests/signal.test.js && node --check tests/stress.js",
+    "check": "node --check api/idx-quotes.js && node --check api/flow-upload.js && node --check api/health.js && node --check api/scan.js && node --check api/enrich.js && node --check api/eveningScan.js && node --check lib/providers/yahooProvider.js && node --check lib/providers/idxProvider.js && node --check lib/providers/idxDataProvider.js && node --check lib/providers/telmiProvider.js && node --check lib/providers/stockbitGatewayProvider.js && node --check lib/engine/signalEngine.js && node --check lib/engine/bowEngine.js && node --check tests/api.test.js && node --check tests/enrich.test.js && node --check tests/frontend.test.js && node --check tests/signal.test.js && node --check tests/stress.js && npm --prefix stockbit-gateway run check",
     "test:api": "node --test tests/api.test.js tests/enrich.test.js tests/frontend.test.js tests/signal.test.js",
     "test:e2e": "playwright test",
+    "test:gateway": "npm --prefix stockbit-gateway test",
     "test:stress": "node tests/stress.js"
   },
   "devDependencies": {

@@ -2,6 +2,7 @@
 
 const { sessionContext } = require('../lib/market/idxSession');
 const { getScanState } = require('../lib/runtime/scanState');
+const stockbitGateway = require('../lib/providers/stockbitGatewayProvider');
 
 module.exports = function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -34,7 +35,7 @@ module.exports = function handler(req, res) {
       mode:'on-demand',
       scoringImpact:'none',
       telmi:{ configured:Boolean(String(process.env.TELMI_API_KEY || '').trim()) },
-      stockbit:{ configured:Boolean(String(process.env.STOCKBIT_GATEWAY_URL || '').trim() && String(process.env.STOCKBIT_GATEWAY_TOKEN || '').trim()) },
+      stockbit:stockbitGateway.configurationStatus(),
     },
     cache: {
       status: state.lastCacheStatus,

@@ -30,6 +30,7 @@ function saveEnv() {
     TELMI_API_BASE_URL:process.env.TELMI_API_BASE_URL,
     STOCKBIT_GATEWAY_URL:process.env.STOCKBIT_GATEWAY_URL,
     STOCKBIT_GATEWAY_TOKEN:process.env.STOCKBIT_GATEWAY_TOKEN,
+    STOCKBIT_GATEWAY_TIMEOUT_MS:process.env.STOCKBIT_GATEWAY_TIMEOUT_MS,
   };
 }
 
@@ -118,12 +119,12 @@ test('Stockbit gateway data is allowlisted and merged as read-only confirmation'
   const originalFetch = globalThis.fetch;
   delete process.env.TELMI_API_KEY;
   process.env.STOCKBIT_GATEWAY_URL = 'https://stockbit-gateway.example/v1/enrich';
-  process.env.STOCKBIT_GATEWAY_TOKEN = 'gateway-test-token';
+  process.env.STOCKBIT_GATEWAY_TOKEN = 'gateway-test-token-with-at-least-32-characters';
   stockbit.resetCache();
   globalThis.fetch = async (url, options) => {
     assert.equal(url, process.env.STOCKBIT_GATEWAY_URL);
     assert.equal(options.method, 'POST');
-    assert.equal(options.headers.Authorization, 'Bearer gateway-test-token');
+    assert.equal(options.headers.Authorization, 'Bearer gateway-test-token-with-at-least-32-characters');
     assert.deepEqual(JSON.parse(options.body), { symbols:['BBCA'] });
     return response({ ok:true, enrichments:{ BBCA:{
       sentiment:'bullish', summary:'Broker flow positive', secretField:'must-not-pass',
@@ -138,6 +139,25 @@ test('Stockbit gateway data is allowlisted and merged as read-only confirmation'
     assert.equal(result.body.enrichments.BBCA.stockbit.brokerSummary.netBuyValue, 1250000000);
     assert.equal(result.body.enrichments.BBCA.stockbit.secretField, undefined);
     assert.equal(result.body.enrichments.BBCA.consensus.status, 'single_source');
+  } finally {
+    globalThis.fetch = originalFetch;
+    restoreEnv(saved);
+  }
+});
+
+test('Stockbit gateway rejects plaintext remote URLs and weak bearer tokens', async () => {
+  const saved = saveEnv();
+  const originalFetch = globalThis.fetch;
+  delete process.env.TELMI_API_KEY;
+  process.env.STOCKBIT_GATEWAY_URL = 'http://stockbit-gateway.example/v1/enrich';
+  process.env.STOCKBIT_GATEWAY_TOKEN = 'short-token';
+  stockbit.resetCache();
+  globalThis.fetch = async () => { throw new Error('fetch must not run for unsafe configuration'); };
+  try {
+    const result = await call({ symbols:'BBCA' });
+    assert.equal(result.statusCode, 200);
+    assert.equal(result.body.sources.stockbit.status, 'misconfigured');
+    assert.deepEqual(result.body.sources.stockbit.errors, ['STOCKBIT_GATEWAY_CONFIG_INVALID']);
   } finally {
     globalThis.fetch = originalFetch;
     restoreEnv(saved);

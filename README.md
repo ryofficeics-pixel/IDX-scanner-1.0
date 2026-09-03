@@ -32,7 +32,7 @@ This design matches serverless execution: no always-on worker is required. A man
 External data is deliberately separated from the core signal engine:
 
 - Telmi Finance uses the official Open API and can contribute stock signals and top-pick fundamentals.
-- Stockbit is supported through a user-operated read-only gateway. Persistent Stockbit authentication stays outside Vercel and outside browser code.
+- Stockbit is supported through the bundled, user-operated [read-only gateway](stockbit-gateway/README.md). Persistent Stockbit authentication stays outside Vercel and outside browser code.
 - External data is shown as confirmation/contrast in the `External` detail tab.
 - External values never modify the core scanner score, recommendation gates, or risk controls.
 - No endpoint in this project places, modifies, or cancels an order.
@@ -225,6 +225,7 @@ TELMI_API_BASE_URL=https://api-finance.telmi.id/api/v1/open
 
 STOCKBIT_GATEWAY_URL=https://your-read-only-gateway.example/v1/enrich
 STOCKBIT_GATEWAY_TOKEN=
+STOCKBIT_GATEWAY_TIMEOUT_MS=9000
 
 SUPABASE_URL=https://mbjkpqxnbheatmtoodvf.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=
@@ -240,6 +241,8 @@ Telmi endpoints used by the provider:
 Some Telmi endpoints can require a higher subscription tier. That is reported as `partial` or `error`; it does not break the core scan.
 
 ### Stockbit gateway contract
+
+This repository includes a production-oriented implementation under [`stockbit-gateway/`](stockbit-gateway/README.md). It is a separate Node.js 22 container based on the MIT-licensed `stockbit-mcp/core` API. Run exactly one persistent instance; do not deploy it as a serverless function because the Stockbit refresh token rotates and its encrypted state must persist.
 
 `STOCKBIT_GATEWAY_URL` must accept:
 
@@ -259,7 +262,7 @@ It may return either an `enrichments` object, a `data` object, or a `data` array
   "enrichments": {
     "BBCA": {
       "sentiment": "bullish",
-      "summary": "Broker flow positive",
+      "summary": "Stockbit detector: Big Acc · LAST_7_DAYS",
       "brokerSummary": {
         "netBuyValue": 1250000000,
         "topBuyers": [{ "broker": "YP", "value": 800000000 }]
@@ -276,6 +279,8 @@ It may return either an `enrichments` object, a `data` object, or a `data` array
 ```
 
 The server applies an allowlist before returning gateway data to the browser. Unknown fields are discarded.
+
+For remote gateways, HTTPS is mandatory so the bearer token is never sent in plaintext. HTTP is accepted only for localhost development. The bundled gateway calculates orderbook imbalance from the same top-five depth on each side; Stockbit can expose unequal full-ladder lengths, which are not directly comparable.
 
 ## Supabase Table
 
@@ -316,5 +321,5 @@ Price-volume signals are labeled as proxy signals.
 - Browser localStorage cache is device-specific.
 - Broker flow requires optional CSV/Supabase data and is not required for core recommendations.
 - Telmi usefulness and coverage depend on the configured Telmi plan and current API response.
-- Stockbit enrichment remains disabled until a separate authenticated read-only gateway is configured.
+- Stockbit enrichment remains disabled until the bundled gateway is hosted, authenticated, and connected through the Vercel environment variables.
 - External confirmation can disagree with the core scanner; disagreement is displayed as `SUMBER BERBEDA ARAH`, not silently averaged into a score.

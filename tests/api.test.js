@@ -68,6 +68,8 @@ test('health exposes scan and cache status', async () => {
   assert.equal(typeof body.session.status, 'string');
   assert.equal(typeof body.providers.statusSummary, 'string');
   assert.equal(typeof body.cache.status, 'string');
+  assert.equal(typeof body.enrichment.stockbit.configured, 'boolean');
+  assert.ok(['disabled', 'misconfigured', 'configured'].includes(body.enrichment.stockbit.status));
 });
 
 // ---------------------------------------------------------------------------

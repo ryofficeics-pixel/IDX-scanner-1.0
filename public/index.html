@@ -1297,7 +1297,7 @@ function externalDetailHTML(s) {
   var fundamental = stockbit && stockbit.fundamentals || {};
   var stockbitRows = stockbit ? [
     ['Signal/sentimen', stockbit.signal || stockbit.sentiment, C.cyan],
-    ['Net buy broker', broker.netBuyValue != null ? (broker.netBuyValue >= 0 ? '+' : '')+fmtB(broker.netBuyValue) : null, broker.netBuyValue >= 0 ? C.green : C.pink],
+    ['Stockbit detector flow', broker.netBuyValue != null ? (broker.netBuyValue >= 0 ? '+' : '')+fmtB(broker.netBuyValue) : null, broker.netBuyValue >= 0 ? C.green : C.pink],
     ['Foreign net', broker.foreignNet != null ? (broker.foreignNet >= 0 ? '+' : '')+fmtB(broker.foreignNet) : null, broker.foreignNet >= 0 ? C.green : C.pink],
     ['Orderbook imbalance', book.imbalance != null ? Number(book.imbalance).toFixed(1)+'%' : null, book.imbalance >= 0 ? C.green : C.pink],
     ['Best bid / offer', book.bestBid != null || book.bestOffer != null ? fmtPrice(book.bestBid)+' / '+fmtPrice(book.bestOffer) : null, C.sec],
