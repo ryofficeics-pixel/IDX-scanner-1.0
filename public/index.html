@@ -321,10 +321,13 @@ var STATE = {
   dataSource:'-',
   lastSync:null, lastAsOf:null,
   syncErrors:[], syncWarnings:[],
+  // Optional, read-only Telmi / Stockbit confirmation data
+  externalEnrichment:{}, externalSources:{}, externalLastSync:null,
+  externalFetching:false, externalRequested:{},
   // UI state
   syncState:'idle', fetching:false,
   scanProgress:null,
-  syncTimer:null, searchTimer:null, syncInterval:60,
+  syncTimer:null, searchTimer:null, syncInterval:0,
   syncLog:[],
   // Flow data override (from CSV upload)
   uploadedFlow:{},
@@ -370,6 +373,7 @@ function savePrefs() {
     localStorage.setItem(PREF_KEY, JSON.stringify({
       watchlist: STATE.watchlist,
       syncInterval: STATE.syncInterval,
+      syncModeVersion: 1,
       uploadedFlow: STATE.uploadedFlow
     }));
   } catch(e) {}
@@ -381,8 +385,10 @@ function loadPrefs() {
     var p = safeJsonParse(raw, null);
     if (!p) return;
     if (Array.isArray(p.watchlist)) STATE.watchlist = p.watchlist.filter(function(s){ return SYMBOLS.includes(s); });
-    if (Number(p.syncInterval) >= 15) STATE.syncInterval = Number(p.syncInterval);
+    if (p.syncModeVersion === 1 && (Number(p.syncInterval) === 0 || Number(p.syncInterval) >= 15)) STATE.syncInterval = Number(p.syncInterval);
+    else STATE.syncInterval = 0;
     if (p.uploadedFlow && typeof p.uploadedFlow === 'object') STATE.uploadedFlow = p.uploadedFlow;
+    if (p.syncModeVersion !== 1) savePrefs();
   } catch(e) {}
 }
 
@@ -394,6 +400,15 @@ function validatePayload(p) {
   if (p.ok && p.recommendations) return;
   if (!p.quotes || typeof p.quotes !== 'object') throw new Error('Invalid payload: missing quotes');
   if (Object.keys(p.quotes).length === 0) throw new Error('Payload has 0 quotes');
+}
+
+function applyExternalPayload(payload, merge) {
+  if (!payload || payload.ok !== true) return;
+  var incoming = payload.enrichments && typeof payload.enrichments === 'object' ? payload.enrichments : {};
+  STATE.externalEnrichment = merge ? Object.assign({}, STATE.externalEnrichment, incoming) : incoming;
+  STATE.externalSources = payload.sources && typeof payload.sources === 'object' ? payload.sources : STATE.externalSources;
+  STATE.externalLastSync = payload.generatedAt || Date.now();
+  (payload.requestedSymbols || []).forEach(function(symbol){ STATE.externalRequested[symbol] = true; });
 }
 
 function flattenScanRecommendations(scan) {
@@ -456,6 +471,7 @@ function applyPayload(p) {
     STATE.lastAsOf = p.generatedAt || null;
     STATE.syncErrors = p.diagnostics && Array.isArray(p.diagnostics.errors) ? p.diagnostics.errors : [];
     STATE.syncWarnings = p.diagnostics && Array.isArray(p.diagnostics.warnings) ? p.diagnostics.warnings : [];
+    if (p.external) applyExternalPayload(p.external, false);
     if (p.market && validPrice(p.market.ihsgPrice)) {
       STATE.liveIHSG = {
         price:p.market.ihsgPrice,
@@ -599,6 +615,80 @@ async function fetchScanPayload(params) {
   return payload;
 }
 
+function symbolsForExternalEnrichment(payload) {
+  var recs = payload && payload.recommendations ? payload.recommendations : {};
+  var symbols = [];
+  ['strongBuy','topBuy','buyOnWeakness','beliPagi','beliSore'].forEach(function(key){
+    (recs[key] || []).forEach(function(row){ if (row && row.symbol) symbols.push(row.symbol); });
+  });
+  (STATE.watchlist || []).forEach(function(symbol){ symbols.push(symbol); });
+  ['araCandidates','earlyMomentum','morningWatch','accumulationProxy','topGainers'].forEach(function(key){
+    (recs[key] || []).forEach(function(row){ if (row && row.symbol) symbols.push(row.symbol); });
+  });
+  return Array.from(new Set(symbols.map(function(symbol){ return String(symbol).toUpperCase().replace(/\.JK$/, ''); })
+    .filter(function(symbol){ return /^[A-Z0-9]{1,12}$/.test(symbol); }))).slice(0,20);
+}
+
+async function fetchExternalPayload(symbols) {
+  var clean = Array.from(new Set((symbols || []).filter(Boolean))).slice(0,20);
+  if (!clean.length) return null;
+  var params = new URLSearchParams();
+  params.set('symbols', clean.join(','));
+  var response = await fetch('/api/enrich?' + params.toString(), {
+    method:'GET',
+    headers:{ Accept:'application/json' },
+    signal:AbortSignal.timeout(20000)
+  });
+  if (!response.ok) throw new Error('External HTTP ' + response.status);
+  var payload = await response.json();
+  if (!payload || payload.ok !== true) throw new Error('External payload invalid');
+  return payload;
+}
+
+function externalStatusSummary(payload) {
+  var sources = payload && payload.sources ? payload.sources : {};
+  return ['telmi','stockbit'].map(function(name){
+    var source = sources[name] || {};
+    return name.charAt(0).toUpperCase()+name.slice(1)+': '+(source.status || 'disabled');
+  }).join(' | ');
+}
+
+async function syncExternalSymbols(symbols, merge) {
+  if (STATE.externalFetching || !symbols || !symbols.length) return null;
+  STATE.externalFetching = true;
+  symbols.forEach(function(symbol){ STATE.externalRequested[symbol] = true; });
+  renderCurrent();
+  try {
+    var external = await fetchExternalPayload(symbols);
+    if (!external) return null;
+    applyExternalPayload(external, Boolean(merge));
+    addLog('Data eksternal diperbarui. ' + externalStatusSummary(external));
+    if (STATE.scanResult) {
+      STATE.scanResult.external = {
+        ok:true,
+        generatedAt:external.generatedAt,
+        requestedSymbols:Object.keys(STATE.externalRequested),
+        enrichments:STATE.externalEnrichment,
+        sources:STATE.externalSources,
+        scoringImpact:'none'
+      };
+      saveToLocalCache(STATE.scanResult);
+    }
+    return external;
+  } catch(error) {
+    addLog('Data eksternal gagal: ' + (error && error.message ? error.message : String(error)));
+    return null;
+  } finally {
+    STATE.externalFetching = false;
+    renderCurrent();
+  }
+}
+
+function refreshExternal(symbol) {
+  var target = symbol || STATE.selectedSym;
+  if (target) syncExternalSymbols([target], true);
+}
+
 async function fetchFullUniversePayload(total) {
   var chunks = [];
   for (var offset=0; offset<total; offset+=FULL_SCAN_CHUNK_SIZE) {
@@ -648,6 +738,17 @@ async function fetchLive(force) {
     applyPayload(payload);
     saveToLocalCache(payload);
     STATE.lastSync = Date.now();
+    var externalSymbols = symbolsForExternalEnrichment(payload);
+    if (externalSymbols.length) {
+      STATE.externalRequested = {};
+      STATE.externalEnrichment = {};
+      addLog('Meminta data eksternal untuk ' + externalSymbols.length + ' kandidat.');
+      var externalPayload = await syncExternalSymbols(externalSymbols, false);
+      if (externalPayload) {
+        payload.external = externalPayload;
+        saveToLocalCache(payload);
+      }
+    }
     // Fire ntfy push alerts for any new STRONG_BUY signals found in this scan.
     sendStrongBuyAlerts(payload);
     var dataFreshness = payload.diagnostics && payload.diagnostics.dataFreshness;
@@ -1143,12 +1244,94 @@ function freshnessColor(f) {
 // ----
 // STOCK CARD
 // ----
+function externalForSymbol(symbol) {
+  return STATE.externalEnrichment && STATE.externalEnrichment[symbol] ? STATE.externalEnrichment[symbol] : null;
+}
+function externalBadgeHTML(symbol) {
+  var external = externalForSymbol(symbol);
+  if (!external) return '';
+  var count = (external.telmi ? 1 : 0) + (external.stockbit ? 1 : 0);
+  var status = external.consensus && external.consensus.status;
+  var color = status === 'confirmed_positive' ? C.green : status === 'confirmed_negative' ? C.pink : status === 'mixed' ? C.orange : C.cyan;
+  return badgeHTML('EXT '+count, color, color+'12', 9, true);
+}
+function externalSourceColor(status) {
+  return status === 'ok' ? C.green : status === 'partial' ? C.yellow : status === 'error' || status === 'misconfigured' ? C.pink : C.ter;
+}
+function externalMetricRows(rows) {
+  return rows.filter(function(row){ return row[1] !== null && row[1] !== undefined && row[1] !== ''; }).map(function(row){
+    return '<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);">'
+      +'<span style="font-size:10px;color:'+C.ter+';">'+escAttr(row[0])+'</span>'
+      +'<span class="mono" style="font-size:10px;color:'+(row[2]||C.sec)+';text-align:right;">'+escAttr(row[1])+'</span></div>';
+  }).join('');
+}
+function externalDetailHTML(s) {
+  var external = externalForSymbol(s.symbol) || {};
+  var telmi = external.telmi;
+  var stockbit = external.stockbit;
+  var sources = STATE.externalSources || {};
+  var telmiSource = sources.telmi || {status:'disabled',configured:false};
+  var stockbitSource = sources.stockbit || {status:'disabled',configured:false};
+  var consensus = external.consensus || {status:'unavailable'};
+  var consensusLabels = {
+    confirmed_positive:'DUA SUMBER POSITIF', confirmed_negative:'DUA SUMBER NEGATIF',
+    mixed:'SUMBER BERBEDA ARAH', single_source:'SATU SUMBER', neutral:'NETRAL', unavailable:'BELUM ADA DATA'
+  };
+  var consensusColor = consensus.status === 'confirmed_positive' ? C.green
+    : consensus.status === 'confirmed_negative' ? C.pink
+    : consensus.status === 'mixed' ? C.orange
+    : consensus.status === 'single_source' ? C.cyan : C.ter;
+  var telmiSignalColor = telmi && /BUY|BULL/i.test(telmi.signal || '') ? C.green
+    : telmi && /SELL|BEAR|AVOID/i.test(telmi.signal || '') ? C.pink : C.yellow;
+  var telmiRows = telmi ? [
+    ['Signal', telmi.signal, telmiSignalColor],
+    ['Area beli', telmi.areaBuyMin != null || telmi.areaBuyMax != null ? fmtPrice(telmi.areaBuyMin)+' - '+fmtPrice(telmi.areaBuyMax) : null, C.cyan],
+    ['Target 1', telmi.tp1 != null ? fmtPrice(telmi.tp1) : null, C.green],
+    ['Stop loss', telmi.sl != null ? fmtPrice(telmi.sl) : null, C.pink],
+    ['Status', telmi.status, C.sec],
+    ['Waktu', telmi.timestamp ? fmtDateTime(telmi.timestamp) : null, C.sec]
+  ] : [];
+  var topPick = telmi && telmi.topPick;
+  var broker = stockbit && stockbit.brokerSummary || {};
+  var book = stockbit && stockbit.orderbook || {};
+  var fundamental = stockbit && stockbit.fundamentals || {};
+  var stockbitRows = stockbit ? [
+    ['Signal/sentimen', stockbit.signal || stockbit.sentiment, C.cyan],
+    ['Net buy broker', broker.netBuyValue != null ? (broker.netBuyValue >= 0 ? '+' : '')+fmtB(broker.netBuyValue) : null, broker.netBuyValue >= 0 ? C.green : C.pink],
+    ['Foreign net', broker.foreignNet != null ? (broker.foreignNet >= 0 ? '+' : '')+fmtB(broker.foreignNet) : null, broker.foreignNet >= 0 ? C.green : C.pink],
+    ['Orderbook imbalance', book.imbalance != null ? Number(book.imbalance).toFixed(1)+'%' : null, book.imbalance >= 0 ? C.green : C.pink],
+    ['Best bid / offer', book.bestBid != null || book.bestOffer != null ? fmtPrice(book.bestBid)+' / '+fmtPrice(book.bestOffer) : null, C.sec],
+    ['P/E / PBV', fundamental.pe != null || fundamental.pbv != null ? (fundamental.pe != null ? Number(fundamental.pe).toFixed(2) : 'N/A')+' / '+(fundamental.pbv != null ? Number(fundamental.pbv).toFixed(2) : 'N/A') : null, C.sec]
+  ] : [];
+  var sourceCard = function(name, source, content){
+    var color = externalSourceColor(source.status);
+    var emptyText = source.status === 'disabled' ? 'Belum dikonfigurasi di environment Vercel.'
+      : source.status === 'misconfigured' ? 'Konfigurasi belum lengkap.'
+      : source.status === 'error' ? 'Sumber sedang gagal; scanner inti tidak terpengaruh.'
+      : 'Tidak ada data untuk simbol ini pada respons terbaru.';
+    return '<div class="card" style="padding:14px 16px;margin-bottom:10px;">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-size:12px;font-weight:800;">'+name+'</span>'+badgeHTML(String(source.status || 'disabled').toUpperCase(),color,color+'12',9,true)+'</div>'
+      +(content || '<div style="font-size:10px;color:'+C.ter+';line-height:1.5;">'+emptyText+'</div>')
+      +'</div>';
+  };
+  var telmiContent = telmi ? externalMetricRows(telmiRows)
+    +(telmi.indicator ? '<div style="font-size:10px;color:'+C.sec+';line-height:1.55;margin-top:9px;">'+escAttr(telmi.indicator)+'</div>' : '')
+    +(topPick ? '<div style="margin-top:10px;padding:9px 10px;background:rgba(255,255,255,.035);border-radius:10px;font-size:9px;color:'+C.ter+';">TOP PICK · PE '+escAttr(topPick.pe != null ? Number(topPick.pe).toFixed(2) : 'N/A')+' · PBV '+escAttr(topPick.pbv != null ? Number(topPick.pbv).toFixed(2) : 'N/A')+' · ROE '+escAttr(topPick.roe != null ? Number(topPick.roe).toFixed(2)+'%' : 'N/A')+'</div>' : '') : '';
+  var topBrokers = broker.topBuyers && broker.topBuyers.length ? '<div style="font-size:9px;color:'+C.ter+';margin-top:9px;">Top buyer: '+broker.topBuyers.slice(0,3).map(function(row){ return escAttr(row.broker || '-')+(row.value != null?' '+escAttr(fmtB(row.value)):''); }).join(' · ')+'</div>' : '';
+  var stockbitContent = stockbit ? externalMetricRows(stockbitRows)
+    +(stockbit.summary ? '<div style="font-size:10px;color:'+C.sec+';line-height:1.55;margin-top:9px;">'+escAttr(stockbit.summary)+'</div>' : '')+topBrokers : '';
+  return '<div class="card" style="padding:14px 16px;margin-bottom:10px;border-color:'+consensusColor+'35;background:'+consensusColor+'08;">'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;"><div><div style="font-size:11px;font-weight:900;color:'+consensusColor+';">KONFIRMASI EKSTERNAL</div><div style="font-size:9px;color:'+C.ter+';margin-top:4px;line-height:1.45;">Read-only · tidak mengubah score inti · bukan eksekusi order</div></div>'+badgeHTML(consensusLabels[consensus.status]||'BELUM ADA DATA',consensusColor,consensusColor+'12',9,true)+'</div>'
+    +'<button onclick="refreshExternal(\''+s.symbol+'\')" '+(STATE.externalFetching?'disabled':'')+' style="width:100%;margin-top:11px;background:rgba(123,66,188,.12);border:1px solid rgba(123,66,188,.4);border-radius:10px;padding:8px;color:'+C.cyan+';font-size:10px;font-weight:700;">'+(STATE.externalFetching?'Memuat...':'Refresh '+s.symbol)+'</button></div>'
+    +sourceCard('Telmi Finance', telmiSource, telmiContent)
+    +sourceCard('Stockbit Gateway', stockbitSource, stockbitContent);
+}
 function stockCardHTML(s, compact) {
   var tr=s.trading, spark=SPARKS[s.symbol], col=s.pctChg>=0?C.green:C.pink;
   var bow=s.buyOnWeakness;
   return '<div onclick="openDetail(\''+s.symbol+'\')" style="background:radial-gradient(ellipse at 15% 0%,'+s.signal.color+'12 0%,rgba(255,255,255,.04) 60%);border:1px solid '+s.signal.color+'28;border-radius:20px;padding:'+(compact?'11px 13px':'14px 16px')+';margin-bottom:8px;cursor:pointer;transition:transform .16s ease;" onmousedown="this.style.transform=\'scale(.984)\'" onmouseup="this.style.transform=\'\'" ontouchstart="this.style.transform=\'scale(.984)\'" ontouchend="this.style.transform=\'\'">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:'+(compact?5:8)+'px;">'
-    +'<div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;"><span style="font-size:'+(compact?13:15)+'px;font-weight:800;letter-spacing:.03em;">'+s.symbol+'</span>'+badgeHTML(s.signal.short,s.signal.color,s.signal.bg,9,true)+actionBadgeHTML(tr.action)+'</div>'
+    +'<div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;"><span style="font-size:'+(compact?13:15)+'px;font-weight:800;letter-spacing:.03em;">'+s.symbol+'</span>'+badgeHTML(s.signal.short,s.signal.color,s.signal.bg,9,true)+actionBadgeHTML(tr.action)+externalBadgeHTML(s.symbol)+'</div>'
     +(compact?'':'<div style="font-size:10px;color:'+C.ter+';margin-bottom:4px;">'+s.name+'</div>')
     +'<div style="display:flex;gap:5px;flex-wrap:wrap;">'+badgeHTML(s.sector,C.ter,'rgba(255,255,255,.05)',9)+dataModeBadge(s.dataMode)+(s.riskFlags.length?badgeHTML(' '+s.riskFlags.length,C.pink,'rgba(123,66,188,.12)',9):'')+'</div></div>'
     +'<div style="text-align:right;"><div class="mono" style="font-size:'+(compact?13:16)+'px;font-weight:700;line-height:1;">'+fmtPrice(s.price)+'</div>'+pctHTML(s.pctChg,compact?11:12)+((!compact&&spark)?'<div style="margin-top:4px;">'+sparkSVG(spark,70,24,col,true)+'</div>':'')+'</div></div>'
@@ -1600,7 +1783,7 @@ function renderDetail() {
     +'</div>'
     +'</div>';
 
-  var tabContent={signal:signalHTML, overview:overviewHTML, score:scoreHTML, risk:riskHTML, chart:'<div id="lwc-chart-container" style="width:100%;height:280px;border-radius:14px;overflow:hidden;margin-bottom:10px;"></div><div id="lwc-chart-legend" style="font-size:10px;color:rgba(178,182,189,.7);text-align:center;margin-top:4px;">Memuat grafik intraday...</div>'};
+  var tabContent={signal:signalHTML, overview:overviewHTML, external:externalDetailHTML(s), score:scoreHTML, risk:riskHTML, chart:'<div id="lwc-chart-container" style="width:100%;height:280px;border-radius:14px;overflow:hidden;margin-bottom:10px;"></div><div id="lwc-chart-legend" style="font-size:10px;color:rgba(178,182,189,.7);text-align:center;margin-top:4px;">Memuat grafik intraday...</div>'};
 
   document.getElementById('page-detail').innerHTML=''
     +'<button onclick="showPage(\'scanner\')" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:6px 14px;color:'+C.sec+';font-size:12px;cursor:pointer;margin-bottom:14px;">&lt; Kembali</button>'
@@ -1614,6 +1797,7 @@ function renderDetail() {
     +badgeHTML(s.sector,C.ter,'rgba(255,255,255,.06)',10)
     +actionBadgeHTML(tr.action)
     +dataModeBadge(s.dataMode)
+    +externalBadgeHTML(s.symbol)
     +'</div></div>'
     +'<div style="text-align:right;">'
     +'<div class="mono" style="font-size:26px;font-weight:800;line-height:1;">'+fmtPrice(s.price)+'</div>'
@@ -1638,7 +1822,7 @@ function renderDetail() {
     +'<div class="price-dot" style="left:'+priceRange.toFixed(0)+'%;"></div>'
     +'</div></div></div>'
     +'<div style="display:flex;gap:5px;margin-bottom:12px;">'
-    +[['signal','Signal'],['overview','Data'],['score','Score'],['risk','Risk'],['chart','Chart']].map(function(t){
+    +[['signal','Signal'],['overview','Data'],['external','External'],['score','Score'],['risk','Risk'],['chart','Chart']].map(function(t){
       return '<button onclick="setDetailTab(\''+t[0]+'\')" style="flex:1;background:'+(STATE.detailTab===t[0]?'rgba(123,66,188,.12)':'rgba(255,255,255,.04)')+';border:1px solid '+(STATE.detailTab===t[0]?'rgba(123,66,188,.5)':'rgba(255,255,255,.08)')+';border-radius:12px;padding:8px 4px;color:'+(STATE.detailTab===t[0]?C.cyan:'rgba(255,255,255,.38)')+';font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;">'+t[1]+'</button>';
     }).join('')+'</div>'
     +(tabContent[STATE.detailTab]||signalHTML);
@@ -1781,35 +1965,51 @@ function renderSettings() {
   var fullFlowCount=enriched.filter(function(s){return s.dataMode==='FULL_FLOW';}).length;
   var missingPrice=enriched.filter(function(s){return !validPrice(s.price);}).length;
   var syncLogRows=STATE.syncLog.slice(-8).reverse();
+  var externalSources=STATE.externalSources||{};
+  var telmiSource=externalSources.telmi||{status:'disabled',configured:false,matched:0};
+  var stockbitSource=externalSources.stockbit||{status:'disabled',configured:false,matched:0};
 
   document.getElementById('page-settings').innerHTML=''
     +'<div style="font-size:18px;font-weight:800;margin-bottom:20px;">Settings</div>'
     +'<div class="card card-blue" style="padding:20px;text-align:center;margin-bottom:14px;">'
     +'<div style="width:58px;height:58px;border-radius:18px;background:linear-gradient(135deg,'+C.cyan+','+C.accent+');margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 0 28px rgba(123,66,188,.5);"></div>'
     +'<div style="font-size:16px;font-weight:800;">IDX Flow Scanner</div>'
-    +'<div style="font-size:11px;color:'+C.ter+';margin-top:2px;">v2.0  Auto Web Sync</div>'
+    +'<div style="font-size:11px;color:'+C.ter+';margin-top:2px;">v2.1 · Sync on Open + External Enrichment</div>'
     +'<div style="display:flex;gap:5px;justify-content:center;margin-top:10px;flex-wrap:wrap;">'
-    +['HTML5','Vanilla JS','Auto Web Sync','Server Cache'].map(function(l){return badgeHTML(l,C.sec,'rgba(255,255,255,.07)',9);}).join('')
+    +['HTML5','Vanilla JS','Sync on Open','Server Cache','Read-only External'].map(function(l){return badgeHTML(l,C.sec,'rgba(255,255,255,.07)',9);}).join('')
     +'</div></div>'
 
     // AUTO WEB SYNC section
     +'<div class="card" style="padding:14px 16px;margin-bottom:12px;">'
-    +'<div style="font-size:12px;font-weight:700;color:'+C.cyan+';margin-bottom:12px;letter-spacing:.04em;">AUTO WEB SYNC</div>'
-    +[['Endpoint',    '/api/scan',                    C.cyan],
+    +'<div style="font-size:12px;font-weight:700;color:'+C.cyan+';margin-bottom:5px;letter-spacing:.04em;">SYNC ON OPEN</div>'
+    +'<div style="font-size:10px;color:'+C.ter+';line-height:1.45;margin-bottom:10px;">Saat aplikasi dibuka, scan inti dijalankan lalu kandidat terbaik diperkaya secara on-demand.</div>'
+    +[['Endpoint',    '/api/scan + /api/enrich',      C.cyan],
       ['Freshness',   STATE.freshness,                freshnessColor(STATE.freshness)],
       ['Provider',    STATE.provider,                 C.sec],
       ['Last Sync',   STATE.lastSync?fmtTime(STATE.lastSync):'', C.sec],
       ['Data asOf',   STATE.lastAsOf?new Date(STATE.lastAsOf).toLocaleTimeString('id-ID'):'', C.sec]]
      .map(function(m){return '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);"><span style="font-size:11px;color:'+C.ter+';">'+m[0]+'</span><span class="mono" style="font-size:10px;color:'+m[2]+';">'+m[1]+'</span></div>';}).join('')
-    +'<div style="margin-top:14px;"><div style="font-size:11px;color:'+C.ter+';margin-bottom:8px;">Interval Sync</div>'
+    +'<div style="margin-top:14px;"><div style="font-size:11px;color:'+C.ter+';margin-bottom:8px;">Sync ulang selama aplikasi terbuka</div>'
     +'<div style="display:flex;gap:6px;">'
-    +[30,60,120,300].map(function(s){
-      return '<button onclick="setIntervalSec('+s+')" style="flex:1;background:'+(STATE.syncInterval===s?'rgba(123,66,188,.15)':'rgba(255,255,255,.05)')+';border:1px solid '+(STATE.syncInterval===s?'rgba(123,66,188,.5)':'rgba(255,255,255,.08)')+';border-radius:10px;padding:8px 4px;color:'+(STATE.syncInterval===s?C.cyan:'rgba(255,255,255,.38)')+';font-size:10px;font-weight:700;">'+(s<60?s+'d':s/60+'m')+'</button>';
+    +[0,60,300,900].map(function(s){
+      return '<button onclick="setIntervalSec('+s+')" style="flex:1;background:'+(STATE.syncInterval===s?'rgba(123,66,188,.15)':'rgba(255,255,255,.05)')+';border:1px solid '+(STATE.syncInterval===s?'rgba(123,66,188,.5)':'rgba(255,255,255,.08)')+';border-radius:10px;padding:8px 4px;color:'+(STATE.syncInterval===s?C.cyan:'rgba(255,255,255,.38)')+';font-size:10px;font-weight:700;">'+(s===0?'Saat buka':s/60+'m')+'</button>';
     }).join('')+'</div></div>'
     +'<div style="display:flex;gap:8px;margin-top:14px;">'
     +'<button onclick="forceSync()" style="flex:1;background:rgba(123,66,188,.12);border:1px solid rgba(123,66,188,.4);border-radius:12px;padding:10px;color:'+C.cyan+';font-size:12px;font-weight:700;">Force Sync</button>'
     +'<button onclick="clearCache()" style="flex:1;background:rgba(123,66,188,.08);border:1px solid rgba(123,66,188,.3);border-radius:12px;padding:10px;color:'+C.pink+';font-size:12px;font-weight:700;">Clear Cache</button>'
     +'</div></div>'
+
+    // OPTIONAL EXTERNAL SOURCES
+    +'<div class="card" style="padding:14px 16px;margin-bottom:12px;">'
+    +'<div style="font-size:12px;font-weight:700;color:'+C.green+';margin-bottom:5px;letter-spacing:.04em;">OPTIONAL EXTERNAL DATA</div>'
+    +'<div style="font-size:10px;color:'+C.ter+';line-height:1.45;margin-bottom:10px;">Telmi dan Stockbit hanya menjadi konfirmasi tambahan. Data ini tidak mengubah score scanner inti dan tidak dapat mengeksekusi transaksi.</div>'
+    +[['Telmi Finance',String(telmiSource.status||'disabled').toUpperCase()+' · '+num(telmiSource.matched,0)+' match',externalSourceColor(telmiSource.status)],
+      ['Stockbit Gateway',String(stockbitSource.status||'disabled').toUpperCase()+' · '+num(stockbitSource.matched,0)+' match',externalSourceColor(stockbitSource.status)],
+      ['Last External',STATE.externalLastSync?fmtDateTime(STATE.externalLastSync):'Belum sync',C.sec],
+      ['Scoring Impact','NONE',C.green]]
+      .map(function(m){return '<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);"><span style="font-size:11px;color:'+C.ter+';">'+m[0]+'</span><span class="mono" style="font-size:10px;color:'+m[2]+';text-align:right;">'+m[1]+'</span></div>';}).join('')
+    +'<button onclick="syncExternalSymbols(symbolsForExternalEnrichment(STATE.scanResult),false)" '+(STATE.externalFetching?'disabled':'')+' style="width:100%;margin-top:12px;background:rgba(0,255,156,.08);border:1px solid rgba(0,255,156,.3);border-radius:10px;padding:9px;color:'+C.green+';font-size:10px;font-weight:700;">'+(STATE.externalFetching?'Memuat data eksternal...':'Refresh External Candidates')+'</button>'
+    +'</div>'
 
     // DATA QUALITY section
     +'<div class="card" style="padding:14px 16px;margin-bottom:12px;">'
@@ -2004,7 +2204,12 @@ function handleUpload(input) {
   };
   reader.readAsText(file);
 }
-function openDetail(sym){STATE.selectedSym=sym;STATE.detailTab='signal';showPage('detail');}
+function openDetail(sym){
+  STATE.selectedSym=sym;
+  STATE.detailTab='signal';
+  showPage('detail');
+  if (!STATE.externalRequested[sym]) syncExternalSymbols([sym], true);
+}
 
 function showPage(page){
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});

@@ -14,11 +14,30 @@ Repository:
 
 - `/` serves `public/index.html`
 - `/api/scan` returns quote-driven recommendations without requiring CSV
+- `/api/enrich?symbols=BBCA,BBRI` fetches optional Telmi and Stockbit confirmation data on demand
 - `/api/health` returns service, provider, session, scan, and cache status
 - `/api/idx-quotes` remains available as a legacy quote endpoint
 - `/api/flow-upload` optionally persists CSV broker flow rows to Supabase
 
 CSV upload is optional and is only for broker-flow enrichment. The core scanner must work without CSV.
+
+## Sync on Open
+
+The browser starts one core scan when the application is opened. After the scan is ready, `/api/enrich` is requested only for up to 20 relevant candidates (recommendations first, then watchlist). The default repeat interval is `Saat buka` (`0`), which means no background polling after that initial sync. Users can optionally select a 1, 5, or 15 minute repeat interval while the tab remains open.
+
+This design matches serverless execution: no always-on worker is required. A manual `Force Sync`, an external-data refresh, or opening a detail that has not yet been enriched creates a new request.
+
+## Optional External Enrichment
+
+External data is deliberately separated from the core signal engine:
+
+- Telmi Finance uses the official Open API and can contribute stock signals and top-pick fundamentals.
+- Stockbit is supported through a user-operated read-only gateway. Persistent Stockbit authentication stays outside Vercel and outside browser code.
+- External data is shown as confirmation/contrast in the `External` detail tab.
+- External values never modify the core scanner score, recommendation gates, or risk controls.
+- No endpoint in this project places, modifies, or cancels an order.
+
+Provider failures are non-fatal. `/api/enrich` still returns a structured result when a provider is disabled, restricted by its subscription plan, or temporarily unavailable; `/api/scan` continues independently.
 
 ## Universe Coverage
 
@@ -57,6 +76,7 @@ Server cache:
 - `/api/scan` caches scan results briefly in memory.
 - Provider responses are cached briefly to reduce rate-limit pressure.
 - API diagnostics include `cacheHit` and `cacheAgeMs`.
+- Telmi datasets are cached for five minutes per warm runtime; Stockbit gateway requests are cached for two minutes per symbol set.
 
 Client cache:
 
@@ -197,14 +217,65 @@ Acceptance threshold:
 
 ## Vercel Environment Variables
 
-Optional, only needed for cloud flow persistence:
+All integrations below are optional:
 
 ```env
+TELMI_API_KEY=
+TELMI_API_BASE_URL=https://api-finance.telmi.id/api/v1/open
+
+STOCKBIT_GATEWAY_URL=https://your-read-only-gateway.example/v1/enrich
+STOCKBIT_GATEWAY_TOKEN=
+
 SUPABASE_URL=https://mbjkpqxnbheatmtoodvf.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=
 ```
 
-Do not expose `SUPABASE_SERVICE_ROLE_KEY` in frontend code.
+Never expose any API key, service-role key, Stockbit session, or gateway token in frontend code. Store them only as server-side Vercel environment variables.
+
+Telmi endpoints used by the provider:
+
+- `GET /market/stock-signals`
+- `GET /stocks/top-picks`
+
+Some Telmi endpoints can require a higher subscription tier. That is reported as `partial` or `error`; it does not break the core scan.
+
+### Stockbit gateway contract
+
+`STOCKBIT_GATEWAY_URL` must accept:
+
+```http
+POST /v1/enrich
+Authorization: Bearer <STOCKBIT_GATEWAY_TOKEN>
+Content-Type: application/json
+
+{"symbols":["BBCA","BBRI"]}
+```
+
+It may return either an `enrichments` object, a `data` object, or a `data` array. Recommended normalized response:
+
+```json
+{
+  "ok": true,
+  "enrichments": {
+    "BBCA": {
+      "sentiment": "bullish",
+      "summary": "Broker flow positive",
+      "brokerSummary": {
+        "netBuyValue": 1250000000,
+        "topBuyers": [{ "broker": "YP", "value": 800000000 }]
+      },
+      "orderbook": {
+        "imbalance": 18.4,
+        "bestBid": 9575,
+        "bestOffer": 9600
+      },
+      "fundamentals": { "pe": 18.2, "pbv": 4.1 }
+    }
+  }
+}
+```
+
+The server applies an allowlist before returning gateway data to the browser. Unknown fields are discarded.
 
 ## Supabase Table
 
@@ -244,3 +315,6 @@ Price-volume signals are labeled as proxy signals.
 - Server memory cache is per runtime instance and may reset between deployments or cold starts.
 - Browser localStorage cache is device-specific.
 - Broker flow requires optional CSV/Supabase data and is not required for core recommendations.
+- Telmi usefulness and coverage depend on the configured Telmi plan and current API response.
+- Stockbit enrichment remains disabled until a separate authenticated read-only gateway is configured.
+- External confirmation can disagree with the core scanner; disagreement is displayed as `SUMBER BERBEDA ARAH`, not silently averaged into a score.

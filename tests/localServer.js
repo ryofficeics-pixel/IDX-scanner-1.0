@@ -6,6 +6,7 @@ const path = require('path');
 
 const scan = require('../api/scan');
 const health = require('../api/health');
+const enrich = require('../api/enrich');
 
 function wrap(handler, req, res, query) {
   req.query = Object.fromEntries(query.entries());
@@ -25,6 +26,7 @@ function createServer() {
   return http.createServer((req, res) => {
     const url = new URL(req.url, 'http://127.0.0.1');
     if (url.pathname === '/api/scan') return wrap(scan, req, res, url.searchParams);
+    if (url.pathname === '/api/enrich') return wrap(enrich, req, res, url.searchParams);
     if (url.pathname === '/api/health') return wrap(health, req, res, url.searchParams);
 
     const file = url.pathname === '/' ? 'index.html' : url.pathname.slice(1);

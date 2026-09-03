@@ -26,9 +26,15 @@ module.exports = function handler(req, res) {
     lastScanValidCount: state.lastScanValidCount,
     lastScanFailedCount: state.lastScanFailedCount,
     providers: {
-      primary: 'yahoo-finance',
-      fallback: 'structured-failure',
+      primary: 'idx-data',
+      fallback: 'yahoo-finance/structured-failure',
       statusSummary: state.lastProviderStatus,
+    },
+    enrichment: {
+      mode:'on-demand',
+      scoringImpact:'none',
+      telmi:{ configured:Boolean(String(process.env.TELMI_API_KEY || '').trim()) },
+      stockbit:{ configured:Boolean(String(process.env.STOCKBIT_GATEWAY_URL || '').trim() && String(process.env.STOCKBIT_GATEWAY_TOKEN || '').trim()) },
     },
     cache: {
       status: state.lastCacheStatus,

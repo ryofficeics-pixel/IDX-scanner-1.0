@@ -65,6 +65,32 @@ test('scan success renders metadata and signal area', async ({ page }) => {
   await expect(page.locator('body')).toContainText('TOP BUY SIGNALS');
 });
 
+test('optional external enrichment renders without changing the core signal', async ({ page }) => {
+  await page.route('**/api/scan**', (route) => route.fulfill({ contentType:'application/json', body:JSON.stringify(sampleScan()) }));
+  await page.route('**/api/enrich**', (route) => route.fulfill({ contentType:'application/json', body:JSON.stringify({
+    ok:true,
+    generatedAt:new Date().toISOString(),
+    requestedSymbols:['BBCA'],
+    matchedSymbols:['BBCA'],
+    scoringImpact:'none',
+    sources:{
+      telmi:{ provider:'telmi', configured:true, status:'ok', matched:1, errors:[] },
+      stockbit:{ provider:'stockbit-gateway', configured:false, status:'disabled', matched:0, errors:[] },
+    },
+    enrichments:{ BBCA:{
+      telmi:{ signal:'BUY', indicator:'Smart Money Accumulation', areaBuyMin:950, areaBuyMax:1000, tp1:1100, sl:920 },
+      consensus:{ status:'single_source', positive:1, negative:0, neutral:0, votes:[{ source:'telmi', direction:'positive' }] },
+    } },
+  }) }));
+  await page.goto(local.url);
+  await expect(page.locator('body')).toContainText('EXT 1');
+  await page.evaluate(() => openDetail('BBCA'));
+  await page.getByRole('button', { name:'External' }).click();
+  await expect(page.locator('#page-detail')).toContainText('Smart Money Accumulation');
+  await expect(page.locator('#page-detail')).toContainText('tidak mengubah score inti');
+  await expect(page.locator('#page-detail')).toContainText('Stockbit Gateway');
+});
+
 test('API failure with cache renders cached result as cache mode', async ({ page }) => {
   const payload = sampleScan();
   await page.addInitScript((value) => localStorage.setItem('idx_flow_cache_v2', value), cacheEnvelope(payload));
@@ -100,6 +126,7 @@ test('corrupt localStorage recovers', async ({ page }) => {
 
 test('mobile viewport remains usable', async ({ page }) => {
   await page.setViewportSize({ width:390, height:844 });
+  await page.route('**/api/scan**', (route) => route.fulfill({ contentType:'application/json', body:JSON.stringify(sampleScan()) }));
   await page.goto(local.url);
   await expect(page.locator('#navbar')).toBeVisible();
   await expect(page.locator('#topbar')).toBeVisible();
