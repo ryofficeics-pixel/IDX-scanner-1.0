@@ -291,12 +291,12 @@ test('optional setup state survives separate symbol batches and expires', async 
   assert.equal((await state.read(['TEST'], new Date('2026-06-15T03:00:00Z'))).length, 0);
 });
 
-test('public files are byte-for-byte identical to the original repository commit', () => {
-  for (const filename of ['public/index.html', 'public/idx-symbols.js']) {
-    const old = execFileSync('git', ['rev-parse', `${replay.BASELINE_REF}:${filename}`], { encoding:'utf8' }).trim();
-    const current = execFileSync('git', ['hash-object', filename], { encoding:'utf8' }).trim();
-    assert.equal(current, old);
-  }
+test('public UI differs from baseline only by the requested v2.2 label', () => {
+  const baseline = execFileSync('git', ['show', `${replay.BASELINE_REF}:public/index.html`], { encoding:'utf8' });
+  const expected = baseline.replace('IDX Flow Scanner v2.0', 'IDX Flow Scanner v2.2').replace('SCANNER v2.0', 'SCANNER v2.2');
+  assert.equal(require('node:fs').readFileSync('public/index.html', 'utf8').replaceAll('\r\n', '\n'), expected);
+  const oldSymbols = execFileSync('git', ['rev-parse', `${replay.BASELINE_REF}:public/idx-symbols.js`], { encoding:'utf8' }).trim();
+  assert.equal(execFileSync('git', ['hash-object', 'public/idx-symbols.js'], { encoding:'utf8' }).trim(), oldSymbols);
 });
 
 test('pipeline replay applies production history budgets without future selection leakage', () => {

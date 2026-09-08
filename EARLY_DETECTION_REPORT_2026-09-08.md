@@ -117,7 +117,7 @@ Backend changes cover `api/scan.js`, `api/eveningScan.js`, `lib/config/signalCon
 
 Research changes cover capture, chronological replay, morning replay, train auditing/reclassification, runtime benchmarking, evidence summarization, syntax checking, retirement guards for three legacy optimizers, and the daily execution helper. Tests cover API discovery, early detection, existing signal contracts, frontend extraction, and optional Chromium configuration. README, Git ignore rules, Vercel duration configuration, this report, historical handoff, and aggregate evidence complete the delivery. No runtime dependency was added.
 
-`public/index.html` did not change. Its baseline/current Git blob is `9f5739eae9daf1339168cd00d6b671a49e3b917f`. `public/idx-symbols.js` also did not change. Recommendation collection keys remain compatible. New backend metadata is optional. Anti-Slop DURING and Ponytail constrained changes to the existing stack; Anti-Slop comment/copy guidance was used for touched explanations and this report. There was no applicable UI redesign to run through a visual Delivery Gate.
+At the evaluation commit, `public/index.html` matched the baseline blob `9f5739eae9daf1339168cd00d6b671a49e3b917f`. A subsequent user-authorized presentation-only commit changed its browser title and visible scanner badge from v2.0 to v2.2; the regression test rejects any other UI drift. `public/idx-symbols.js` remains unchanged. Recommendation collection keys remain compatible. New backend metadata is optional. Anti-Slop DURING and Ponytail constrained changes to the existing stack; Anti-Slop comment/copy guidance was used for touched explanations and this report. There was no UI redesign.
 
 ## Remaining limits and next decision
 
