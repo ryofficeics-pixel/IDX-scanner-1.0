@@ -1,5 +1,7 @@
 'use strict';
 
+throw new Error('LEGACY_OPTIMIZER_RETIRED: daily-bar in-sample win-rate optimization cannot validate early detection. Use scripts/intradayBacktest.js with frozen train/validation/test splits.');
+
 const { getUniverse } = require('../lib/market/idxUniverse');
 
 function num(v) { const n = Number(v); return Number.isFinite(n) ? n : null; }

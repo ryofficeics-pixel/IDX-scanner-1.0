@@ -55,23 +55,9 @@ async function fetchDailyCharts(symbols, years = 2) {
 // Swing-trade exit model: buy at close, target +T%, stop -S%, max hold N days.
 // Returns { win, exitReturn, exitDay, reason } where reason is 'target'|'stop'|'hold'.
 function swingExit(close, future, target = 0.03, stop = 0.02, holdDays = 5) {
-  if (!future || future.length === 0) return { win: null, exitReturn: null, exitDay: null, reason: 'no-data' };
-  for (let i = 0; i < Math.min(holdDays, future.length); i++) {
-    const hi = num(future[i].high);
-    const lo = num(future[i].low);
-    const c = num(future[i].close);
-    if (hi != null && hi >= close * (1 + target)) {
-      return { win: true, exitReturn: target * 100, exitDay: i + 1, reason: 'target' };
-    }
-    if (lo != null && lo <= close * (1 - stop)) {
-      const r = (lo / close - 1) * 100;
-      return { win: false, exitReturn: r, exitDay: i + 1, reason: 'stop' };
-    }
-  }
-  const lastClose = num(future[Math.min(holdDays, future.length) - 1].close);
-  if (lastClose == null) return { win: null, exitReturn: null, exitDay: null, reason: 'no-data' };
-  const r = (lastClose / close - 1) * 100;
-  return { win: r > 0, exitReturn: r, exitDay: Math.min(holdDays, future.length), reason: 'hold' };
+  const result = require('./intradayBacktest').evaluateExecution((future || []).slice(0, holdDays), close, 'medium', { targetPct:target * 100, stopPct:stop * 100 });
+  return { win:result.conservative, exitReturn:result.conservativeReturnPct, exitDay:result.exitIndex == null ? null : result.exitIndex + 1,
+    reason:result.outcome, ambiguous:result.ambiguous, optimisticReturn:result.optimisticReturnPct };
 }
 
 async function runBacktest() {
@@ -218,4 +204,5 @@ async function runBacktest() {
   console.log('\n================================================');
 }
 
-runBacktest().catch((e) => { console.error(e); process.exit(1); });
+if (require.main === module) runBacktest().catch((e) => { console.error(e); process.exit(1); });
+module.exports = { swingExit };

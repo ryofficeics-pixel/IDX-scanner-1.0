@@ -1,6 +1,8 @@
 # IDX Scanner 1.0
 
-Production-ready Vercel app for IDX quote-driven scanning and recommendation filtering.
+Vercel-compatible IDX quote scanner and research signal engine. Signals are screening candidates, not a proven profitable trading strategy. No endpoint executes trades.
+
+The early-detection revision and its train/validation/test evidence are documented in [the engineering report](EARLY_DETECTION_REPORT_2026-09-08.md). The existing UI is unchanged. Review the report's limitations before deploying the revision.
 
 Production:
 
@@ -54,13 +56,7 @@ Search can still query the wider universe.
 
 ## Provider Limitations
 
-Primary provider:
-
-- Yahoo Finance quote endpoint.
-
-Fallback provider:
-
-- Yahoo Finance chart endpoint per symbol.
+Quote priority is TradingView, then the IDX summary surface for missing symbols, then Yahoo quote/chart fallback. Daily and five-minute histories come from Yahoo. Official IDX summary access can return HTTP 403; missing flow remains unavailable rather than being inferred from bid/offer values.
 
 Known behavior:
 
@@ -68,6 +64,34 @@ Known behavior:
 - The scanner falls back to chart data with concurrency limiting.
 - If chart data also fails, the API returns structured `NO_DATA`.
 - No fake prices, fake scores, random recommendations, or hardcoded recommendation output are used.
+- Fetch timestamps are not exchange timestamps. Fetch-only quotes need completed market candles for actionable signals; otherwise freshness gates block buys. New BOW patterns stay on watch until intraday recovery is observed.
+
+## Early-detection research
+
+The backend separates setup, trigger, confirmation, entry efficiency, and risk. It exposes optional lifecycle metadata while retaining the existing recommendation collections. History enrichment is capped at 72 candidates per scan request (60 for evening scans), selected from quiet setups, liquidity, relative volume, and optional prior candidate state. Redis is optional; it does not run a background scanner.
+
+Use Node.js 18+ for the scanner (Node.js 22+ for the optional Stockbit gateway):
+
+```sh
+npm install
+npm run check
+npm run test:api
+npm run test:e2e
+node --test stockbit-gateway/test/*.test.js
+node scripts/benchmarkScan.js scan 120
+node scripts/captureReplayData.js .replay-cache/replay-data.json
+node scripts/intradayBacktest.js .replay-cache/replay-data.json train
+node scripts/intradayBacktest.js .replay-cache/replay-data.json validation
+# Freeze the candidate before evaluating this period; do not tune on these outcomes.
+node scripts/intradayBacktest.js .replay-cache/replay-data.json test .replay-cache/replay-test.json --pipeline
+node scripts/morningBacktest.js .replay-cache/replay-data.json test
+```
+
+Install the matching Chromium build with `npx playwright install chromium` for E2E tests. `PLAYWRIGHT_CHROMIUM_EXECUTABLE` can point to an existing Chromium executable when a bundled runtime provides one.
+
+Capture refuses to overwrite an existing dataset. Replay data stays under ignored `.replay-cache/`, outside Playwright's disposable `test-results/`. A later capture is not the same historical sample: provider retention windows roll forward. The legacy optimizer scripts are retired because their scoring/fill assumptions are unsuitable for this evaluation.
+
+The replay uses completed five-minute bars, prior completed daily context, next-open entries, costs, and conservative same-bar target/stop handling. Its chronological 60/20/20 split is one holdout experiment, not a multi-year or multi-fold profitability validation. A sampled present-day universe cannot prove whole-exchange discovery coverage or eliminate survivorship bias.
 
 ## Cache Behavior
 
