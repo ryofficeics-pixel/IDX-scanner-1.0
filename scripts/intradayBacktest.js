@@ -1,229 +1,343 @@
 'use strict';
 
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const { createRequire } = require('node:module');
+const { execFileSync } = require('node:child_process');
+const crypto = require('node:crypto');
 const { generateSignal } = require('../lib/engine/signalEngine');
-const { getUniverse } = require('../lib/market/idxUniverse');
+const { sessionContext } = require('../lib/market/idxSession');
+const { BAR_MS, number, dayKey, minuteOfDay, validBar, completedDaily } = require('../lib/market/historyContext');
+const config = require('../lib/config/signalConfig');
+const { selectHistoryCandidates } = require('../lib/engine/candidateDiscovery');
 
-function num(v) { const n = Number(v); return Number.isFinite(n) ? n : null; }
+const BASELINE_REF = '7ed0b7d97e0f6401d065ac857834e4e7e67aeb2a';
+const mean = (values) => values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
+const pct = (a, b) => b > 0 ? (a / b - 1) * 100 : null;
+const ratio = (a, b) => b ? a / b : null;
 
-// Fetch real 5-minute bars for a symbol over the last `days` calendar days.
-async function fetchIntraday(symbol, days = 60) {
-  const yahooSym = `${symbol}.JK`;
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooSym)}?range=${days}d&interval=5m`;
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      await new Promise((r) => setTimeout(r, 200 + Math.random() * 300));
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 20000);
-      const res = await fetch(url, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; IDXScanner/3.0)', Accept: 'application/json' },
-        signal: controller.signal,
-      });
-      clearTimeout(timer);
-      if (!res.ok) return null;
-      const json = await res.json();
-      const result = json?.chart?.result?.[0];
-      if (!result) return null;
-      const timestamps = result.timestamp || [];
-      const ohlc = result.indicators?.quote?.[0] || {};
-      const bars = [];
-      for (let i = 0; i < timestamps.length; i++) {
-        bars.push({
-          timestamp: new Date(timestamps[i] * 1000).toISOString(),
-          open: num(ohlc.open?.[i]), high: num(ohlc.high?.[i]),
-          low: num(ohlc.low?.[i]), close: num(ohlc.close?.[i]), volume: num(ohlc.volume?.[i]),
-        });
+function baselineEngine(entry = 'lib/engine/signalEngine.js', exported = 'generateSignal') {
+  const root = path.resolve(__dirname, '..');
+  const loaded = new Map();
+  function load(relative) {
+    if (loaded.has(relative)) return loaded.get(relative).exports;
+    const filename = path.join(root, relative);
+    const source = execFileSync('git', ['show', `${BASELINE_REF}:${relative.replaceAll('\\', '/')}`], { cwd:root, encoding:'utf8' });
+    const module = { exports:{} };
+    loaded.set(relative, module);
+    const localRequire = (name) => name.startsWith('.')
+      ? load(path.relative(root, path.resolve(path.dirname(filename), name.endsWith('.js') ? name : `${name}.js`)))
+      : createRequire(filename)(name);
+    vm.runInThisContext(`(function(require,module,exports){${source}\n})`, { filename:`baseline:${relative}` })(localRequire, module, module.exports);
+    return module.exports;
+  }
+  return load(entry)[exported];
+}
+
+function groupByDay(rows) {
+  const groups = new Map();
+  const seen = new Set();
+  for (const bar of rows) {
+    if (!validBar(bar) || seen.has(bar.timestamp)) continue;
+    seen.add(bar.timestamp);
+    const session = sessionContext(new Date(bar.timestamp));
+    if (!['MORNING', 'AFTERNOON', 'PRE_CLOSE'].includes(session.status)) continue;
+    const endSession = sessionContext(new Date(new Date(bar.timestamp).getTime() + BAR_MS - 1));
+    if (!['MORNING', 'AFTERNOON', 'PRE_CLOSE'].includes(endSession.status)) continue;
+    const key = dayKey(bar.timestamp);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(bar);
+  }
+  return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([date, bars]) => [date, bars.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))]);
+}
+
+function dailyFromIntraday(groups, endExclusive) {
+  return groups.slice(0, endExclusive).map(([date, bars]) => ({ date, open:bars[0].open,
+    high:Math.max(...bars.map((bar) => bar.high)), low:Math.min(...bars.map((bar) => bar.low)),
+    close:bars.at(-1).close, volume:bars.reduce((sum, bar) => sum + bar.volume, 0) }));
+}
+
+function liquidityBucket(tradedValue) {
+  const bounds = config.backtest.liquidityValue;
+  return tradedValue >= bounds.high ? 'high' : tradedValue >= bounds.medium ? 'medium' : 'low';
+}
+
+function evaluateExecution(futureBars, signalPrice, bucket, options = {}) {
+  const settings = { ...config.backtest, ...options };
+  const bars = futureBars.filter((bar) => ['open', 'high', 'low', 'close'].every((key) => number(bar[key]) > 0));
+  if (!bars.length) return { conservative:null, optimistic:null, conservativeReturnPct:null, optimisticReturnPct:null, outcome:'no-fill', ambiguous:false, targetHit:false };
+  const slip = settings.slippagePct[bucket] / 100;
+  // Signal is known at bar close. First executable price is the next bar's open.
+  const entry = bars[0].open * (1 + slip);
+  const cost = entry * (1 + settings.buyFeePct / 100);
+  const target = entry * (1 + settings.targetPct / 100);
+  const stop = entry * (1 - settings.stopPct / 100);
+  const net = (price) => pct(price * (1 - slip) * (1 - settings.sellFeePct / 100), cost);
+  let outcome = 'expiry';
+  let exitLow = bars.at(-1).close;
+  let exitHigh = exitLow;
+  let ambiguous = false;
+  let exitIndex = bars.length - 1;
+  for (let i = 0; i < bars.length; i += 1) {
+    const bar = bars[i];
+    if (i > 0 && bar.open <= stop) { outcome = 'stop-gap'; exitLow = exitHigh = bar.open; exitIndex = i; break; }
+    if (i > 0 && bar.open >= target) { outcome = 'target-gap'; exitLow = exitHigh = bar.open; exitIndex = i; break; }
+    const hitsTarget = bar.high >= target;
+    const hitsStop = bar.low <= stop;
+    if (hitsTarget && hitsStop) { outcome = 'ambiguous'; ambiguous = true; exitLow = stop; exitHigh = target; exitIndex = i; break; }
+    if (hitsStop) { outcome = 'stop'; exitLow = exitHigh = stop; exitIndex = i; break; }
+    if (hitsTarget) { outcome = 'target'; exitLow = exitHigh = target; exitIndex = i; break; }
+  }
+  return { entry, cost, target, stop, signalPrice, outcome, exitIndex, ambiguous,
+    conservative:net(exitLow) > 0, optimistic:net(exitHigh) > 0,
+    conservativeReturnPct:net(exitLow), optimisticReturnPct:net(exitHigh),
+    targetHit:outcome.startsWith('target'), targetHitOptimistic:outcome.startsWith('target') || ambiguous };
+}
+
+function isMeaningful(signal) {
+  return signal.dataQuality >= 60 && signal.riskLevel !== 'HIGH' && !['NO_DATA', 'SELL', 'AVOID'].includes(signal.action)
+    && (['BUY', 'STRONG_BUY', 'HIGH_CONFIDENCE_BUY'].includes(signal.action)
+      || ['EARLY_MOMENTUM', 'ARA_CANDIDATE', 'MORNING_WATCH'].includes(signal.category));
+}
+
+function snapshotAt(symbol, dayGroups, dayIndex, barIndex, options = {}) {
+  const visible = dayGroups[dayIndex][1].slice(0, barIndex + 1);
+  const bar = visible.at(-1);
+  const now = new Date(new Date(bar.timestamp).getTime() + BAR_MS);
+  const daily = completedDaily(options.daily || dailyFromIntraday(dayGroups, dayIndex), now);
+  const previousClose = daily.at(-1)?.close;
+  if (!(previousClose > 0)) return null;
+  const volume = visible.reduce((sum, row) => sum + row.volume, 0);
+  const stock = { symbol, yahooSymbol:`${symbol}.JK`, name:symbol, lastPrice:bar.close, previousClose,
+    dayOpen:visible[0].open, dayHigh:Math.max(...visible.map((row) => row.high)), dayLow:Math.min(...visible.map((row) => row.low)),
+    volume, avgVolume20:mean(daily.slice(-20).map((row) => number(row.volume)).filter((value) => value > 0)),
+    changePct:pct(bar.close, previousClose), timestamp:now.toISOString(), source:'yahoo-intraday-replay' };
+  const marketDaily = completedDaily(options.ihsgDaily || [], now);
+  const marketVisible = (options.ihsgIntraday || []).filter((row) => dayKey(row.timestamp) === dayKey(now) && new Date(row.timestamp).getTime() + BAR_MS <= now.getTime());
+  const market = { ihsgChangePct:marketVisible.length && marketDaily.length ? pct(marketVisible.at(-1).close, marketDaily.at(-1).close) : null };
+  const histories = { now, daily, intraday:visible, ihsgDaily:marketDaily,
+    intradayBaselines:dayGroups.slice(Math.max(0, dayIndex - 10), dayIndex).map(([, bars]) => bars), previousState:options.previousState };
+  const session = sessionContext(now);
+  const signal = (options.engine || generateSignal)(stock, market, session, histories);
+  return { index:barIndex, bar, stock, market, session, histories, signal, now };
+}
+
+function replayDay(symbol, dayGroups, dayIndex, options = {}) {
+  return dayGroups[dayIndex][1].map((_, index) => snapshotAt(symbol, dayGroups, dayIndex, index, options)).filter(Boolean);
+}
+
+function percentile(values, p) {
+  const sorted = values.filter(Number.isFinite).sort((a, b) => a - b);
+  if (!sorted.length) return null;
+  const position = (sorted.length - 1) * p;
+  const lower = Math.floor(position);
+  return sorted[lower] + (position - lower) * ((sorted[lower + 1] ?? sorted[lower]) - sorted[lower]);
+}
+
+function eventMetrics(symbol, date, bars, previousClose, first) {
+  const future = bars.slice(first.index + 1);
+  const signalPrice = first.signal.lastPrice;
+  const high = Math.max(...bars.map((bar) => bar.high));
+  const futureHigh = future.length ? Math.max(...future.map((bar) => bar.high)) : signalPrice;
+  const futureLow = future.length ? Math.min(...future.map((bar) => bar.low)) : signalPrice;
+  const totalMove = high - previousClose;
+  const milliseconds = new Date(first.bar.timestamp).getTime() + BAR_MS;
+  const lead = (row) => row ? Math.max(0, (new Date(row.timestamp).getTime() + BAR_MS - milliseconds) / 60000) : null;
+  const highBar = bars.find((bar) => bar.high === high);
+  const ind = first.signal.indicators;
+  const bucket = liquidityBucket(first.signal.tradedValue);
+  return { symbol, date, signalIndex:first.index, signalTimestamp:new Date(milliseconds).toISOString(), signalPrice,
+    action:first.signal.action, phase:first.signal.signalPhase || 'LEGACY', category:first.signal.category, araPhase:first.signal.araPhase || null,
+    setupScore:ind.setupScore ?? null, triggerScore:ind.triggerScore ?? null, confirmationScore:ind.confirmationScore ?? null,
+    entryEfficiencyScore:ind.entryEfficiencyScore ?? null, marketRegime:first.signal.marketRegime || 'unknown', liquidityBucket:bucket,
+    dayMaxGainPct:pct(high, previousClose), signalChangePct:pct(signalPrice, previousClose), remainingUpsidePct:pct(futureHigh, signalPrice),
+    capturedMoveRatio:totalMove > 0 ? Math.max(0, Math.min(1, (futureHigh - signalPrice) / totalMove)) : null,
+    leadMinutesToHigh:lead(highBar), detectedBeforeHigh:new Date(highBar.timestamp).getTime() >= milliseconds,
+    mfe:Math.max(0, pct(futureHigh, signalPrice)), mae:Math.min(0, pct(futureLow, signalPrice)),
+    timeToMfeMinutes:lead(future.find((bar) => bar.high === futureHigh)), timeToMaeMinutes:lead(future.find((bar) => bar.low === futureLow)),
+    forwardReturnPct:future.length ? pct(future.at(-1).close, signalPrice) : null,
+    execution:evaluateExecution(future, signalPrice, bucket), execution5:evaluateExecution(future, signalPrice, bucket, { targetPct:5, stopPct:3 }) };
+}
+
+function quality(allDays, events) {
+  const positives = events.filter((event) => event.dayMaxGainPct >= 5 && event.detectedBeforeHigh).length;
+  const negatives = allDays.filter((day) => day.dayMaxGainPct < 5).length;
+  const falsePositives = events.filter((event) => event.dayMaxGainPct < 5).length;
+  const filled = events.filter((event) => event.execution.conservative != null);
+  return { signalDays:events.length, precision:ratio(positives, events.length), falsePositiveRate:ratio(falsePositives, negatives),
+    falseDiscoveryRate:ratio(events.length - positives, events.length), signalsPerTradingDay:ratio(events.length, new Set(allDays.map((day) => day.date)).size),
+    medianMfe:percentile(events.map((event) => event.mfe), 0.5), medianMae:percentile(events.map((event) => event.mae), 0.5),
+    worstMae:events.length ? Math.min(...events.map((event) => event.mae)) : null,
+    averageForwardReturn:mean(events.map((event) => event.forwardReturnPct).filter(Number.isFinite)), medianForwardReturn:percentile(events.map((event) => event.forwardReturnPct), 0.5),
+    conservativeExpectancyPct:mean(filled.map((event) => event.execution.conservativeReturnPct)), optimisticExpectancyPct:mean(filled.map((event) => event.execution.optimisticReturnPct)),
+    conservativeWinRate:ratio(filled.filter((event) => event.execution.conservative).length, filled.length),
+    probability3Before2:ratio(filled.filter((event) => event.execution.targetHit).length, filled.length),
+    probability3Before2Optimistic:ratio(filled.filter((event) => event.execution.targetHitOptimistic).length, filled.length),
+    probability5Before3:ratio(filled.filter((event) => event.execution5.targetHit).length, filled.length),
+    ambiguousCount:filled.filter((event) => event.execution.ambiguous).length };
+}
+
+function summarizeEvents(allDays, events, segments = true) {
+  const runnerCapture = {};
+  for (const threshold of [5, 8, 12, 'nearARA']) {
+    const eligible = (day) => day.dayMaxGainPct >= (threshold === 'nearARA' ? day.araThresholdPct * 0.9 : threshold);
+    const runners = allDays.filter(eligible);
+    const keys = new Set(runners.map((day) => `${day.symbol}|${day.date}`));
+    const detected = events.filter((event) => keys.has(`${event.symbol}|${event.date}`) && event.detectedBeforeHigh);
+    const changes = detected.map((event) => event.signalChangePct);
+    const capture = { totalRunnerDays:runners.length, detectedRunnerDays:detected.length, recall:ratio(detected.length, runners.length),
+      medianFirstSignalChangePct:percentile(changes, 0.5), meanFirstSignalChangePct:mean(changes), p25:percentile(changes, 0.25), p75:percentile(changes, 0.75),
+      medianLeadMinutesToHigh:percentile(detected.map((event) => event.leadMinutesToHigh), 0.5), medianRemainingUpsidePct:percentile(detected.map((event) => event.remainingUpsidePct), 0.5),
+      averageRemainingUpsidePct:mean(detected.map((event) => event.remainingUpsidePct)), medianCapturedMoveRatio:percentile(detected.map((event) => event.capturedMoveRatio), 0.5) };
+    for (const boundary of [2, 3, 5, 8]) {
+      const count = detected.filter((event) => event.signalChangePct < boundary).length;
+      capture[`detectedBefore${boundary}Pct`] = ratio(count, runners.length);
+      capture[`amongDetectedBefore${boundary}Pct`] = ratio(count, detected.length);
+    }
+    runnerCapture[threshold === 'nearARA' ? threshold : `gte${threshold}`] = capture;
+  }
+  const result = { runnerCapture, quality:quality(allDays, events) };
+  if (segments) {
+    result.segments = {};
+    for (const field of ['setupScore', 'triggerScore', 'confirmationScore', 'entryEfficiencyScore', 'signalPrice', 'liquidityBucket', 'marketRegime', 'phase', 'category', 'araPhase']) {
+      const groups = new Map();
+      for (const event of events) {
+        const value = event[field];
+        const key = value == null ? 'unavailable' : field.endsWith('Score') ? String(Math.min(9, Math.floor(value / 10)))
+          : field === 'signalPrice' ? value <= 200 ? '<=200' : value <= 5000 ? '201-5000' : '>5000' : value;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(event);
       }
-      return bars.filter((b) => b.close != null);
-    } catch { }
-  }
-  return null;
-}
-
-// Group 5-min bars by trading day (Asia/Jakarta)
-function groupByDay(bars) {
-  const days = new Map();
-  for (const b of bars) {
-    const d = new Date(b.timestamp);
-    const key = d.toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
-    if (!days.has(key)) days.set(key, []);
-    days.get(key).push(b);
-  }
-  return [...days.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-}
-
-// Build daily candles from 5-min bars (for the `daily` history input)
-function dailyFromIntraday(dayGroups, upToIdx) {
-  const daily = [];
-  for (let i = 0; i < upToIdx && i < dayGroups.length; i++) {
-    const bars = dayGroups[i][1];
-    if (!bars.length) continue;
-    const opens = bars[0].open;
-    const closes = bars[bars.length - 1].close;
-    const highs = Math.max(...bars.map((b) => b.high).filter((v) => v != null));
-    const lows = Math.min(...bars.map((b) => b.low).filter((v) => v != null));
-    const vols = bars.reduce((s, b) => s + (b.volume || 0), 0);
-    daily.push({ date: dayGroups[i][0], open: opens, high: highs, low: lows, close: closes, volume: vols });
-  }
-  return daily;
-}
-
-async function run() {
-  console.log('=== INTRADAY BACKTEST — Real 5-min Bars ===\n');
-  const universe = getUniverse({});
-  // Top 20 by liquidity proxy (largest market-cap names)
-  const top20 = universe.slice(0, 20).map((r) => r.symbol);
-  console.log(`Fetching 5-min bars for ${top20.length} stocks (last 60 days)...\n`);
-
-  const stockData = {};
-  for (const sym of top20) {
-    const bars = await fetchIntraday(sym, 60);
-    if (bars && bars.length > 100) {
-      stockData[sym] = groupByDay(bars);
-      process.stdout.write(`  ${sym}: ${stockData[sym].length} days OK\n`);
-    } else {
-      console.warn(`  ${sym}: failed`);
+      result.segments[field] = Object.fromEntries([...groups].map(([key, values]) => [key, quality(allDays, values)]));
     }
   }
-
-  const symbols = Object.keys(stockData).sort();
-  console.log(`\nBacktesting ${symbols.length} stocks with REAL intraday data...\n`);
-
-  const signals = [];
-  const START = 20; // need ~20 days of daily history
-
-  for (const sym of symbols) {
-    const dayGroups = stockData[sym];
-    if (dayGroups.length < START + 2) continue;
-    for (let d = START; d < dayGroups.length - 1; d++) {
-      const todayBars = dayGroups[d][1];
-      if (todayBars.length < 10) continue;
-      const lastBar = todayBars[todayBars.length - 1];
-      const open = todayBars[0].open;
-      const high = Math.max(...todayBars.map((b) => b.high).filter((v) => v != null));
-      const low = Math.min(...todayBars.map((b) => b.low).filter((v) => v != null));
-      const close = lastBar.close;
-      const volume = todayBars.reduce((s, b) => s + (b.volume || 0), 0);
-      const prevClose = dayGroups[d - 1][1][dayGroups[d - 1][1].length - 1].close;
-
-      const dailyHistory = dailyFromIntraday(dayGroups, d);
-      const avgVol = dailyHistory.slice(-20).map((c) => c.volume).filter((v) => v != null);
-      const avgVolume20 = avgVol.length ? avgVol.reduce((a, b) => a + b, 0) / avgVol.length : null;
-
-      const stock = {
-        symbol: sym, yahooSymbol: `${sym}.JK`, name: sym,
-        lastPrice: close, previousClose: prevClose, dayHigh: high, dayLow: low,
-        volume, avgVolume20,
-        changePct: prevClose > 0 ? ((close - prevClose) / prevClose) * 100 : 0,
-        timestamp: lastBar.timestamp, marketState: 'REGULAR', source: 'yahoo-intraday',
-      };
-
-      const marketContext = { ihsgChangePct: 0 };
-      const sessionStub = { status: 'AFTERNOON', sessionProgress: 0.9, expectedVolumeProgress: 0.85, timezone: 'Asia/Jakarta' };
-      const histories = { daily: dailyHistory, intraday: todayBars, now: new Date(lastBar.timestamp) };
-
-      const sig = generateSignal(stock, marketContext, sessionStub, histories);
-      if (sig.action !== 'BUY' && sig.action !== 'STRONG_BUY' && sig.action !== 'HIGH_CONFIDENCE_BUY' && sig.category !== 'EARLY_MOMENTUM' && sig.category !== 'ARA_CANDIDATE') continue;
-
-      // Next-day return
-      const nextDay = dayGroups[d + 1] ? dayGroups[d + 1][1] : null;
-      if (!nextDay || !nextDay.length) continue;
-      const nextClose = nextDay[nextDay.length - 1].close;
-      const nextOpen = nextDay[0].open;
-      const nextHigh = Math.max(...nextDay.map((b) => b.high).filter((v) => v != null));
-      const nextLow = Math.min(...nextDay.map((b) => b.low).filter((v) => v != null));
-
-      // Win definitions
-      const win1dClose = nextClose > close;
-      const win1dOpen = (nextOpen - close) / close * 100 > 0;
-      // Swing: buy at close, target +3%/-2% next day
-      let swingWin = null;
-      if (nextHigh >= close * 1.03) swingWin = true;
-      else if (nextLow <= close * 0.98) swingWin = false;
-      else swingWin = nextClose > close;
-
-      const ind = sig.indicators;
-      signals.push({
-        sym, action: sig.action, category: sig.category, score: sig.score, changePct: sig.changePct,
-        win1dClose, win1dOpen, swingWin,
-        earlyMom: ind.earlyMomentumScore, accel: ind.acceleration,
-        dts: ind.dailyTrendScore, brk: ind.breakoutScore, vol: ind.projectedVolRatio,
-        fade: ind.lateFadeScore, rsi: ind.rsiDaily, macdH: ind.macdHistogram,
-        rangePos: ind.rangePosition, araProg: ind.araProgressPct,
-      });
-    }
-  }
-
-  const n = signals.length;
-  console.log(`Total signals (BUY/STRONG_BUY/EARLY_MOMENTUM/ARA): ${n}\n`);
-
-  function rep(label, subset) {
-    if (subset.length < 3) { console.log(`${label.padEnd(35)} n=${subset.length} [too small]`); return; }
-    const w1 = subset.filter((s) => s.win1dClose).length / subset.length * 100;
-    const wO = subset.filter((s) => s.win1dOpen).length / subset.length * 100;
-    const ws = subset.filter((s) => s.swingWin === true).length / subset.filter((s) => s.swingWin != null).length * 100;
-    console.log(`${label.padEnd(35)} n=${subset.length.toString().padStart(4)}  1dClose=${w1.toFixed(1).padStart(5)}%  1dOpen=${wO.toFixed(1).padStart(5)}%  swing=${ws.toFixed(1).padStart(5)}%`);
-  }
-
-  rep('ALL SIGNALS', signals);
-  rep('HIGH_CONFIDENCE_BUY', signals.filter((s) => s.action === 'HIGH_CONFIDENCE_BUY'));
-  rep('EARLY_MOMENTUM', signals.filter((s) => s.category === 'EARLY_MOMENTUM'));
-  rep('ARA_CANDIDATE', signals.filter((s) => s.category === 'ARA_CANDIDATE'));
-  rep('BUY', signals.filter((s) => s.action === 'BUY'));
-  rep('STRONG_BUY', signals.filter((s) => s.action === 'STRONG_BUY'));
-  rep('EARLY_MOMENTUM+accel>55', signals.filter((s) => s.category === 'EARLY_MOMENTUM' && s.accel > 55));
-  rep('EARLY_MOMENTUM+accel>60', signals.filter((s) => s.category === 'EARLY_MOMENTUM' && s.accel > 60));
-
-  // Filter sweep on ARA_CANDIDATE for 1dOpen win rate
-  console.log('\n--- ARA_CANDIDATE 1dOpen filter sweep ---');
-  const ara = signals.filter((s) => s.category === 'ARA_CANDIDATE');
-  const filters = [
-    { name: 'accel>55', fn: (s) => s.accel > 55 },
-    { name: 'accel>60', fn: (s) => s.accel > 60 },
-    { name: 'vol>=1.5', fn: (s) => s.vol >= 1.5 },
-    { name: 'vol>=2.0', fn: (s) => s.vol >= 2.0 },
-    { name: 'dts>=55', fn: (s) => s.dts >= 55 },
-    { name: 'dts>=60', fn: (s) => s.dts >= 60 },
-    { name: 'brk>=40', fn: (s) => s.brk >= 40 },
-    { name: 'fade<=30', fn: (s) => s.fade <= 30 },
-    { name: 'fade<=25', fn: (s) => s.fade <= 25 },
-    { name: 'rsi45-65', fn: (s) => s.rsi != null && s.rsi >= 45 && s.rsi <= 65 },
-    { name: 'macdH>0', fn: (s) => s.macdH != null && s.macdH > 0 },
-    { name: 'rangePos>=0.6', fn: (s) => s.rangePos >= 0.6 },
-    { name: 'chg3-7', fn: (s) => s.changePct >= 3 && s.changePct <= 7 },
-    { name: 'araProg20-50', fn: (s) => s.araProg >= 20 && s.araProg <= 50 },
-  ];
-  for (const f of filters) {
-    const subset = ara.filter(f.fn);
-    if (subset.length < 5) continue;
-    const wO = subset.filter((s) => s.win1dOpen).length / subset.length * 100;
-    const wC = subset.filter((s) => s.win1dClose).length / subset.length * 100;
-    if (wO >= 65) console.log(`  ${f.name.padEnd(16)} n=${subset.length.toString().padStart(4)}  1dOpen=${wO.toFixed(1).padStart(5)}%  1dClose=${wC.toFixed(1).padStart(5)}%`);
-  }
-
-  // Greedy combination
-  console.log('\n--- GREEDY COMBO (target 80% 1dOpen) ---');
-  let current = ara;
-  const used = [];
-  for (let iter = 0; iter < 8; iter++) {
-    let best = null;
-    for (const f of filters) {
-      if (used.includes(f.name)) continue;
-      const subset = current.filter(f.fn);
-      if (subset.length < 4) continue;
-      const wO = subset.filter((s) => s.win1dOpen).length / subset.length * 100;
-      const score = wO + Math.min(subset.length / 10, 5);
-      if (!best || score > best.score) best = { name: f.name, subset, wO, n: subset.length };
-    }
-    if (!best) break;
-    used.push(best.name);
-    current = best.subset;
-    console.log(`  step${iter + 1}: +${best.name}  n=${best.n}  1dOpen=${best.wO.toFixed(1)}%`);
-    if (best.wO >= 80 && best.n >= 5) { console.log('  >>> 80% REACHED <<<'); break; }
-  }
-  console.log(`  Final: ${used.join('+')}  n=${current.length}  1dOpen=${(current.filter((s) => s.win1dOpen).length / current.length * 100).toFixed(1)}%`);
-
-  console.log('\n=============================================');
-  console.log('Intraday backtest complete.');
+  return result;
 }
 
-run().catch((e) => { console.error(e); process.exit(1); });
+function chronologicalSplits(days) {
+  const dates = [...new Set(days.map((day) => day.date))].sort();
+  return { train:new Set(dates.slice(0, Math.floor(dates.length * 0.6))),
+    validation:new Set(dates.slice(Math.floor(dates.length * 0.6), Math.floor(dates.length * 0.8))), test:new Set(dates.slice(Math.floor(dates.length * 0.8))) };
+}
+
+function evaluateStockData(dataset, options = {}) {
+  const prepared = Object.fromEntries(Object.entries(dataset.stocks).map(([symbol, data]) => [symbol, { ...data, groups:groupByDay(data.intraday) }]));
+  const allDates = [...new Set(Object.values(prepared).flatMap((data) => data.groups.map(([date]) => date)))].sort();
+  const split = chronologicalSplits(allDates.map((date) => ({ date })));
+  const selectedDates = options.split === 'development' ? new Set([...split.train, ...split.validation]) : split[options.split] || new Set(allDates);
+  const events = [];
+  const buyEvents = [];
+  const allDays = [];
+  let snapshots = 0;
+  const discovery = options.discovery ? pipelineSelection(prepared, selectedDates, options) : null;
+  for (const [symbol, data] of Object.entries(prepared)) {
+    if (symbol === '^JKSE') continue;
+    for (let d = 0; d < data.groups.length; d += 1) {
+      const [date, bars] = data.groups[d];
+      if (!selectedDates.has(date) || bars.length < 7 || minuteOfDay(bars[0].timestamp) !== 540 || minuteOfDay(bars.at(-1).timestamp) < 945) continue;
+      const prior = completedDaily(data.daily, bars[0].timestamp);
+      if (prior.length < 20 || !(mean(prior.slice(-20).map((row) => row.close * row.volume)) >= config.minimumTradedValue)) continue;
+      const previousClose = prior.at(-1).close;
+      allDays.push({ symbol, date, dayMaxGainPct:pct(Math.max(...bars.map((bar) => bar.high)), previousClose), araThresholdPct:previousClose <= 200 ? 35 : previousClose <= 5000 ? 25 : 20 });
+      let first = null;
+      let firstBuy = null;
+      for (let i = 0; i < bars.length - 1; i += 1) {
+        const engine = discovery ? (stock, market, session, histories) => {
+          const enriched = discovery.get(stock.timestamp)?.has(symbol);
+          return (options.engine || generateSignal)({ ...stock, avgVolume20:enriched ? stock.avgVolume20 : null }, market, session,
+            enriched ? histories : { now:histories.now, ihsgDaily:histories.ihsgDaily });
+        } : options.engine;
+        const snapshot = snapshotAt(symbol, data.groups, d, i, { ...options, engine, daily:prior, ihsgDaily:prepared['^JKSE']?.daily,
+          ihsgIntraday:prepared['^JKSE']?.groups.find(([key]) => key === date)?.[1] || [] });
+        snapshots += 1;
+        if (!snapshot) continue;
+        if (options.onSnapshot) options.onSnapshot({ symbol, date, index:i, signal:snapshot.signal });
+        if (!first && isMeaningful(snapshot.signal)) first = snapshot;
+        if (!firstBuy && isMeaningful(snapshot.signal) && ['BUY', 'STRONG_BUY', 'HIGH_CONFIDENCE_BUY'].includes(snapshot.signal.action)) firstBuy = snapshot;
+      }
+      if (first) events.push(eventMetrics(symbol, date, bars, previousClose, first));
+      if (firstBuy) buyEvents.push(eventMetrics(symbol, date, bars, previousClose, firstBuy));
+    }
+  }
+  const report = { snapshots, overall:summarizeEvents(allDays, events), actionable:summarizeEvents(allDays, buyEvents), splits:{} };
+  for (const [name, dates] of Object.entries(split)) if (name !== 'test' || options.split === 'test' || options.split === 'all') {
+    report.splits[name] = summarizeEvents(allDays.filter((day) => dates.has(day.date)), events.filter((event) => dates.has(event.date)), false);
+  }
+  return { report, events, buyEvents, allDays };
+}
+
+function pipelineSelection(prepared, dates, options) {
+  const selected = new Map();
+  const state = new Map();
+  for (const date of [...dates].sort()) {
+    const days = Object.entries(prepared).filter(([symbol]) => symbol !== '^JKSE').map(([symbol, data]) => {
+      const dayIndex = data.groups.findIndex(([key]) => key === date);
+      return { symbol, data, dayIndex, bars:data.groups[dayIndex]?.[1] || [] };
+    }).filter((day) => day.bars.length);
+    const times = [...new Set(days.flatMap((day) => day.bars.map((bar) => bar.timestamp)))].sort();
+    for (const timestamp of times) {
+      const frames = days.map((day) => {
+        const index = day.bars.findIndex((bar) => bar.timestamp === timestamp);
+        return index < 0 ? null : snapshotAt(day.symbol, day.data.groups, day.dayIndex, index, {
+          daily:day.data.daily, ihsgDaily:prepared['^JKSE']?.daily, engine:() => null,
+        });
+      }).filter(Boolean);
+      if (!frames.length) continue;
+      const now = frames[0].now;
+      const quotes = frames.map((frame) => ({ ...frame.stock, avgVolume20:null }));
+      const previous = [...state.values()].filter((row) => now - new Date(row.updatedAt) <= 3 * 86400000);
+      const candidates = options.discovery === 'baseline'
+        ? [...new Map([
+          ...[...quotes].sort((a, b) => b.volume * b.lastPrice - a.volume * a.lastPrice).slice(0, 20),
+          ...[...quotes].sort((a, b) => Math.abs(b.changePct) - Math.abs(a.changePct)).slice(0, 20),
+        ].map((quote) => [quote.symbol, quote])).values()]
+        : selectHistoryCandidates(quotes, previous, config.historyCandidateLimit);
+      const symbols = new Set(candidates.map((quote) => quote.symbol));
+      selected.set(now.toISOString(), symbols);
+      if (options.discovery !== 'baseline') {
+        for (const frame of frames.filter((frame) => symbols.has(frame.stock.symbol))) {
+          // Only already selected histories may seed the next scan's optional discovery memory.
+          const signal = generateSignal(frame.stock, {}, frame.session, frame.histories);
+          if (signal.indicators.setupHistoryAvailable && signal.dataQuality >= 60) state.set(frame.stock.symbol, {
+            symbol:frame.stock.symbol, setupScore:signal.setupScore, updatedAt:now.toISOString(),
+          });
+        }
+      }
+    }
+  }
+  return selected;
+}
+
+function run() {
+  const input = path.resolve(process.argv[2] || '.replay-cache/replay-data.json');
+  const split = process.argv[3] || 'development';
+  if (!['development', 'train', 'validation', 'test', 'all'].includes(split)) throw new Error('Invalid split');
+  const output = path.resolve(process.argv[4] || `.replay-cache/replay-${split}.json`);
+  const content = fs.readFileSync(input);
+  const dataset = JSON.parse(content);
+  const report = { dataset:{ sha256:crypto.createHash('sha256').update(content).digest('hex'), capturedAt:dataset.capturedAt, selection:dataset.selection, failures:dataset.failures }, split, baselineRef:BASELINE_REF,
+    assumptions:{ time:'Signal at completed 5-minute bar end, next-bar open entry; no auction or lunch signals', eligibility:'Prior 20-day mean traded value >= IDR500m, opening and closing coverage required',
+      capturedMoveRatio:'clamp((futureHigh - signalPrice) / (dayHigh - previousClose),0,1); null for nonpositive denominator',
+      execution:config.backtest, falsePositiveRate:'Nonrunner signal days / all eligible nonrunner days; falseDiscoveryRate is reported separately',
+      detection:'Visible candidate category or BUY action, valid data and non-HIGH risk, strictly before day-high bar',
+      limitations:['Current universe survivorship bias', 'No historical broker flow or corporate-action calendar', 'Five-minute OHLCV cannot prove queue availability', 'Regular-board ARA proxy only', 'Full-history comparison does not measure production history-selection misses'] }, engines:{} };
+  if (process.argv.includes('--pipeline')) {
+    report.assumptions.discovery = 'Original top-20 liquidity/top-20 absolute momentum union versus revised capped discovery with chronological optional state; quote averages unavailable until enrichment; state starts cold at the split boundary';
+    report.assumptions.limitations.pop();
+    report.assumptions.limitations.push('Sampled universe only; no claim of full-exchange discovery coverage or provider/cache latency');
+  }
+  for (const [name, engine] of [['baseline', baselineEngine()], ['revised', generateSignal]]) {
+    const start = Date.now();
+    const discovery = process.argv.includes('--pipeline') ? name : null;
+    const result = evaluateStockData(dataset, { engine, split, discovery });
+    report.engines[name] = { runtimeMs:Date.now() - start, symbolDays:result.allDays.length, ...result.report, events:result.events, buyEvents:result.buyEvents };
+    console.log(JSON.stringify({ engine:name, split, runtimeMs:report.engines[name].runtimeMs, overall:result.report.overall.runnerCapture, quality:result.report.overall.quality }));
+  }
+  fs.mkdirSync(path.dirname(output), { recursive:true });
+  fs.writeFileSync(output, JSON.stringify(report, null, 2));
+  console.log(`Report: ${output}`);
+}
+
+if (require.main === module) { try { run(); } catch (error) { console.error(error); process.exitCode = 1; } }
+module.exports = { BASELINE_REF, baselineEngine, groupByDay, dailyFromIntraday, snapshotAt, replayDay, evaluateExecution, eventMetrics, isMeaningful, percentile, chronologicalSplits, summarizeEvents, evaluateStockData, pipelineSelection };

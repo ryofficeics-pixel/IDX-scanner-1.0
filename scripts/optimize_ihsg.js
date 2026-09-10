@@ -1,5 +1,7 @@
 'use strict';
 
+throw new Error('LEGACY_OPTIMIZER_RETIRED: retain date-aligned IHSG context and chronological holdouts. Use scripts/intradayBacktest.js with frozen train/validation/test splits.');
+
 const { generateSignal } = require('../lib/engine/signalEngine');
 const { getUniverse } = require('../lib/market/idxUniverse');
 

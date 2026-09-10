@@ -10,7 +10,7 @@ function loadFrontend() {
   const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
   const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map((match) => match[1]).filter(Boolean);
   const fullScript = scripts.at(-1);
-  const initMarker = fullScript.lastIndexOf('// INIT\n');
+  const initMarker = fullScript.search(/\/\/ INIT\r?\n/);
   const appScript = initMarker >= 0 ? fullScript.slice(0, initMarker) : fullScript;
   const context = {
     window:{},

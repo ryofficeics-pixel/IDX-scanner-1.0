@@ -40,6 +40,10 @@ function signalAt(iso, overrides = {}, market = { ihsgChangePct:0.2 }, historyOv
 test('liquid strong momentum can become buy or strong buy', () => {
   const sig = signalAt('2026-06-11T02:30:00.000Z', {
     lastPrice:1040, previousClose:1000, volume:70000000, avgVolume20:10000000, dayHigh:1042, dayLow:995,
+  }, { ihsgChangePct:0.2 }, {
+    intraday:[995, 996, 997, 1000, 1010, 1025, 1040].map((close, index) => ({
+      open:close - 2, high:close + 2, low:close - 3, close, volume:index < 4 ? 1e6 : (index - 2) * 2e6,
+    })),
   });
   assert.ok(['BUY', 'STRONG_BUY', 'HIGH_CONFIDENCE_BUY'].includes(sig.action));
   assert.notEqual(sig.riskLevel, 'HIGH');
@@ -164,6 +168,12 @@ test('buy on weakness accepts healthy pullback in long uptrend', () => {
   assert.ok(bow.score >= 55, `score ${bow.score} < 55`);
   assert.equal(bow.action, 'BOW_BUY');
   assert.ok(bow.trend !== 'Rejected');
+  if (bow.preMarketPlan) {
+    assert.equal(bow.preMarketPlan.stopLoss, bow.entry.stopLoss);
+    assert.equal(bow.preMarketPlan.entryLimit, bow.entry.aggressiveEntry);
+    assert.equal(bow.preMarketPlan.target, bow.entry.target1);
+  }
+  if (bow.patterns.length) assert.equal(bow.entry.stopLoss, Math.round(bow.patterns[0].invalidation));
 });
 
 test('buy on weakness rejects falling knife', () => {

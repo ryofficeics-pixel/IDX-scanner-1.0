@@ -2,6 +2,7 @@
 node_modules
 test-results
 playwright-report
+.replay-cache/
 .env
 .env.*
 !.env.example

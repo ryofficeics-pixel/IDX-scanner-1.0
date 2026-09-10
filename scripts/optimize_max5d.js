@@ -1,5 +1,7 @@
 'use strict';
 
+throw new Error('LEGACY_OPTIMIZER_RETIRED: daily-bar optimization does not validate intraday entry timing. Use scripts/intradayBacktest.js with frozen train/validation/test splits.');
+
 const { generateSignal } = require('../lib/engine/signalEngine');
 const { getUniverse } = require('../lib/market/idxUniverse');
 
