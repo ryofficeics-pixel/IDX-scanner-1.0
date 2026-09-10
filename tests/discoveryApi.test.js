@@ -48,7 +48,7 @@ test('API retains every recommendation collection, enriches bounded candidates, 
     const body = await call({ symbols });
     assert.equal(body.ok, true);
     assert.equal(body.summary.scanned, 120);
-    const keys = ['buyOnWeakness', 'strongBuy', 'beliPagi', 'beliSore', 'topBuy', 'topGainers', 'accumulationProxy', 'distributionProxy', 'araCandidates', 'earlyMomentum', 'morningWatch', 'risk', 'hold', 'sell'];
+    const keys = ['buyOnWeakness', 'bowWatch', 'strongBuy', 'beliPagi', 'beliSore', 'topBuy', 'topGainers', 'accumulationProxy', 'distributionProxy', 'araCandidates', 'earlyMomentum', 'morningWatch', 'risk', 'hold', 'sell'];
     assert.deepEqual(Object.keys(body.recommendations).sort(), keys.sort());
     assert.equal(body.diagnostics.candidatePass1Count, 120);
     assert.equal(body.diagnostics.historyCandidateCount, 72);

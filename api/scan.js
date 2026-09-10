@@ -22,7 +22,7 @@ const { setCors } = require('../lib/utils/http');
 const { withTimeout, providerBudget } = require('../lib/utils/async');
 function send(res, status, body) { res.status(status).json(body); }
 function emptyRecs() {
-  return { buyOnWeakness:[], strongBuy:[], beliPagi:[], beliSore:[], topBuy:[], topGainers:[], accumulationProxy:[], distributionProxy:[], araCandidates:[], earlyMomentum:[], morningWatch:[], risk:[], hold:[], sell:[] };
+  return { buyOnWeakness:[], bowWatch:[], strongBuy:[], beliPagi:[], beliSore:[], topBuy:[], topGainers:[], accumulationProxy:[], distributionProxy:[], araCandidates:[], earlyMomentum:[], morningWatch:[], risk:[], hold:[], sell:[] };
 }
 function pushRec(recs, sig) {
   if (sig.action === 'STRONG_BUY') recs.strongBuy.push(sig);
@@ -42,6 +42,7 @@ function pushRec(recs, sig) {
 function pushBowRec(recs, bow) {
   if (!bow) return;
   if (bow.action === 'BOW_BUY') recs.buyOnWeakness.push(bow);
+  else if (bow.action === 'WATCH' && bow.patterns?.length) recs.bowWatch.push(bow);
   else if (bow.category === 'Falling Knife' || bow.volume === 'Distribution') recs.risk.push({
     ...bow,
     action:'AVOID',
@@ -334,7 +335,7 @@ module.exports = async function handler(req, res) {
   diagnostics.extendedCandidateCount = signals.filter((signal) => signal.signalPhase === 'EXTENDED').length;
   if (!debug) await candidateState.save(signals, now);
   Object.keys(recs).forEach((key) => {
-    if (key === 'buyOnWeakness') {
+    if (key === 'buyOnWeakness' || key === 'bowWatch') {
       recs[key].sort((a, b) => {
         const aBoom = a.morningBoom?.score ?? 0;
         const bBoom = b.morningBoom?.score ?? 0;
@@ -344,7 +345,7 @@ module.exports = async function handler(req, res) {
     } else {
       recs[key].sort((a, b) => (b.score - a.score) || ((b.changePct || 0) - (a.changePct || 0)));
     }
-    if (!debug) recs[key] = recs[key].slice(0, key === 'hold' ? 40 : key === 'buyOnWeakness' ? 30 : 20);
+    if (!debug) recs[key] = recs[key].slice(0, key === 'hold' ? 40 : ['buyOnWeakness', 'bowWatch'].includes(key) ? 30 : 20);
   });
   const valid = signals.filter((s) => s.dataQuality >= 40).length;
   const noData = signals.filter((s) => s.action === 'NO_DATA').length;
@@ -368,6 +369,7 @@ module.exports = async function handler(req, res) {
       valid,
       noData,
       buyOnWeaknessCount:recs.buyOnWeakness.length,
+      bowWatchCount:recs.bowWatch.length,
       morningBoomCount:recs.buyOnWeakness.filter((b) => (b.morningBoom?.score ?? 0) >= 50).length,
       strongBuyCount:recs.strongBuy.length,
       buyCount:signals.filter((s) => s.action === 'BUY' || s.action === 'STRONG_BUY').length,

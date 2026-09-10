@@ -167,6 +167,9 @@ test('buy on weakness accepts healthy pullback in long uptrend', () => {
   }), { ihsgReturn3M:3 }, { daily });
   assert.ok(bow.score >= 55, `score ${bow.score} < 55`);
   assert.equal(bow.action, 'BOW_BUY');
+  assert.ok(bow.previousClose > 0);
+  assert.ok(bow.marketVolume > 0);
+  assert.ok(bow.tradedValue > 0);
   assert.ok(bow.trend !== 'Rejected');
   if (bow.preMarketPlan) {
     assert.equal(bow.preMarketPlan.stopLoss, bow.entry.stopLoss);

@@ -15,9 +15,11 @@ function sampleScan(overrides = {}) {
     timezone:'Asia/Jakarta',
     session:{ status:'MORNING', sessionProgress:0.2, expectedVolumeProgress:0.3 },
     market:{ ihsgPrice:7000, ihsgChangePct:0.2, source:'unit', timestamp:now.toISOString() },
-    summary:{ scanned:1, valid:1, noData:0, strongBuyCount:0, buyCount:1, holdCount:0, sellCount:0, topGainerCount:1, accumulationProxyCount:0, distributionProxyCount:0, errorCount:0 },
+    summary:{ scanned:2, valid:2, noData:0, strongBuyCount:0, buyOnWeaknessCount:0, bowWatchCount:1, buyCount:1, holdCount:1, sellCount:0, topGainerCount:1, accumulationProxyCount:0, distributionProxyCount:0, errorCount:0 },
     recommendations:{
       strongBuy:[], beliPagi:[], beliSore:[],
+      buyOnWeakness:[],
+      bowWatch:[{ symbol:'BMRI', name:'Bank Mandiri', lastPrice:5200, previousClose:5250, changePct:-0.95, volume:8000000, avgVolume20:10000000, score:72, action:'WATCH', category:'Watchlist', verdict:'Watchlist', strategyFamily:'MA20_PULLBACK', patterns:[{ name:'MA20_PULLBACK', support:5150, invalidation:4995, score:72 }], reasons:['Harga dekat support'], warnings:[], source:'unit', timestamp:now.toISOString() }],
       topBuy:[{ symbol:'BBCA', name:'BBCA', lastPrice:1000, previousClose:980, changePct:2.04, volume:1000000, avgVolume20:500000, tradedValue:1e9, score:75, action:'BUY', category:'TOP_BUY', riskLevel:'LOW', dataQuality:90, confidence:80, reasons:['Momentum positif'], warnings:[], indicators:{ rangePosition:0.8, projectedVolRatio:2, liquidityScore:60 }, source:'unit', timestamp:now.toISOString() }],
       topGainers:[], accumulationProxy:[], distributionProxy:[], risk:[], hold:[], sell:[],
     },
@@ -63,6 +65,8 @@ test('scan success renders metadata and signal area', async ({ page }) => {
   await expect(page.locator('body')).toContainText('Provider');
   await expect(page.locator('body')).toContainText('LIVE');
   await expect(page.locator('body')).toContainText('TOP BUY SIGNALS');
+  await expect(page.locator('body')).toContainText('BOW WATCH, BELUM BUY');
+  await expect(page.locator('body')).toContainText('tunggu reclaim dan volume');
 });
 
 test('optional external enrichment renders without changing the core signal', async ({ page }) => {
