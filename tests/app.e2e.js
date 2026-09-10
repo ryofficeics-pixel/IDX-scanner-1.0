@@ -51,7 +51,7 @@ test('fresh open runs scan and does not require CSV', async ({ page }) => {
   const scanResponse = page.waitForResponse((res) => res.url().includes('/api/scan') && res.status() === 200);
   await page.reload();
   await scanResponse;
-  await expect(page.locator('body')).toContainText('SIGNAL REKOMENDASI');
+  await expect(page.locator('body')).toContainText('BOW PRIORITY');
   await expect(page.locator('body')).not.toContainText('Import CSV flow');
   await expect(page.locator('body')).not.toContainText('Strong Buy hanya valid jika flow lengkap');
 });
@@ -83,6 +83,7 @@ test('optional external enrichment renders without changing the core signal', as
     } },
   }) }));
   await page.goto(local.url);
+  await page.getByRole('button', { name:/^BUY 1$/ }).click();
   await expect(page.locator('body')).toContainText('EXT 1');
   await page.evaluate(() => openDetail('BBCA'));
   await page.getByRole('button', { name:'External' }).click();
@@ -97,7 +98,7 @@ test('API failure with cache renders cached result as cache mode', async ({ page
   await page.route('**/api/scan**', (route) => route.abort());
   await page.goto(local.url);
   await expect(page.locator('body')).toContainText('CACHE');
-  await expect(page.locator('body')).toContainText('SIGNAL REKOMENDASI');
+  await expect(page.locator('body')).toContainText('BOW PRIORITY');
 });
 
 test('API failure without cache does not crash', async ({ page }) => {
@@ -121,7 +122,7 @@ test('corrupt localStorage recovers', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('idx_flow_cache_v2', '{bad-json'));
   await page.route('**/api/scan**', (route) => route.fulfill({ contentType:'application/json', body:JSON.stringify(sampleScan()) }));
   await page.goto(local.url);
-  await expect(page.locator('body')).toContainText('SIGNAL REKOMENDASI');
+  await expect(page.locator('body')).toContainText('BOW PRIORITY');
 });
 
 test('mobile viewport remains usable', async ({ page }) => {

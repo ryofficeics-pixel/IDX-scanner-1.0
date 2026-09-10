@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
 <meta name="theme-color" content="#000000">
-<title>IDX Flow Scanner v2.2</title>
+<title>IDX Flow Scanner v2.2 BOW</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lightweight-charts@5.2.0/dist/lightweight-charts.standalone.production.js"></script>
@@ -34,6 +34,7 @@ body{background:var(--canvas);color:var(--ink);font-family:'Inter',-apple-system
 ::-webkit-scrollbar{width:0;height:0;}
 input,button{font-family:'Inter',-apple-system,system-ui,sans-serif;}
 button{border:none;cursor:pointer;background:none;}
+button:focus-visible,input:focus-visible{outline:2px solid #2b89ff;outline-offset:2px;}
 .mono{font-family:'DM Mono',monospace;}
 .page{display:none;width:100%;padding:64px 16px 96px;max-width:430px;margin:0 auto;min-height:100vh;}
 .page.active{display:block;}
@@ -114,7 +115,7 @@ span[style*="border-radius:999px"][style*="padding:8px 24px"]{border-radius:8px!
       <div style="width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,#7b42bc,#2b89ff);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;box-shadow:0 0 14px rgba(123,66,188,.5);">IDX</div>
       <div>
         <div style="font-size:13px;font-weight:800;letter-spacing:.06em;line-height:1;">IDX FLOW</div>
-        <div style="font-size:8px;color:rgba(255,255,255,.38);letter-spacing:.12em;margin-top:1px;">SCANNER v2.2</div>
+        <div style="font-size:8px;color:rgba(255,255,255,.38);letter-spacing:.12em;margin-top:1px;">SCANNER v2.2 · BOW</div>
       </div>
     </div>
     <div style="display:flex;gap:8px;align-items:center;">
@@ -332,7 +333,7 @@ var STATE = {
   // Flow data override (from CSV upload)
   uploadedFlow:{},
   // Page state
-  dashTab:'buy', scanFilter:'all', scanSort:'score',
+  dashTab:'bow', scanFilter:'all', scanSort:'bow',
   scanView:'card', scanSearch:'', sigTab:'buy', detailTab:'signal',
 };
 
@@ -1452,14 +1453,14 @@ function recommendationPanelHTML(enriched) {
   return '<div class="card" style="padding:14px 16px;margin-bottom:14px;border-color:rgba(0,255,156,.22);background:radial-gradient(ellipse at 20% 0%,rgba(0,255,156,.10),rgba(255,255,255,.04) 62%);">'
     +freshnessPanelHTML()
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;">'
-    +'<div><div style="font-size:12px;font-weight:900;color:'+C.green+';letter-spacing:.06em;">SIGNAL REKOMENDASI</div><div style="font-size:10px;color:'+C.ter+';margin-top:3px;">'+scanInfo+'</div></div>'
-    +'<div class="mono" style="font-size:18px;font-weight:900;color:'+C.green+';">'+strong.length+'</div></div>'
-    +(strong.length
-      ? '<div class="hscroll" style="margin-bottom:10px;">'+strong.slice(0,6).map(planCardHTML).join('')+'</div>'
-      : '<div style="padding:12px;background:rgba(255,207,37,.08);border:1px solid rgba(255,207,37,.25);border-radius:12px;color:'+C.yellow+';font-size:11px;line-height:1.5;margin-bottom:10px;">Auto scan aktif. Belum ada STRONG BUY valid berdasarkan data harga, volume, momentum, likuiditas, dan risk filter saat ini.</div>')
+    +'<div><div style="font-size:12px;font-weight:900;color:'+C.green+';letter-spacing:.06em;">BOW PRIORITY</div><div style="font-size:10px;color:'+C.ter+';margin-top:3px;">'+scanInfo+'</div></div>'
+    +'<div class="mono" style="font-size:18px;font-weight:900;color:'+C.green+';">'+bow.length+'</div></div>'
     +(bow.length
-      ? '<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;"><span style="font-size:10px;font-weight:900;color:'+C.green+';letter-spacing:.06em;">BUY ON WEAKNESS</span><button onclick="STATE.scanFilter=\'bow\';showPage(\'scanner\')" style="color:'+C.cyan+';font-size:10px;">Lihat</button></div><div class="hscroll">'+bow.slice(0,6).map(bowMiniCardHTML).join('')+'</div></div>'
+      ? '<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;"><span style="font-size:10px;font-weight:900;color:'+C.green+';letter-spacing:.06em;">BUY ON WEAKNESS (BOW)</span><button onclick="STATE.scanFilter=\'bow\';showPage(\'scanner\')" style="color:'+C.cyan+';font-size:10px;">Lihat</button></div><div class="hscroll">'+bow.slice(0,6).map(bowMiniCardHTML).join('')+'</div></div>'
       : '<div style="padding:10px 12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:'+C.ter+';font-size:10px;line-height:1.45;margin-bottom:10px;">Belum ada kandidat Buy on Weakness. Modul tetap menolak saham yang gagal MA200, koreksi ekstrem, distribusi berat, atau likuiditas rendah.</div>')
+    +(strong.length
+      ? '<div style="margin-bottom:7px;font-size:9px;font-weight:800;color:'+C.ter+';letter-spacing:.06em;">STRENGTH CONFIRMATION</div><div class="hscroll" style="margin-bottom:10px;">'+strong.slice(0,6).map(planCardHTML).join('')+'</div>'
+      : '<div style="padding:10px 12px;background:rgba(255,207,37,.08);border:1px solid rgba(255,207,37,.25);border-radius:12px;color:'+C.yellow+';font-size:10px;line-height:1.45;margin-bottom:10px;">Belum ada konfirmasi strength yang lolos filter harga, volume, momentum, likuiditas, dan risiko.</div>')
     +(morningWatch.length
       ? '<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;"><span style="font-size:10px;font-weight:900;color:'+C.purple+';letter-spacing:.06em;">MORNING WATCH (evening scan)</span><button onclick="STATE.scanFilter=\'morning\';showPage(\'scanner\')" style="color:'+C.cyan+';font-size:10px;">Lihat</button></div><div class="hscroll">'+morningWatch.slice(0,6).map(morningWatchCardHTML).join('')+'</div></div>'
       : '')
